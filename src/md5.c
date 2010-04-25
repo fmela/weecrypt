@@ -303,4 +303,5 @@ md5_hash(const void *input, unsigned len, void *digest)
 	md5_init(&ctx);
 	md5_update(&ctx, input, len);
 	md5_final(&ctx, digest);
+	memset(&ctx, 0, sizeof(ctx));
 }

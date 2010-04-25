@@ -19,6 +19,6 @@ typedef struct {
 void md2_init(md2_context *ctx);
 void md2_update(md2_context *ctx, const void *input, unsigned len);
 void md2_final(md2_context *ctx, void *digest);
-void md2_hash(md2_context *ctx, const void *in, unsigned len, void *digest);
+void md2_hash(const void *in, unsigned len, void *digest);
 
 #endif /* !_MD2_H_ */

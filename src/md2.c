@@ -153,14 +153,16 @@ md2_step(unsigned char *md2, unsigned char *cksum, const unsigned char *data)
 }
 
 void
-md2_hash(md2_context *ctx, const void *input, unsigned len, void *digest)
+md2_hash(const void *input, unsigned len, void *digest)
 {
-	ASSERT(ctx != NULL);
+	md2_context ctx;
+
 	ASSERT(input != NULL);
 	ASSERT(len > 0);
 	ASSERT(digest != NULL);
 
-	md2_init(ctx);
-	md2_update(ctx, input, len);
-	md2_final(ctx, digest);
+	md2_init(&ctx);
+	md2_update(&ctx, input, len);
+	md2_final(&ctx, digest);
+	memset(&ctx, 0, sizeof(ctx));
 }

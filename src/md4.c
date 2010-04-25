@@ -236,14 +236,16 @@ md4_decode(unsigned int *output, const unsigned char *input, unsigned len)
 
 
 void
-md4_hash(md4_context *ctx, const void *input, unsigned len, void *digest)
+md4_hash(const void *input, unsigned len, void *digest)
 {
-	ASSERT(ctx != NULL);
+	md4_context ctx;
+
 	ASSERT(input != NULL);
 	ASSERT(len > 0);
 	ASSERT(digest != NULL);
 
-	md4_init(ctx);
-	md4_update(ctx, input, len);
-	md4_final(ctx, digest);
+	md4_init(&ctx);
+	md4_update(&ctx, input, len);
+	md4_final(&ctx, digest);
+	memset(&ctx, 0, sizeof(ctx));
 }

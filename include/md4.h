@@ -16,6 +16,6 @@ typedef struct {
 void md4_init(md4_context *ctx);
 void md4_update(md4_context *ctx, const void *data, unsigned len);
 void md4_final(md4_context *ctx, void *digest);
-void md4_hash(md4_context *ctx, const void *input, unsigned len, void *digest); // digest must be 16 bytes
+void md4_hash(const void *input, unsigned len, void *digest); // digest must be 16 bytes
 
 #endif // !__FX_MD4_H__
