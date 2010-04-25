@@ -171,15 +171,17 @@ mpq_poly_print(const mpq_poly_t p, char coeff, const char *fmt, ...)
 			if (neg)
 				mpq_neg(p->c[j]);
 			if (k || neg) printf("%c", neg ? '-' : '+');
-			if (!mpq_is_one(p->c[j])) {
+			if (mpi_is_one(p->c[j]->den)) {
+				mpi_print_dec(p->c[j]->num);
+			} else {
 				printf("(");
 				mpq_print_dec(p->c[j]);
-				printf(")*");
+				printf(")");
 			}
 			if (j > 1)
-				printf("%c^%d", coeff, j);
+				printf("*%c^%d", coeff, j);
 			else
-				printf("%c", coeff);
+				printf("*%c", coeff);
 			if (neg)
 				mpq_neg(p->c[j]);
 
@@ -192,7 +194,10 @@ mpq_poly_print(const mpq_poly_t p, char coeff, const char *fmt, ...)
 	} else {
 		if (k && mpq_is_pos(p->c[0]))
 			printf("+");
-		mpq_print_dec(p->c[0]);
+		if (mpi_is_one(p->c[j]->den))
+			mpi_print_dec(p->c[0]->num);
+		else
+			mpq_print_dec(p->c[0]);
 	}
 }
 
