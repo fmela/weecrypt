@@ -265,7 +265,7 @@ const char *e_string =
 "44313253477130941867171786075229813735391267728125939582205242899913716906856504"
 "21575056729991274177149279608831502358697816190894908487717722503860872618384947";
 
-#define NDIGITS	9
+#define NDIGITS	10
 
 int
 main(void)
@@ -273,7 +273,6 @@ main(void)
 	mp_digit *n;
 	mp_digit factor, remainder;
 	mp_size len;
-	int nfactors, npowers;
 	char buf[NDIGITS+1];
 
 	int i, e_len = strlen(e_string);
@@ -287,26 +286,14 @@ main(void)
 			exit(1);
 		}
 
-		nfactors = 0;
-		while ((factor = mp_sieve(n, len, 0)) != 0) {
-			nfactors++;
-			npowers = 0;
-			do {
-				remainder = mp_ddivi(n, len, factor);
-				ASSERT(remainder == 0);
-				len -= (n[len-1] == 0);
-				npowers++;
-			} while (mp_dmod(n, len, factor) == 0);
-		}
-
-		if (nfactors != 0)
+		if (mp_sieve(n, len, 0) != 0)
 			continue;
 
 		if (len == 1 && n[0] <= 2) {
 			continue;
 		} else {
-			/* Now run 10 rounds of the Rabin-Miller test. */
-			if (!mp_composite(n, len, 10)) {
+			/* Now run 20 rounds of the Rabin-Miller test. */
+			if (!mp_composite(n, len, 20)) {
 				mp_print_dec(n, len);
 				printf(" is prime with extreme probability (offset %d).\n", i);
 			}
