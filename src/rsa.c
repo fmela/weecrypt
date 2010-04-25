@@ -1,5 +1,7 @@
 #include "rsa.h"
 
+#include <string.h>
+
 void
 rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 {
@@ -9,8 +11,7 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 
 	memset(rsa, 0, sizeof(*rsa));
 
-	/* Generate p and q. */
-
+	/* Generate P. */
 	mpi_init(p);
 	mpi_rand_ctx(p, bits/2, rand_ctx);
 	p->digits[0] |= 1;
@@ -19,6 +20,7 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 		mpi_add_ui(p, 2, p);
 	}
 
+	/* Generate Q. */
 	mpi_init(q);
 	mpi_rand_ctx(q, bits-bits/2, rand_ctx);
 	q->digits[0] |= 1;
@@ -47,7 +49,6 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 		mpi_gcd(rsa->e, rsa->phi, p);
 		if (mpi_is_one(p))
 			break;
-
 	}
 
 	mpi_free_zero(p);
