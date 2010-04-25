@@ -1,0 +1,408 @@
+/*
+ * mp.h
+ *
+ * Arbitrary precision arithmetic low-level functions.
+ * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
+ *
+ * $Id: mp.h,v 1.2 2001/12/15 19:36:34 farooq Exp farooq $
+ */
+
+#ifndef _MP_H_
+#define _MP_H_
+
+#include <stdio.h>
+#include <limits.h>
+
+#if CHAR_BIT != 8
+# error "Your system's CHAR_BIT != 8. You will have problems!"
+#endif
+
+/* XXX - Need a better way to get portable sized types. C99 <stdint.h> ?*/
+
+#if defined(_MSC_VER)
+/* VC does not define __STDC__ unless /Za option given. */
+# ifndef __STDC__
+#  define __STDC__ 1
+# endif
+typedef unsigned char		mp8_t;
+typedef unsigned short		mp16_t;
+typedef unsigned int		mp32_t;
+typedef unsigned __int64	mp64_t;
+# define CONST64(u)			u ## UI64
+#elif defined(__GNUC__)
+typedef unsigned char		mp8_t;
+typedef unsigned short		mp16_t;
+# if UINT_MAX == 0xffffffffU
+typedef unsigned int		mp32_t;
+# else
+typedef unsigned long		mp32_t;
+# endif
+typedef unsigned long long	mp64_t;
+# define CONST64(u)			u ## ULL
+#endif
+
+typedef mp32_t				mp_size;
+
+#include "mp_config.h"
+
+#if   MP_DIGIT_SIZE == 1
+typedef mp8_t			mp_digit;
+#elif MP_DIGIT_SIZE == 2
+typedef mp16_t			mp_digit;
+#elif MP_DIGIT_SIZE == 4
+typedef mp32_t			mp_digit;
+#elif MP_DIGIT_SIZE == 8
+typedef mp64_t			mp_digit;
+#else
+# error "MP_DIGIT_SIZE must be 1, 2, 4, or 8"
+#endif
+
+/* Allocate an uninitialized size-digit number. */
+mp_digit	*mp_new(mp_size size);
+/* Allocate a zeroed out size-digit number. */
+mp_digit	*mp_new0(mp_size size);
+/* Resize the number U to size digits. */
+mp_digit	*mp_resize(mp_digit *u, mp_size size);
+/* Allocate a duplicate of u[size]. */
+mp_digit	*mp_dup(const mp_digit *u, mp_size size);
+/* Release the number U. */
+void		mp_free(mp_digit *u);
+
+/* Set u[0..size-1] to one. */
+void		mp_one(mp_digit *u, mp_size size);
+/* Set u[0..size-1] to largest value it can accomodate. */
+void		mp_max(mp_digit *u, mp_size size);
+/* Set all digits of u[size] to d. */
+mp_digit   *mp_fill(mp_digit *u, mp_size size, mp_digit d);
+/* Set u[size] to zero. */
+#define		mp_zero(u,size) mp_fill((u), (size), 0)
+/* Flip the bits of all digits of u[size]. */
+void		mp_flip(mp_digit *u, mp_size size);
+/* Turn u[size] into it's 2's complement. */
+void		mp_complement(mp_digit *u, mp_size size);
+/* Copy u[size] onto v[size]. */
+mp_digit   *mp_copy(const mp_digit *u, mp_size size, mp_digit *v);
+/* Exchange u[size] with v[size]. */
+void		mp_xchg(mp_digit *u, mp_digit *v, mp_size size);
+
+/* Compare equally sized U and V. */
+int			mp_cmp_n(const mp_digit *u, const mp_digit *v, mp_size size);
+/* Compare u[usize] to v[vsize]; -1 if u < v, 0 if u == v, and +1 if u > v; */
+int			mp_cmp(const mp_digit *u, mp_size usize,
+				   const mp_digit *v, mp_size vsize);
+
+#define		mp_cmp_gt(u,usize,v,vsize)	(mp_cmp((u),(usize),(v),(vsize)) >  0)
+#define		mp_cmp_ge(u,usize,v,vsize)	(mp_cmp((u),(usize),(v),(vsize)) >= 0)
+#define		mp_cmp_lt(u,usize,v,vsize)	(mp_cmp((u),(usize),(v),(vsize)) <  0)
+#define		mp_cmp_le(u,usize,v,vsize)	(mp_cmp((u),(usize),(v),(vsize)) <= 0)
+#define		mp_cmp_eq(u,usize,v,vsize)	(mp_cmp((u),(usize),(v),(vsize)) == 0)
+#define		mp_cmp_ne(u,usize,v,vsize)	(mp_cmp((u),(usize),(v),(vsize)) != 0)
+
+/* Return non-zero if u[size] == 0. */
+#define		mp_is_zero(u,size)	(mp_rsize((u),(size)) == 0)
+/* Return non-zero if u[size] == 1. */
+#define		mp_is_one(u,size)	(mp_rsize((u),(size)) == 1 && (u)[0] == 1)
+/* Return real size of u[size] with leading zeros removed. */
+mp_size		mp_rsize(const mp_digit *u, mp_size size);
+
+/* Set the b-th bit of u[size]. */
+int			mp_setbit(mp_digit *u, mp_size, unsigned b);
+/* Clear the b-th bit of u[size]. */
+int			mp_clrbit(mp_digit *u, mp_size, unsigned b);
+/* Flip the b-th bit of u[size]. */
+int			mp_flpbit(mp_digit *u, mp_size, unsigned b);
+/* Test the b-th bit of u[size]. */
+int			mp_tstbit(mp_digit *u, mp_size, unsigned b);
+
+/* Set u[size] = u[size] &  v[size]. */
+void		mp_and(mp_digit *u, mp_size size, const mp_digit *v);
+/* Set u[size] = u[size] & ~v[size]. */
+void		mp_andnot(mp_digit *u, mp_size size, const mp_digit *v);
+/* Set u[size] = u[size] |  v[size]. */
+void		mp_or(mp_digit *u, mp_size size, const mp_digit *v);
+/* Set u[size] = u[size] | ~v[size]. */
+void		mp_ornot(mp_digit *u, mp_size size, const mp_digit *v);
+/* Set u[size] = u[size] ^  v[size]. */
+void		mp_xor(mp_digit *u, mp_size size, const mp_digit *v);
+/* Set u[size] = u[size] ^ ~v[size]. */
+void		mp_xornot(mp_digit *u, mp_size size, const mp_digit *v);
+
+/* Return the number of shift positions that U must be shifted left until it's
+ * most significant bit is set. U MUST be non-zero. */
+unsigned	mp_msb_shift(mp_digit u);
+/* Shift U left until it's most significant digit is set, and return the number
+ * of positions shifted (which may be zero). size and u[size - 1] may NOT be
+ * zero. */
+unsigned	mp_msb_normalize(mp_digit *u, mp_size size);
+/* Return floor(lg(u)), lg(x) = binary logarithm of x; U must be non-zero. */
+unsigned	mp_digit_log2(mp_digit u);
+/* Return the number of bit positions u[size] needs to be shifted right until it
+ * is odd; if u[size] is zero, 0 will be returned. */
+unsigned	mp_odd_shift(const mp_digit *u, mp_size size);
+/* Return the number of significant bits in u[size]. */
+unsigned	mp_significant_bits(const mp_digit *u, mp_size size);
+/* Compute the multiplicative inverse of a digit, modulo 2^MP_DIGIT_BITS. A
+ * number N does not have a modular inverse mod M if N and M are not coprime.
+ * Since the radix we work in is always a power of 2, this is simply the
+ * requirement that N is odd. */
+mp_digit	mp_digit_invert(mp_digit n);
+
+/* Set u[size] = u[size] + 1, and return the carry. */
+mp_digit	mp_inc(mp_digit *u, mp_size size);
+/* Set u[size] = u[size] - 1, and return the borrow. */
+mp_digit	mp_dec(mp_digit *u, mp_size size);
+
+/* Set w[size] = u[size] + v, and return the carry. */
+mp_digit	mp_dadd(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w);
+/* Set u[size] = u[size] + v and return the carry. */
+mp_digit	mp_daddi(mp_digit *u, mp_size size, mp_digit v);
+
+/* Set w[size] = u[size] + v[size] and return the carry. */
+mp_digit	mp_add_n(const mp_digit *u, const mp_digit *v, mp_size size,
+					 mp_digit *w);
+/* Set w[max(usize, vsize)] = u[usize] + v[vsize] and return the carry. */
+mp_digit	mp_add(const mp_digit *u, mp_size usize,
+				   const mp_digit *v, mp_size vsize, mp_digit *w);
+
+/* Set u[size] = u[size] + v[size] and return the carry. */
+/* mp_digit	mp_addi_n(mp_digit *u, const mp_digit *v, mp_size size); */
+#define		mp_addi_n(u,v,size)	mp_add_n(u,v,size,u)
+/* Set u[usize] = u[usize] + v[vsize], usize >= vsize, and return the carry. */
+mp_digit	mp_addi(mp_digit *u, mp_size usize,
+					const mp_digit *v, mp_size vsize);
+
+/* Set w[size] = u[size] - v, and return the borrow. */
+mp_digit	mp_dsub(const mp_digit *u, mp_size size,
+					mp_digit v, mp_digit *w);
+/* Set u[size] = u[size] - v, and return the borrow. */
+mp_digit	mp_dsubi(mp_digit *u, mp_size size, mp_digit v);
+
+/* Set u[size] = u[size] - v[size] and return the borrow. */
+mp_digit	mp_subi_n(mp_digit *u, const mp_digit *v, mp_size size);
+/* Set w[size] = u[size] - v[size], and return the borrow. */
+mp_digit	mp_sub_n(const mp_digit *u, const mp_digit *v,
+					 mp_size size, mp_digit *w);
+/* Set w[size] = |u[size] - v[size]| and return the sign (-1, 0, or +1) */
+int			mp_diff_n(const mp_digit *u, const mp_digit *v,
+					  mp_size size, mp_digit *w);
+
+/* Set u[usize] = u[usize] - v[vsize], usize >= vsize, and return the borrow. */
+mp_digit	mp_subi(mp_digit *u, mp_size usize,
+					const mp_digit *v, mp_size vsize);
+/* Set w[usize] = u[usize] - v[vsize], and return the borrow. */
+mp_digit	mp_sub(const mp_digit *u, mp_size usize,
+				   const mp_digit *v, mp_size vsize, mp_digit *w);
+
+/* Set w[size] = u[size] * v, and return the carry. */
+mp_digit	mp_dmul(const mp_digit *u, mp_size size,
+					mp_digit v, mp_digit *w);
+/* Set u[size] = u[size] * v, and return the carry. */
+mp_digit	mp_dmuli(mp_digit *u, mp_size size, mp_digit v);
+/* Set w[size] = w[size] + u[size] * v, and return the carry. */
+mp_digit	mp_dmul_add(const mp_digit *u, mp_size size,
+						mp_digit v, mp_digit *w);
+/* Set w[size] = w[size] - u[size] * v, and return the borrow. */
+mp_digit	mp_dmul_sub(const mp_digit *u, mp_size size,
+						mp_digit v, mp_digit *w);
+
+/* Set w[usize + vsize] = u[usize] * v[vsize]. */
+void		mp_mul_n(const mp_digit *u,
+					 const mp_digit *v, mp_size size, mp_digit *w);
+void		mp_mul(const mp_digit *u, mp_size usize,
+				   const mp_digit *v, mp_size vsize, mp_digit *w);
+/* Set w[wsize] = u[usize] * v[vsize] mod ((2 ** MP_DIGIT_BITS) * wsize) */
+void		mp_mul_mod_powb(const mp_digit *u, mp_size usize,
+							const mp_digit *v, mp_size vsize,
+							mp_digit *w, mp_size wsize);
+
+/* Set v[usize*2] = u[usize]^2. */
+void		mp_sqr(const mp_digit *u, mp_size usize, mp_digit *v);
+/* Set v[usize*exp] = u[usize]^exp. */
+void		mp_exp(const mp_digit *u, mp_size usize,
+				   unsigned long exp, mp_digit *v);
+/* Square diagonal. */
+void		mp_sqr_diag(const mp_digit *u, mp_size size, mp_digit *v);
+
+/* Set w[size] = u[usize] / v, and return the remainder. */
+mp_digit	mp_ddiv(const mp_digit *u, mp_size size,
+					mp_digit v, mp_digit *w);
+/* Set u[size] = u[usize] / v, and return the remainder. */
+mp_digit	mp_ddivi(mp_digit *u, mp_size size, mp_digit v);
+/* Return u[size] % v. */
+mp_digit	mp_dmod(const mp_digit *u, mp_size usize, mp_digit v);
+
+/* Divide the number u[usize] by v[vsize], storing the quotient in
+ * q[usize-vsize+1]. The most significant bit of V must be set (V must be
+ * normalized). The least significant VLEN digits of U will be set to the
+ * remainder after division. */
+void		mp_norm_div(mp_digit *u, mp_size usize,
+						const mp_digit *v, mp_size vsize, mp_digit *q);
+
+/* Divide the the number u[usize] by v[vsize], storing the quotient in
+ * q[usize-vsize+1] and remainder in r[vsize]. The most significant digit of V
+ * MUST be non-zero. Either Q or R may be NULL. */
+int			mp_divrem(const mp_digit *u, mp_size usize,
+					  const mp_digit *v, mp_size vsize,
+					  mp_digit *q, mp_digit *r);
+/* Convenience macros for division without remainder and modulus without
+ * quotient. */
+#define		mp_div(u,usize,v,vsize,q) \
+	mp_divrem((u),(usize),(v),(vsize),(q),NULL)
+#define		mp_mod(u,usize,v,vsize,r) \
+	mp_divrem((u),(usize),(v),(vsize),NULL,(r))
+void		mp_divexact(const mp_digit *u, mp_size usize,
+						const mp_digit *d, mp_size dsize, mp_digit *q);
+
+/* Return 1 if V divides U exactly, 0 otherwise. */
+int			mp_digit_divides(const mp_digit *u, mp_size usize, mp_digit v);
+
+
+/* Set u[vsize] = u[usize] mod v[vsize], in-place. */
+void		mp_modi(mp_digit *u, mp_size usize,
+					const mp_digit *v, mp_size vsize);
+
+void		mp_modadd(const mp_digit *u, const mp_digit *v,
+					  const mp_digit *m, mp_size msize, mp_digit *w);
+void		mp_modsub(const mp_digit *u, const mp_digit *v,
+					  const mp_digit *m, mp_size msize, mp_digit *w);
+/* Compute (U * V) mod M and put the result in W. The most significant digit of
+ * M MUST be non-zero. */
+void		mp_modmul(const mp_digit *u, const mp_digit *v,
+					  const mp_digit *m, mp_size msize, mp_digit *w);
+/* Compute (U ^ 2) mod M and put the result in W. The most significant digit of
+ * M MUST be non-zero, and W must be at least as large as M. */
+void		mp_modsqr(const mp_digit *u,
+					  const mp_digit *m, mp_size msize, mp_digit *w);
+/* Compute (U ^ P) mod M and put the result in W, which must be at least as
+ * large as M. */
+void		mp_modexp_ul(const mp_digit *u, mp_size usize, unsigned long power,
+						 const mp_digit *m, mp_size msize, mp_digit *w);
+void		mp_modexp(const mp_digit *u, mp_size usize,
+					  const mp_digit *p, mp_size psize,
+					  const mp_digit *m, mp_size msize, mp_digit *w);
+void		mp_mexp(const mp_digit *u, mp_size usize,
+					const mp_digit *p, mp_size psize,
+					const mp_digit *m, mp_size msize, mp_digit *w);
+
+typedef struct {
+	const mp_digit	*m;
+	mp_digit		*mu;
+	mp_size			k;
+} mp_barrett_ctx;
+
+#define		MP_BARRETT_CTX_INITIALIZER	{ NULL, NULL, 0 }
+
+void		mp_barrett_ctx_init(mp_barrett_ctx *ctx,
+								const mp_digit *m, mp_size msize);
+void		mp_barrett_ctx_clear(mp_barrett_ctx *ctx);
+
+/* w[0 .. ctx->k-1] = (u ** power) mod m */
+void		mp_barrett_ul(const mp_digit *u, mp_size usize, unsigned long power,
+						  const mp_barrett_ctx *ctx, mp_digit *w);
+void		mp_barrett(const mp_digit *u, mp_size usize,
+					   const mp_digit *p, mp_size psize,
+					   const mp_barrett_ctx *ctx, mp_digit *w);
+
+void		mp_modexp_pow2(const mp_digit *u, mp_size usize,
+						   const mp_digit *p, mp_size psize,
+						   const mp_digit *m, mp_size msize, mp_digit *w);
+void		mp_modexp_pow2_ul(const mp_digit *u, mp_size usize,
+							  unsigned long power,
+							  const mp_digit *m, mp_size msize, mp_digit *w);
+
+/* Compute the GCD of the natural numbers U and V, and store the result at W.
+ * W must be at least as large as the smaller of U or V. This function does NOT
+ * handle the cases where either U or V is zero. */
+void		mp_gcd(const mp_digit *u, mp_size usize,
+				   const mp_digit *v, mp_size vsize, mp_digit *w);
+/* Return 1 if U and V are relatively prime, 0 otherwise. */
+int			mp_coprime(const mp_digit *u, mp_size usize,
+					   const mp_digit *v, mp_size vsize);
+
+/* Compute the Jacobi symbol A over P. Returns -1, 0, or +1. */
+int			mp_jacobi(const mp_digit *a, mp_size asize,
+					  const mp_digit *p, mp_size psize);
+
+mp_digit	mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes);
+/* Run NROUNDS rounds of the Miller-Rabin primality test on U. Return 1 if
+ * composite, 0 if "probably" prime. */
+int			mp_composite(const mp_digit *u, mp_size size, unsigned nrounds);
+
+/* Compute the integer portion of the square root of u[size] and store it in
+ * v[(size+1)/2], and remainder in r[size]. Either V or R may be NULL. */
+void		mp_sqrtrem(const mp_digit *u, mp_size size,
+					   mp_digit *v, mp_digit *r);
+#define		mp_sqrt(u,size,v)	mp_sqrtrem((u),(size),(v),NULL)
+/* Return 1 if u[usize] is a perfect square, 0 otherwise. */
+int			mp_perfsqr(const mp_digit *u, mp_size usize);
+
+/* Multiply or divide by a power of two, with power taken modulo MP_RADIX_BITS,
+ * and return the carry (left shift) or remainder (right shift). */
+mp_digit	mp_lshift(const mp_digit *u, mp_size size,
+					  unsigned s, mp_digit *v);
+mp_digit	mp_rshift(const mp_digit *u, mp_size size,
+					  unsigned s, mp_digit *v);
+mp_digit	mp_lshifti(mp_digit *u, mp_size size, unsigned s);
+mp_digit	mp_rshifti(mp_digit *u, mp_size size, unsigned s);
+
+typedef struct {	/* Mersenne twister context. */
+	int		mti;
+	mp32_t	mt[624];
+} mp_rand_ctx;
+
+void		mp_rand_ctx_init(mp_rand_ctx *ctx);
+void		mp_rand_ctx_init_seed(mp_rand_ctx *ctx, mp32_t seed);
+void		mp_rand_ctx_free(mp_rand_ctx *ctx);
+/* Store a random number in u[size]. */
+void		mp_rand_digits(mp_rand_ctx *ctx, mp_digit *u, mp_size size);
+#define		mp_rand(u,size)	mp_rand_digits(NULL, (u), (size))
+
+/* Return the Hamming weight (bit population count) of u[size]. */
+unsigned	mp_hamming_weight(const mp_digit *u, mp_size size);
+/* Return the Hamming distance of u[size] and v[size]. */
+unsigned	mp_hamming_dist(const mp_digit *u, mp_size size,
+							const mp_digit *v);
+
+/* Return the size, in bytes, that a character string must be in order to hold
+ * the representation of a LEN-digit number in BASE. Return value does NOT
+ * account for terminating '\0'. */
+size_t		mp_string_size(mp_size size, unsigned radix);
+/* Return u[size] as a null-terminated character string in a radix on [2,36]. */
+char	   *mp_get_str(const mp_digit *u, mp_size size, unsigned radix,
+					   char *out);
+#define		mp_to_str(u,size,radix)	mp_get_str((u),(size),(radix),NULL)
+#define		mp_get_str_bin(u,size)	mp_to_str((u),(size),2)
+#define		mp_get_str_oct(u,size)	mp_to_str((u),(size),8)
+#define		mp_get_str_dec(u,size)	mp_to_str((u),(size),10)
+#define		mp_get_str_hex(u,size)	mp_to_str((u),(size),16)
+
+/* Print u[size] in a radix on [2,36] to the stream fp. No newline is output. */
+void		mp_fprint(const mp_digit *u, mp_size size,
+					  unsigned radix, FILE *fp);
+/* Convenience macros for bases 2, 8, 10, and 16. */
+#define		mp_fprint_bin(u,size,fp)	mp_fprint((u),(size),2,(fp))
+#define		mp_fprint_oct(u,size,fp)	mp_fprint((u),(size),8,(fp))
+#define		mp_fprint_dec(u,size,fp)	mp_fprint((u),(size),10,(fp))
+#define		mp_fprint_hex(u,size,fp)	mp_fprint((u),(size),16,(fp))
+/* Convenience macros for bases 2, 8, 10, and 16, with fp = stdout. */
+#define		mp_print(u,size,b)			mp_fprint((u),(size),(b),stdout)
+#define		mp_print_bin(u,size)		mp_fprint_bin((u),(size),stdout)
+#define		mp_print_oct(u,size)		mp_fprint_oct((u),(size),stdout)
+#define		mp_print_dec(u,size)		mp_fprint_dec((u),(size),stdout)
+#define		mp_print_hex(u,size)		mp_fprint_hex((u),(size),stdout)
+
+/* Return the size, in digits, of the number that will required to represent
+ * the number in base RADIX in character string 'str.' */
+mp_size		mp_string_digits(const char *str, unsigned radix);
+
+mp_digit   *mp_from_str(const char *u, unsigned radix, mp_size *size);
+#define		mp_from_str_bin(u,size)	mp_from_str((u),2,(size))
+#define		mp_from_str_oct(u,size)	mp_from_str((u),8,(size))
+#define		mp_from_str_dec(u,size)	mp_from_str((u),10,(size))
+#define		mp_from_str_hex(u,size)	mp_from_str((u),16,(size))
+
+#define MP_NORMALIZE(u,usize) \
+	while ((usize) && (u)[(usize)-1] == 0) \
+		(usize)--;
+
+#endif /* !_MP_H_ */

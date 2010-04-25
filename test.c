@@ -1,0 +1,1766 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <float.h>
+#include <time.h>
+
+#include "weecrypt.h"
+
+/* V must be a 64-bit unsigned integer */
+#if defined(__GNUC__)
+# define RDTSC(v)	__asm__ __volatile__("rdtsc" : "=A"(v))
+#elif defined(_MSC_VER)
+__declspec(naked) __int64 _getTimeStamp(void) {
+  __asm	{
+    rdtsc       // Read Time Stamp Counter, returns in (lo)eax+(hi)edx
+    ret
+  }
+}
+
+# define RDTSC(v) (v) = _getTimeStamp()
+#if 0
+	_asm rdtsc \
+	_asm mov dword ptr [v], eax \
+	_asm mov dword ptr [v+4], edx
+#endif
+#else
+# define RDTSC(v)
+#endif
+
+void time_gcd(void);
+void test_mpq_acc(void);
+void test_set_f(void);
+void test_crt(void);
+void test_invert_matrix(void);
+void test_mpq(void);
+void test_from_str(void);
+void test_lehmer(void);
+void time_montgomery(void);
+void test_mul_mod_powb(void);
+void test_barrett(void);
+void test_composite(void);
+void test_modinv(void);
+void test_gcdext(void);
+void time_divexact(void);
+void test_divexact(void);
+void test_invert(void);
+void tune_mul(void);
+void torture_div(void);
+void test_add(void);
+void time_copy(void);
+void time_modi(void);
+void test_dmod(void);
+void test_sub(void);
+void test_sqr(void);
+void test_modexp_pow2(void);
+void test_modexp(void);
+void time_modexp(void);
+void test_mpi(void);
+void test_mul(void);
+void time_div(void);
+void time_mul(void);
+void time_mmul(void);
+void time_dmul_add(void);
+void test_dmuli(void);
+void test_gcd(void);
+void test_sqrt(void);
+void time_sqrt(void);
+void time_add(void);
+void test_shift(void);
+void run_gcd_test(void);
+void print_fraction(mp_digit *u, mp_size size, unsigned base);
+void twiddle(void);
+void gen_fraction(void);
+void time_flip(void);
+void time_invert(void);
+
+extern int detect_cpuid(void);
+extern int detect_mmx(void);
+extern int detect_sse(void);
+mp_digit *mp_copy_mmx(const mp_digit *u, mp_size size, mp_digit *v);
+void mp_and_mmx(mp_digit *u, mp_size size, const mp_digit *v);
+
+extern void _mp_mul_base(const mp_digit *, mp_size,
+						 const mp_digit *, mp_size, mp_digit *);
+
+int
+main(void)
+{
+#if 0
+#define A 4096
+	mp_digit a[A], b[A], c[A];
+	mp64_t s, e;
+	if (detect_cpuid()) {
+		printf("Processor supports CPUID.\n");
+		if (detect_sse())
+			printf("Processor supports SSE.\n");
+		if (detect_mmx()) {
+			printf("Processor supports MMX.\n");
+
+			mp_rand(a,A);
+			mp_zero(b,A);
+			mp_copy(a,A,b);
+			RDTSC(s);
+			mp_copy(a,A,b);
+			RDTSC(e);
+			printf("    copy = %llu cycles\n", e - s);
+			if (mp_cmp_n(a,b,A))
+				printf("copy failed!\n");
+
+			mp_zero(c,A);
+			mp_copy_mmx(a,A,c);
+			RDTSC(s);
+			mp_copy_mmx(a,A,c);
+			RDTSC(e);
+			printf("copy_mmx = %llu cycles\n", e - s);
+			if (mp_cmp_n(a,c,A))
+				printf("copy_mmx failed!\n");
+#undef A
+		}
+	}
+	return 0;
+#endif
+
+#if 0
+	char p[] = "   FFABC83482AD";
+	unsigned size;
+	size = mp_string_digits(p, 16);
+	printf("size = %u\n", size);
+#endif
+
+//	time_gcd();
+//	test_crt();
+//	test_invert_matrix();
+//	test_mpq_acc();
+//	test_set_f();
+//	test_mpq();
+//	test_modinv();
+//	test_gcdext();
+//	test_from_str();
+	time_montgomery();
+//	test_lehmer();
+//	test_composite();
+//	test_mul_mod_powb();
+//	time_copy();
+//	time_flip();
+//	time_divexact();
+//	test_divexact();
+//	test_invert();
+//	time_invert();
+//	gen_fraction();
+//	time_dmul_add();
+//	time_div();
+//	tune_mul();
+//	test_mpi();
+//	torture_div();
+//	test_add();
+//	test_sub();
+//	time_modi();
+//	test_sqr();
+
+//	time_modexp();
+//	test_barrett();
+//	test_modexp();
+//	test_modexp_pow2();
+
+//	time_mul();
+//	test_mul();
+//	test_dmuli();
+//	test_dmod();
+//	test_gcd();
+//	test_shift();
+//	time_mmul();
+//	time_add();
+//	test_sqrt();
+//	time_sqrt();
+//	run_gcd_test();
+	return 0;
+}
+
+static void
+debug_print(char c, const mp_digit n[], mp_size size)
+{
+	printf("%c=", c);
+	mp_print(n, size, 10);
+	printf("\n");
+}
+
+void
+torture_div(void)
+{
+#define N	(120)
+#define D	(N/2)
+#define Q	(N-D+1)
+#define R	D
+#define NTRIALS	100000
+	mp_digit n[N], d[D], q[Q], r[R], t[N+1]; /* D+(N-D+1)=N+1 */
+	int i, j, fail=0;
+
+	printf("Q=%u D=%u\n", Q, D);
+	twiddle();
+	for (i=1; i<=NTRIALS; i++) {
+		mp_max(n,N);
+	//	mp_max(n,N);
+		mp_rand(d,D);
+		if (d[D-1]==0)
+			d[D-1]=rand();
+		if (mp_divrem(n,N,d,D,q,r))
+			abort();
+		mp_mul(q,Q,d,D,t);
+		if (t[N]) {
+			printf("Trial %d failed! T[N]!=0\n", i);
+			fail++;
+			continue;
+		}
+		if (mp_addi(t,N,r,R)) {
+			printf("Trial %d Failed! Remainder overflowed Q*D!\n", i);
+			fail++;
+			continue;
+		}
+		if ((j=mp_cmp(n,N,t,N))!=0) {
+			printf("Trial %d failed! N %c Q*D+R\n", i, j<0?'<':'>');
+			debug_print('N',n,N);
+			debug_print('D',d,D);
+			debug_print('Q',q,Q);
+			debug_print('R',r,R);
+			debug_print('T',t,N);
+			fail++;
+		}
+		if ((i & 16383)==0)
+			twiddle();
+	}
+	printf("%d passed, %d failed.\n", NTRIALS-fail, fail);
+	if (fail)
+		abort();
+#undef N
+#undef D
+#undef Q
+#undef R
+#undef NTRIALS
+}
+
+void
+time_modi(void)
+{
+#define N	10
+#define D	5
+#define R	D
+#define TRIALS	10000
+	mp_digit n[N], b[N], d[D], r[R];
+	int i;
+	mp64_t s,e,m1,m2;
+
+	mp_rand(n,N);
+	mp_rand(d,D);
+
+	m2=0;
+	for (i=0; i<TRIALS; i++) {
+		mp_copy(n,N,b);
+		RDTSC(s);
+		mp_modi(b,N,d,D);
+		RDTSC(e);
+		m2+=(e-s);
+	}
+
+	m1=0;
+	for (i=0; i<TRIALS; i++) {
+		RDTSC(s);
+		mp_mod(n,N,d,D,r);
+		RDTSC(e);
+		m1+=(e-s);
+	}
+
+	printf("modi=%llu cycles\n", m2);
+	printf(" mod=%llu cycles\n", m1);
+#undef TRIALS
+#undef N
+#undef D
+#undef R
+}
+
+void
+test_sqr(void)
+{
+#define A		20
+#define NTRIALS	200
+	unsigned i, fail = 0;
+	mp_digit a[A], b[A * 2], c[A * 2];
+	mp64_t ms,me,mt=0;
+	mp64_t ss,se,st=0;
+
+	for (i=0; i<NTRIALS; i++) {
+		mp_rand(a,A);
+
+		RDTSC(ms);
+		_mp_mul_base(a,A,a,A,b);
+		RDTSC(me);
+		mt+=me-ms;
+
+		RDTSC(ss);
+		mp_sqr(a,A,c);
+		RDTSC(se);
+		st+=se-ss;
+
+		if (mp_cmp_ne(b,A*2,c,A*2)) {
+			debug_print('A',a,A);
+			debug_print('B',b,A*2);
+			debug_print('C',c,A*2);
+			fail++;
+		}
+	}
+	printf("%d passed, %d failed.\n", NTRIALS-fail, fail);
+	printf("multiplication: %llu cycles\n", mt);
+	printf("      squaring: %llu cycles\n", st);
+#undef A
+#undef NTRIALS
+}
+
+void
+test_modexp(void)
+{
+#define A	20
+#define B	10
+#define C	B
+#define N	10000
+	mp_digit a[A], b[B], c[C];
+	unsigned p,n;
+
+	mp_rand(a,A);
+	mp_rand(b,B);
+	srand((unsigned)time(0));
+	p = rand() % 1000;
+//	printf("A="), mp_print_dec(a,A), printf("\n");
+//	printf("P=%u\n", p);
+//	printf("M="), mp_print_dec(b,B), printf("\n");
+	for (n=0; n<N; n++)
+		mp_modexp_ul(a,A,p,b,B,c);
+//	printf("C="), mp_print_dec(c,C), printf("\n");
+#undef A
+#undef B
+#undef C
+#undef N
+}
+
+void
+test_modexp_pow2(void)
+{
+#define A	20
+#define P	10
+#define M	20
+	mp_digit a[A], p[P], m[M], c[M], d[M];
+	mp64_t s, e, cn, cp;
+	int i, fail=0;
+
+	cn=cp=0;
+
+	for (i=0; i<100; i++) {
+		mp_rand(a,A);
+		mp_rand(p,P);
+		mp_rand(m,M);
+
+		RDTSC(s);
+		mp_modexp_pow2(a,A,p,P,m,M,c);
+		RDTSC(e);
+		cp+=(e-s);
+
+		RDTSC(s);
+		mp_modexp(a,A,p,P,m,M,d);
+		RDTSC(e);
+		cn+=(e-s);
+
+		if (mp_cmp_n(c,d,M)) {
+		/*	printf("A="), mp_print_dec(a,A), printf("\n");
+			printf("P="), mp_print_dec(p,P), printf("\n");
+			printf("M="), mp_print_dec(m,M), printf("\n");
+			printf("C="), mp_print_dec(c,M), printf("\n");
+			printf("D="), mp_print_dec(d,M), printf("\n"); */
+			printf("Fail!\n");
+			fail++;
+		}
+	}
+
+	printf(" normal cycles=%llu\n", cn);
+	printf("   pow2 cycles=%llu\n", cp);
+	printf("%d fails\n", fail);
+#undef A
+#undef P
+#undef M
+}
+
+void
+test_barrett(void)
+{
+#define A 45
+#define P 5
+#define M 40
+	mp_digit a[A], m[M], p[P], c[M], d[M];
+	mp_barrett_ctx ctx = MP_BARRETT_CTX_INITIALIZER;
+	int i;
+
+	mp_rand(m,M);
+	mp_barrett_ctx_init(&ctx, m, M);
+	for (i=0; i<100; i++) {
+		mp_rand(a,A);
+		mp_rand(p,P);
+		mp_modexp(a,A,p,P,m,M,c);
+		mp_barrett(a,A,p,P,&ctx,d);
+		if (mp_cmp_n(c,d,M)) {
+			printf("A="), mp_print_hex(a,A), printf("\n");
+			printf("P="), mp_print_hex(p,P), printf("\n");
+			printf("M="), mp_print_hex(m,M), printf("\n");
+			printf("C="), mp_print_hex(c,M), printf("\n");
+			printf("D="), mp_print_hex(d,M), printf("\n");
+		}
+		if ((i&0xf)==0)
+			twiddle();
+	}
+	mp_barrett_ctx_clear(&ctx);
+#undef A
+#undef P
+#undef M
+}
+
+void
+time_modexp(void)
+{
+#define A	15
+#define B	10
+#define P	10
+#define C	B
+	mp_digit a[A], b[B], p[P], c[C], d[C];
+	mp64_t s,e;
+	int i;
+	mp_barrett_ctx ctx = MP_BARRETT_CTX_INITIALIZER;
+
+	mp_rand(a,A);
+	mp_rand(b,B);
+	mp_rand(p,P);
+
+	RDTSC(s);
+	for (i=0; i<100; i++)
+		mp_modexp(a,A,p,P,b,B,c);
+	RDTSC(e);
+	printf(" modexp time=%llu\n", e-s);
+
+	RDTSC(s);
+	for (i=0; i<100; i++)
+		mp_mexp(a,A,p,P,b,B,d);
+	RDTSC(e);
+	printf("   mexp time=%llu\n", e-s);
+
+	if (mp_cmp_n(c,d,C))
+		printf("modexp/mexp don't match!\n");
+
+	mp_barrett_ctx_init(&ctx,b,B);
+	RDTSC(s);
+	for (i=0; i<100; i++)
+		mp_barrett(a,A,p,P,&ctx,d);
+	RDTSC(e);
+	mp_barrett_ctx_clear(&ctx);
+	printf("barrett time=%llu\n", e-s);
+
+	if (mp_cmp_n(c,d,C))
+		printf("modexp/barrett don't match!\n");
+
+#undef P
+#undef C
+#undef B
+#undef A
+}
+
+void
+test_add(void)
+{
+#define A 27
+#define NTRIALS	1
+	mp_digit a[A], b[A], c[A+1], d[A+1];
+	unsigned i, fail=0;
+
+	for (i=0; i<NTRIALS; i++) {
+		mp_rand(a,A);
+		mp_rand(b,A);
+		c[A]=mp_add_n(a,b,A,c);
+		mp_copy(a,A,d);
+		d[A]=mp_addi_n(d,b,A);
+		if (mp_cmp(d,A+1,c,A+1)) {
+			fail++;
+			printf("wrong!\n");
+		}
+			printf("   a="); mp_print_hex(a,A); printf("\n");
+			printf("   b="); mp_print_hex(b,A); printf("\n");
+			printf(" add="); mp_print_hex(c,A+1); printf("\n");
+			printf("addi="); mp_print_hex(d,A+1); printf("\n");
+	}
+	printf("%u passed, %u failed\n", NTRIALS - fail, fail);
+#undef A
+#undef NTRIALS
+}
+
+void
+test_sub(void)
+{
+#define A 7
+	mp_digit a[A], b[A], c[A];
+	int i, n;
+
+	for (i=0; i<1; i++) {
+		mp_rand(a,A); mp_rand(b,A);
+		printf("  a="), mp_print_dec(a,A), printf("\n");
+		printf("  b="), mp_print_dec(b,A), printf("\n");
+		n=mp_sub_n(a,b,A,c);
+		printf("a-b=%c",n?'-':'+');
+		mp_print_dec(c,A); printf("\n");
+
+		n=mp_sub_n(b,a,A,c);
+		printf("b-a=%c",n?'-':'+');
+		mp_print_dec(c,A); printf("\n");
+	}
+#undef A
+}
+
+void
+test_gcd(void)
+{
+#define A	10
+#define B	10
+#define C	10
+#define N	100000
+	mp_digit a[A], ad[A];
+	mp_digit b[B], bd[A];
+	mp_digit c[C];
+	int j, c_size;
+
+	twiddle();
+	for (j=0;j<N;j++) {
+		mp_rand(a,A);
+		mp_rand(b,B);
+		a[0]|=1;
+		a[0]=b[0]=0;
+		mp_lshifti(a,A,4);
+		mp_lshifti(b,B,4);
+		mp_gcd(a,A,b,B,c);
+		c_size=mp_rsize(c,C);
+		mp_divexact(a,A,c,c_size,ad);
+		mp_divexact(b,B,c,c_size,bd);
+		mp_zero(c,C);
+		mp_gcd(ad,A-c_size+1,bd,B-c_size+1,c);
+		if (!mp_is_one(c,C))
+			break;
+		if ((j&1023)==0)
+			twiddle();
+	}
+	if (j<N) {
+		debug_print('A',a,A);
+		debug_print('B',b,B);
+		debug_print('C',c,C);
+	} else {
+		printf("No GCD errors!\n");
+	}
+#undef A
+#undef B
+#undef C
+#undef N
+}
+
+void
+test_shift(void)
+{
+#define A	4
+	mp_digit r;
+	mp_digit a[A+1];
+
+	mp_rand(a,A);
+	printf("a="), mp_print_dec(a,A), printf("\n");
+	r = mp_rshifti(a,A,7);
+	printf("a>>7="), mp_print_dec(a,A), printf(", r=%u\n", r);
+	a[A]=mp_lshifti(a,A,31);
+	printf("(a>>7)<<31="), mp_print_dec(a,A+1), printf("\n");
+#undef A
+}
+
+void
+test_sqrt(void)
+{
+#define A	150
+#define B	(A*2)
+#define C	((B+1)/2)
+	mp_digit a[A], b[B], c[C];
+	int i;
+
+	for (i=0; i<1000; i++) {
+		mp_rand(a,A);
+	//	mp_max(a,A);
+		mp_sqr(a,A,b);
+		/* It would require B>=(A^2+2A+1) for floor(sqrt(B)) > A. */
+		mp_addi(b,B,a,A);
+		mp_addi(b,B,a,A);
+		mp_inc(b,B);
+		mp_sqrt(b,B,c);
+		mp_dec(c,C);
+		if (mp_cmp(a,A,c,C) != 0) {
+			printf("a="), mp_print_dec(a,A), printf("\n");
+			printf("b="), mp_print_dec(b,B), printf("\n");
+			printf("c="), mp_print_dec(c,C), printf("\n");
+		}
+	}
+#undef C
+#undef B
+#undef A
+}
+
+void
+time_sqrt(void)
+{
+#define A	50
+#define B	((A+1)/2)
+	mp_digit a[A], b[B];
+	mp64_t s,e,t=0;
+	int i;
+
+	for (i=0; i<10000; i++) {
+		mp_max(a,A);
+		RDTSC(s);
+		mp_sqrt(a,A,b);
+		RDTSC(e);
+		t+=(e-s);
+	}
+	printf("%llu cycles\n", t);
+#undef B
+#undef A
+}
+
+void
+test_mul(void)
+{
+#define A	300
+#define C	(A*2)
+#define NTRIALS	50000
+
+	mp_digit a[A], b[A], c[C], d[C];
+	unsigned i, j, fail=0;
+
+	for (i=0; i<NTRIALS; i++) {
+		mp_rand(a,A); mp_rand(b,A);
+		_mp_mul_base(a,A,b,A,c);
+		mp_mul_n(a,b,A,d);
+		if (mp_cmp_n(c,d,C)) {
+			fail++;
+			printf("wrong\n");
+			printf("a="); mp_print_hex(a,A); printf("\n");
+			printf("b="); mp_print_hex(b,A); printf("\n\n");
+			mp_print_hex(c,C); printf("\n\n");
+			mp_print_hex(d,C); printf("\n");
+			for (j=0; j<C; j++)
+				if (c[j]!=d[j])
+					printf("differ at position %u\n", j);
+		}
+	}
+	printf("%u passed, %u failed\n", NTRIALS-fail, fail);
+
+#undef A
+#undef B
+#undef C
+#undef NTRIALS
+}
+
+#if 0
+void
+tune_mul(void)
+{
+#define A	200
+#define B	200
+#define C	(A+B)
+	mp_digit a[A], b[B], c[C];
+	mp64_t s, e;
+	mp_size cutoff;
+	unsigned i;
+	extern mp_size KARATSUBA_MUL_THRESHOLD;
+
+	for (cutoff = 8; cutoff <= 256; cutoff += 4) {
+		KARATSUBA_MUL_THRESHOLD = cutoff;
+		RDTSC(s);
+		for (i=0; i<100; i++)
+			mp_mul(a,A,b,B,c);
+		RDTSC(e);
+		printf("Cutoff=%3u cycles=%llu\n", cutoff, e - s);
+	}
+#undef C
+#undef B
+#undef A
+}
+#endif
+
+void
+time_div(void)
+{
+#define N	200
+#define D	60
+#define Q	(N-D+1)
+#define R	D
+	mp_digit n[N], d[D], q[Q], r[R];
+	int i;
+	mp64_t s,e,t=0;
+
+	for (i=0; i<10000; i++) {
+		mp_rand(n,N);
+		mp_rand(d,D);
+		RDTSC(s);
+		mp_divrem(n,N,d,D,q,r);
+		RDTSC(e);
+		t+=(e-s);
+	}
+	printf("%llu cycles\n", t);
+#undef R
+#undef Q
+#undef D
+#undef N
+}
+
+void
+time_mul(void)
+{
+#define A	512
+#define N	100000
+	mp_digit a[A], b[A], c[A*2];
+	unsigned i;
+	mp64_t s, e, t;
+
+	mp_rand(a,A);
+	mp_rand(b,A);
+	t = 0;
+	for (i=0; i<N; i++) {
+		RDTSC(s);
+		mp_mul_n(a, b, A, c);
+		RDTSC(e);
+		t += e - s;
+	}
+	printf("%u digits %llu cycles / multiply\n", A, t/N);
+#undef A
+#undef N
+}
+
+void
+time_mmul(void)
+{
+#define A 455
+#define B 137
+#define N 10000
+	mp_digit a[A], b[B], c[A+B];
+	int i;
+
+	mp_rand(a,A);
+	mp_rand(b,B);
+	for (i=0; i<N; i++)
+		mp_mul(a,A,b,B,c);
+#undef N
+#undef B
+#undef A
+}
+
+void
+time_add(void)
+{
+#define A	60
+#define	N	1000000
+	unsigned i;
+	mp_digit a[A], b[A], c[A];
+	mp64_t s, e;
+
+	mp_rand(a,A);
+	mp_rand(b,A);
+	mp_rand(c,A); /* shaddup gcc */
+
+#if 0
+	RDTSC(s); mp_add_n(a,b,A,c); RDTSC(e);
+	printf("add  = %llu cycles\n", e - s);
+	RDTSC(s); mp_addi_n(a,b,A); RDTSC(e);
+	printf("addi = %llu cycles\n", e - s);
+#else
+	RDTSC(s);
+	for (i=0; i<N; i++)
+	//	mp_add_n(a,b,A,c);
+		mp_addi_n(a,b,A);
+	//	mp_subi_n(a,b,A);
+	RDTSC(e);
+	printf("addi=%llu cycles\n", e-s);
+#endif
+
+#undef A
+#undef N
+}
+
+void
+test_dmod(void)
+{
+#define A	100
+#define B	2398283
+	mp_digit a[A], r;
+	mp64_t s, e;
+
+	mp_rand(a,A);
+	mp_print_dec(a,A); printf("\n");
+	RDTSC(s);
+	r=mp_dmod(a,A,B);
+	RDTSC(e);
+	printf("%u %% %u\n", B, r);
+	printf("%llu cycles\n", e-s);
+#undef A
+#undef B
+}
+
+void
+run_gcd_test(void)
+{
+#define A		20
+#define B		20
+#define G		(A<B?A:B)
+#define TRIALS	10000
+
+	mp_digit a[A], b[B], gcd[G];
+	int i, cp = 0;
+	double r;
+
+	for (i = 0; i < TRIALS; i++) {
+		mp_rand(a,A);
+		mp_rand(b,B);
+		mp_gcd(a,A,b,B,gcd);
+		if (mp_rsize(gcd,G) == 1 && gcd[0] == 1)
+			cp++;
+	}
+
+	r = cp / (double)TRIALS;
+	printf("%d coprimes from %d trials (ratio=%.10f)\n", cp, TRIALS, r);
+#undef TRIALS
+#undef A
+#undef B
+#undef G
+}
+
+void
+twiddle(void)
+{
+	static int t=-1;
+
+	printf("%c\b", "|/-\\"[(++t)&3]);
+	fflush(stdout);
+}
+
+void
+test_dmuli(void)
+{
+#define A 7
+	mp_digit a[A + 1], b;
+
+	mp_rand(a,A);
+	mp_rand(&b,1);
+	/* To test power of 2 code uncomment below */
+//	b=1<<(b&31);
+	printf("a="), mp_print_dec(a,A), printf("\n");
+	a[A] = mp_dmuli(a,A,b);
+	printf("a * %u = ", b), mp_print_dec(a, A + 1), printf("\n");
+#undef A
+}
+
+void
+time_dmul_add(void)
+{
+#define A	100
+	mp_digit a[A], b[A], c;
+	mp64_t s, e;
+	int i;
+
+	mp_rand(a,A);
+	mp_rand(b,A);
+	mp_rand(&c,1);
+	RDTSC(s);
+	for (i=0; i<1000; i++)
+		mp_dmul_sub(b, A, c, a);
+	RDTSC(e);
+	printf("%llu cycles\n", e-s);
+#undef A
+}
+
+void
+gen_fraction(void)
+{
+#define A	100
+#define B	((A + 2) / 2)
+	mp_digit a[A + 1];
+	mp_digit b[B];
+	mp_digit r;
+	size_t i;
+
+#if 0
+	mp_zero(a, A);
+	a[A] = 1;
+	mp_ddivi(a, A + 1, 5);
+	mp_inc(a, A);
+	putchar(a[A] + '0');
+	i = mp_string_size(A, 10);
+	putchar('.');
+	while (i--) {
+		r = mp_dmuli(a, A, 10);
+		putchar(r + '0');
+	}
+	putchar('\n');
+#else
+	mp_zero(a, A);
+	a[A] = 89;
+
+	mp_sqrt(a, A + 1, b);
+	putchar('\n');
+	putchar(b[B - 1] + '0');
+	putchar('.');
+	i = mp_string_size(B - 1, 10);
+	while (i--) {
+		r = mp_dmuli(b, B - 1, 10);
+		putchar(r + '0');
+	}
+	putchar('\n');
+#endif
+#undef B
+#undef A
+}
+
+void
+test_invert(void)
+{
+	mp_digit i, n, inv;
+
+	for (i = 0; i < 10; i++) {
+		mp_rand(&n,1);
+		if (~n & 1)
+			n++; /* make it odd */
+		printf("n=%u\n", n);
+		inv = mp_digit_invert(n);
+		printf("inv=%u\n", inv);
+		printf("n*inv=%u\n", (mp_digit)(n * inv));
+	}
+}
+
+void
+pr_hex(char c, const mp_digit *u, mp_size size)
+{
+	putchar(c);
+	putchar('=');
+	while (size--)
+		printf("0x%08X%c", u[size], size ? ' ' : '\n');
+}
+
+void
+test_divexact(void)
+{
+#define A 60
+#define B (A/2)
+#define C (A+B)
+#define D (C-A+1)
+	mp_digit a[A], b[B], c[C], d[D];
+	int i;
+
+	for (i=0; i<10000; i++) {
+		mp_rand(a,A);
+		a[A-1]+=!a[A-1];
+		mp_rand(b,B);
+		mp_mul(a,A,b,B,c);
+		mp_divexact(c,C,a,A,d);
+		mp_div(c,C,a,A,d);
+		if (d[D-1] || mp_cmp_n(d,b,B) != 0) {
+			pr_hex('a',a,A);
+			pr_hex('b',b,B);
+			pr_hex('c',c,C);
+			pr_hex('d',d,D);
+		}
+	}
+#undef D
+#undef C
+#undef B
+#undef A
+}
+
+void
+time_divexact(void)
+{
+#define A	30
+#define B	15
+#define C	(A+B)
+#define D	(C-B+1)
+#define N	100000
+	mp_digit a[A],b[B],c[C];
+	int i;
+	mp64_t s,e,t=0,t2=0;
+
+	for (i=0; i<N; i++) {
+		mp_rand(a,A);
+		mp_rand(b,B);
+		mp_mul(a,A,b,B,c);
+		RDTSC(s);
+		mp_divexact(c,C,b,B,c);
+		RDTSC(e);
+		t+=(e-s);
+		RDTSC(s);
+		mp_div(c,C,b,B,c);
+		RDTSC(e);
+		t2+=(e-s);
+	}
+	printf("normal=%llu\n", t2);
+	printf(" exact=%llu\n", t);
+#undef A
+#undef B
+#undef C
+#undef D
+#undef N
+}
+
+void
+time_flip(void)
+{
+#define A	20
+	mp_digit a[A];
+	mp64_t s,e;
+	int i;
+
+	RDTSC(s);
+	for (i=0; i<1000; i++)
+		mp_flip(a,A);
+	RDTSC(e);
+	printf("%llu cycles\n", e-s);
+#undef A
+}
+
+void
+gcdext_int(int a, int b, int *u, int *v, int *g)
+{
+	int q, v1, v3, t1, t3;
+
+	if (a < b)
+		SWAP(a, b, int);
+
+	*u = 1;
+	*g = a;
+
+	if (b == 0) {
+		*v = 0;
+		return;
+	}
+
+	v1 = 0;
+	v3 = b;
+
+	while (v3 != 0) {
+		q = *g / v3;
+		t3 = *g % v3;
+		t1 = *u - q * v1;
+		*u = v1;
+		*g = v3;
+		v1 = t1;
+		v3 = t3;
+	}
+	*v = (*g - a * *u) / b;
+}
+
+void
+test_gcdext(void)
+{
+	mpi_t a, b, g, u, v, d;
+	int i,iter=100000;
+	int iu, iv, ig;
+
+	mpi_init(a);
+	mpi_init(b);
+	mpi_init(u);
+	mpi_init(v);
+	mpi_init(d);
+	mpi_init(g);
+
+	for (i=0; i<iter; i++) {
+		if ((i&1023) == 0)
+			printf("trial %d\n", i);
+		mpi_rand(a, 100);
+		mpi_rand(b, 100);
+		mpi_gcd(a, b, g);
+		/*
+		printf("A="), mpi_print_dec(a), printf(" B="), mpi_print_dec(b);
+		printf(" G="), mpi_print_dec(g), printf("\n");
+		*/
+		mpi_gcdext(a, b, u, v, d);
+		if (!mpi_cmp_eq(g, d)) {
+			printf("[%d] warning: gcd/gcdext not equal.\n", i);
+			printf("A="), mpi_print_dec(a), printf("\n");
+			printf("B="), mpi_print_dec(b), printf("\n");
+			printf("G="), mpi_print_dec(g), printf("\n");
+			printf("U="), mpi_print_dec(u), printf("\n");
+			printf("V="), mpi_print_dec(v), printf("\n");
+			printf("D="), mpi_print_dec(d), printf("\n");
+		}
+		/*
+		if (a->size == 1) {
+			gcdext_int(a->num[0], b->num[0], &iu, &iv, &ig);
+			printf("IU=%d IV=%d IG=%d\n", iu, iv, ig);
+			if (!mpi_cmp_si(u, iu))
+				printf("IU does not match\n");
+			if (!mpi_cmp_si(v, iv))
+				printf("IV does not match\n");
+			if (!mpi_cmp_si(g, ig))
+				printf("IG does not match\n");
+		}
+		*/
+		mpi_mul(a, u, u);	/* u=a*u */
+		mpi_mul(b, v, v);	/* v=b*v */
+		mpi_add(u, v, g);	/* g=a*u+b*v */
+		if (!mpi_cmp_eq(g, d)) {
+			printf("[%d] warning: gcd/a*u+b*v not equal.\n", i);
+			printf("A="), mpi_print_dec(a), printf("\n");
+			printf("B="), mpi_print_dec(b), printf("\n");
+			printf("G="), mpi_print_dec(g), printf("\n");
+			printf("U="), mpi_print_dec(u), printf("\n");
+			printf("V="), mpi_print_dec(v), printf("\n");
+			printf("D="), mpi_print_dec(d), printf("\n");
+		}
+	}
+
+	mpi_free(a);
+	mpi_free(b);
+	mpi_free(g);
+	mpi_free(u);
+	mpi_free(v);
+	mpi_free(d);
+}
+
+void
+test_modinv(void)
+{
+	int i,iters=10000;
+	mpi_t b, m, inv, p;
+
+	mpi_init(b);
+	mpi_init(m);
+	mpi_init(inv);
+	mpi_init(p);
+
+	for (i=0; i<iters; i++) {
+		do {
+			mpi_rand(m, 40);
+			do {
+				mpi_rand(b, 39);
+			} while (!(mpi_cmp(b, m) < 0));
+		} while (!mpi_modinv(m,b,inv));
+
+		mpi_mul(b, inv, p);
+		mpi_mod(p, m, p);
+		if (!mpi_is_one(p))
+			printf("trial %d failed\n", i);
+	}
+
+	mpi_free(p);
+	mpi_free(inv);
+	mpi_free(m);
+	mpi_free(b);
+}
+
+void
+test_composite(void)
+{
+#define A (1024/(MP_DIGIT_SIZE*CHAR_BIT))
+#define ROUNDS 8
+	mp_digit a[A];
+	int r, trials=0,sieved=0;
+	mp64_t s,e,stot=0,ctot=0;
+
+	mp_rand(a,A);
+	a[A-1]|=1UL<<31;
+	a[0]|=1;
+	printf("Searching for prime... ");
+	for (;;) {
+		if (mp_daddi(a,A,2)) {
+			mp_rand(a,A);
+			a[A-1]|=1UL<<31;
+			a[0]|=1;
+		}
+		if ((trials&0x7)==0)
+			twiddle();
+		trials++;
+
+		RDTSC(s);
+		r=mp_sieve(a,A,400);
+		RDTSC(e);
+		stot+=e-s;
+		if (r) {
+			sieved++;
+			continue;
+		}
+		RDTSC(s);
+		r=mp_composite(a,A,ROUNDS);
+		RDTSC(e);
+		ctot+=e-s;
+
+		if (!r)
+			break;
+	}
+	printf("\n");
+	mp_print_dec(a,A);
+	printf(" is prime with high probability\n");
+	printf("tested %d numbers (%d [%.03f%%] rejected by sieve).\n",
+		   trials, sieved, sieved / (float)trials * 100.0);
+	printf("          sieving took %llu cycles\n", stot);
+	printf("primality testing took %llu cycles\n", ctot);
+#undef A
+#undef ROUNDS
+}
+
+#if 0
+void
+time_copy(void)
+{
+#define A 237
+	mp_digit a[A], b[A];
+	mp64_t s,e;
+
+	mp_rand(a,A);
+	RDTSC(s);
+	mp_copy(a,A,b);
+	RDTSC(e);
+	if (mp_cmp_n(a,b,A))
+		abort();
+	printf("%llu cycles\n", e-s);
+
+	RDTSC(s);
+	mp_copy(a,A,b);
+	RDTSC(e);
+	if (mp_cmp_n(a,b,A))
+		abort();
+	printf("%llu cycles\n", e-s);
+
+	RDTSC(s);
+	mp_copy(a,A,b);
+	RDTSC(e);
+	if (mp_cmp_n(a,b,A))
+		abort();
+	printf("%llu cycles\n", e-s);
+
+	RDTSC(s);
+	mp_copy_mmx(a,A,b);
+	RDTSC(e);
+	if (mp_cmp_n(a,b,A))
+		abort();
+	printf("%llu mmx\n", e-s);
+#undef A
+}
+#endif
+
+void
+test_mul_mod_powb(void)
+{
+#define A 5
+#define B 5
+#define C 8
+#define D (A+B)
+	mp_digit a[A], b[B], c[C], d[D];
+	int i;
+
+	mp_rand(a,A);
+	mp_rand(b,B);
+	printf("A="), mp_print_hex(a,A), printf("\n");
+	printf("B="), mp_print_hex(b,B), printf("\n");
+	mp_mul_mod_powb(a,A,b,B,c,C);
+	mp_mul(a,A,b,B,d);
+
+	for (i=0; i<C; i++)
+		if (c[i] != d[i])
+			printf("wrong at %u\n", i);
+	printf("C="), mp_print_hex(c,C), printf("\n");
+	printf("D="), mp_print_hex(d,C), printf("\n");
+#undef D
+#undef C
+#undef B
+#undef A
+}
+
+void
+time_montgomery(void)
+{
+#define A (16*2)
+#define P (10*2)
+#define M (16)
+	int i;
+	mp_digit a[A], p[P], m[M], m0[M], m1[M];
+	mp64_t s,e,m0c,m1c,m2c;
+
+	m0c=m1c=m2c=0;
+	for (i=0; i<1000; i++) {
+
+#if 1
+		mp_rand(a,A);
+		mp_rand(p,P);
+		mp_rand(m,M);
+		m[0]|=1;
+
+		RDTSC(s);
+		mp_modexp(a,A,p,P,m,M,m0);
+		RDTSC(e);
+		m0c+=(e-s);
+
+		RDTSC(s);
+		mp_modexp_pow2(a,A,p,P,m,M,m1);
+		RDTSC(e);
+		m1c+=(e-s);
+
+		if (mp_cmp_n(m0,m1,M)) {
+			printf("Puke1!\n");
+			printf(" a="), mp_print_hex(a,A), printf("\n");
+			printf(" p="), mp_print_hex(p,P), printf("\n");
+			printf(" m="), mp_print_hex(m,M), printf("\n");
+			printf("m0="), mp_print_hex(m0,M), printf("\n");
+			printf("m1="), mp_print_hex(m1,M), printf("\n");
+		}
+#endif
+
+		RDTSC(s);
+		mp_mexp(a,A,p,P,m,M,m1);
+		RDTSC(e);
+		m2c+=(e-s);
+
+#if 1
+		if (mp_cmp_n(m0,m1,M)) {
+			printf("Puke2!\n");
+			printf(" a="), mp_print_hex(a,A), printf("\n");
+			printf(" p="), mp_print_hex(p,P), printf("\n");
+			printf(" m="), mp_print_hex(m,M), printf("\n");
+			printf("m0="), mp_print_hex(m0,M), printf("\n");
+			printf("m1="), mp_print_hex(m1,M), printf("\n");
+		}
+#endif
+	}
+	printf(" modexp=%llu cycles\n", m0c);
+	printf("modexp2=%llu cycles\n", m1c);
+	printf("   mexp=%llu cycles\n", m2c);
+#undef A
+#undef P
+#undef M
+}
+
+void
+test_lehmer(void)
+{
+#define A 5
+#define B 5
+#define G MIN(A,B)
+	mp_digit a[A], b[B], g1[G], g2[G];
+	extern void mp_lehmer(const mp_digit *, mp_size,
+						  const mp_digit *, mp_size, mp_digit *);
+
+	mp_rand(a,A);
+	mp_rand(b,B);
+	mp_gcd(a,A,b,B,g1);
+	mp_lehmer(a,A,b,B,g2);
+
+	if (mp_cmp_n(g1,g2,G)) {
+		printf(" a="), mp_print_hex(a,A), printf("\n");
+		printf(" b="), mp_print_hex(b,B), printf("\n");
+		printf("g1="), mp_print_hex(g1,G), printf("\n");
+		printf("g2="), mp_print_hex(g2,G), printf("\n");
+	}
+#undef A
+#undef B
+#undef G
+}
+
+void
+test_from_str(void)
+{
+	mp_digit *p, tf;
+	mp_size psize;
+	char buf[1024] = { 0 };
+
+	while (fgets(buf, sizeof(buf), stdin)) {
+		p = mp_from_str_dec(buf, &psize);
+		mp_print_dec(p, psize);
+		if ((tf = mp_sieve(p, psize, 1000)) != 0)
+			printf(" has trivial factor %u.\n", tf);
+		else if (mp_composite(p, psize, 10))
+			printf(" is composite.\n");
+		else
+			printf(" is probably prime.\n");
+		mp_free(p);
+	}
+}
+
+void
+time_invert(void)
+{
+	unsigned i;
+	mp_digit p, q;
+	mp64_t s,e;
+
+	RDTSC(s);
+	for (i = 0; i < 1000; i++) {
+		mp_rand(&p, 1);
+		q = mp_digit_invert(p | 1);
+	}
+	RDTSC(e);
+	printf("cycles=%llu\n", e-s);
+}
+
+int r() { return (rand()<<16)|rand(); }
+
+void
+test_mpq()
+{
+	mpq_t a, b, c, d, e;
+
+	srand((unsigned)time(0));
+	mpq_init_si_si(a, r(), r());
+	mpq_init_si_si(b, r(), r());
+	mpq_init_si_si(c, r(), r());
+	mpq_init_si_si(d, r(), r());
+	mpq_init(e);
+
+	printf("a="), mpq_print_dec(a), printf("\n");
+	printf("b="), mpq_print_dec(b), printf("\n");
+	printf("c="), mpq_print_dec(c), printf("\n");
+	printf("d="), mpq_print_dec(d), printf("\n");
+
+	mpq_add(a, b, e);
+	mpq_add(e, c, e);
+	mpq_add(e, d, e);
+
+	printf("e="), mpq_print_dec(e), printf("\n");
+
+	mpq_free(a);
+	mpq_free(b);
+	mpq_free(c);
+	mpq_free(d);
+	mpq_free(e);
+}
+
+mpq_t **
+matrix_n_by_n(int n)
+{
+	int i,j;
+	mpq_t **m;
+
+	m = MALLOC(sizeof(*m) * n);
+	for (i = 0; i < n; i++) {
+		m[i] = MALLOC(sizeof(**m) * n);
+		for (j = 0; j < n; j++)
+			mpq_init_ui(m[i][j], i == j);
+	}
+	return m;
+}
+
+/* invert_matrix -- invert a matrix using rational arithmetic */
+int
+invert_matrix(int n, mpq_t **mtx, mpq_t **inv)
+{
+	int i, j, k;
+	mpq_t t,m;
+
+	if (n == 1) {
+		if (mpq_is_zero(mtx[0][0]))
+			return -1;
+		mpq_set_mpq(inv[0][0], mtx[0][0]);
+		mpq_invert(inv[0][0]);
+		return 0;
+	}
+
+	for (i = 0; i < n; i++)
+		for (j = 0; j < n; j++)
+			mpq_set_ui(inv[i][j], i == j);
+
+	mpq_init(t);
+	mpq_init(m);
+
+	for (i = 0; i < n; i++) {
+		/* Scan for row with a non-zero i'th component. */
+		for (j = i; j < n; j++)
+			if (!mpq_is_zero(mtx[j][i]))
+				break;
+		if (j == n) { /* singular */
+			mpq_free(t);
+			mpq_free(m);
+			return -1;
+		}
+		if (j != i) { /* swap row if needed */
+			SWAP(mtx[i], mtx[j], mpq_t *);
+			SWAP(inv[i], inv[j], mpq_t *);
+		}
+		for (j = i + 1; j < n; j++) { /* elim i'th var from rest of eq's */
+			mpq_div(mtx[j][i], mtx[i][i], m);
+			for (k = i; k < n; k++) {
+				mpq_mul(mtx[i][k], m, t);
+				mpq_sub(mtx[j][k], t, mtx[j][k]);
+			}
+			for (k = 0; k < n; k++) {
+				mpq_mul(inv[i][k], m, t);
+				mpq_sub(inv[j][k], t, inv[j][k]);
+			}
+		}
+	}
+
+	/* now matrix should be upper triangular. back-substitute */
+	for (i = n-1; i >= 0; i--) {
+		/* scale row so first component is 1. */
+		for (k = 0; k < n; k++)
+			mpq_div(inv[i][k], mtx[i][i], inv[i][k]);
+		mpq_set_ui(mtx[i][i], 1);
+		/* now back-substitute row */
+		for (j = i-1; j >= 0; j--) {
+			for (k = 0; k < n; k++) {
+				mpq_mul(mtx[j][i], inv[i][k], m);
+				mpq_sub(inv[j][k], m, inv[j][k]);
+			}
+			mpq_set_ui(mtx[j][i], 0);
+		}
+	}
+
+	mpq_free(t);
+	mpq_free(m);
+	return 0;
+}
+
+void
+test_invert_matrix(void)
+{
+	int j,k;
+	int n=4;
+
+	mpq_t **m;
+	mpq_t **i;
+
+	m = matrix_n_by_n(n);
+	i = matrix_n_by_n(n);
+
+	mpq_set_ui(m[0][0], 0);
+	mpq_set_ui(m[0][1], 0);
+	mpq_set_ui(m[0][2], 0);
+	mpq_set_ui(m[0][3], 1);
+
+	mpq_set_ui(m[1][0], 1);
+	mpq_set_ui(m[1][1], 1);
+	mpq_set_ui(m[1][2], 1);
+	mpq_set_ui(m[1][3], 1);
+
+	mpq_set_ui(m[2][0], 7);
+	mpq_set_ui(m[2][1], 0);
+	mpq_set_ui(m[2][2], 1);
+	mpq_set_ui(m[2][3], 0);
+
+	mpq_set_ui(m[3][0], 3);
+	mpq_set_ui(m[3][1], 2);
+	mpq_set_ui(m[3][2], 1);
+	mpq_set_ui(m[3][3], 0);
+
+	printf("M:\n");
+	for (j=0; j<n; j++) {
+		for (k=0; k<n; k++) {
+		//	printf("m[%d,%d]=",j,k);
+		//	mpq_print_dec(m[j][k]);
+			printf("% .03f", mpq_get_f(m[j][k]));
+			printf("%c", (k+1==n)?'\n':' ');
+		}
+	}
+	printf("\n");
+
+	if (invert_matrix(n, m, i)) {
+		printf("singular\n");
+		return;
+	}
+
+	for (j=0; j<n; j++) {
+		for (k=0; k<n; k++) {
+			if (mpq_cmp_ui(m[j][k], j == k)) {
+				printf("inversion failed: m[%u,%u]=%.03f", j, k, mpq_get_f(m[j][k]));
+				return;
+			}
+		}
+	}
+
+	printf("M^-1:\n");
+	for (j=0; j<n; j++) {
+		for (k=0; k<n; k++) {
+		//	printf("i[%d,%d]=",j,k);
+		//	mpq_print_dec(i[j][k]);
+			printf("% .03f", mpq_get_f(i[j][k]));
+			printf("%c", (k+1==n)?'\n':' ');
+		}
+	}
+}
+
+void
+test_crt(void)
+{
+	mpi_t a_1, m_1;
+	mpi_t a_2, m_2;
+	mpi_t a_3, m_3;
+	mpi_t x, t;
+	mpi_crt_ctx ctx;
+
+	mpi_init_ui(a_1, 1); mpi_init_ui(m_1,  7);
+	mpi_init_ui(a_2, 6); mpi_init_ui(m_2, 11);
+	mpi_init_ui(a_3, 5); mpi_init_ui(m_3, 13);
+	mpi_init(x);
+	mpi_init(t);
+
+	mpi_crt_init(&ctx);
+	do {
+		if (mpi_crt_step(&ctx, a_1, m_1)) { printf("failed at 1\n"); break; }
+		if (mpi_crt_step(&ctx, a_2, m_2)) { printf("failed at 2\n"); break; }
+		if (mpi_crt_step(&ctx, a_3, m_3)) { printf("failed at 3\n"); break; }
+		if (mpi_crt_finish(&ctx, x)) { printf("failed at finish\n"); break; }
+		printf("OK, x="), mpi_print_dec(x), printf("\n");
+		mpi_mod(x, m_1, t);
+		if (!mpi_cmp_eq(t, a_1)) { printf("noteq at 1\n"); break; }
+		mpi_mod(x, m_2, t);
+		if (!mpi_cmp_eq(t, a_2)) { printf("noteq at 2\n"); break; }
+		mpi_mod(x, m_3, t);
+		if (!mpi_cmp_eq(t, a_3)) { printf("noteq at 3\n"); break; }
+		printf("checked ok!\n");
+	} while (0);
+	mpi_free(a_1); mpi_free(m_1);
+	mpi_free(a_2); mpi_free(m_2);
+	mpi_free(a_3); mpi_free(m_3);
+	mpi_free(x);
+	mpi_free(t);
+}
+
+void
+test_set_f(void)
+{
+	int j;
+	mpq_t t;
+	mp64_t s,e,tg,ts;
+#define N	100000
+
+	mpq_init(t);
+	srand((unsigned)time(0));
+
+	tg=ts=0;
+	for (j = 0; j < N; j++) {
+#if 0
+		double d, d2;
+		d = rand() / (double)RAND_MAX;
+	//	d *= RAND_MAX; d += rand();
+	//	d *= RAND_MAX; d += rand();
+	//	d *= RAND_MAX; d += rand();
+	//	d *= RAND_MAX; d += rand();
+
+		RDTSC(s);
+		mpq_set_d(t, d);
+		RDTSC(e);
+		ts += e-s;
+
+		RDTSC(s);
+		d2 = mpq_get_d(t);
+		RDTSC(e);
+		tg += e-s;
+		if (d!=d2)
+			printf("d=%.*f d2=%.*f diff=%.*f\n",
+				   DBL_DIG+3, d, DBL_DIG+3, d2, DBL_DIG+3, (d>d2)?d2-d:d-d2);
+
+		d = 1.0 / d;
+		mpq_set_d(t, d);
+		d2 = mpq_get_d(t);
+		if (d!=d2)
+			printf("d=%.*f d2=%.*f diff=%.*f\n",
+				   DBL_DIG+3, d, DBL_DIG+3, d2, DBL_DIG+3, (d>d2)?d2-d:d-d2);
+
+#else
+		float f, f2;
+		f = rand() / (float)RAND_MAX;
+	//	f *= RAND_MAX; f += rand();
+	//	f *= RAND_MAX; f += rand();
+	//	f *= RAND_MAX; f += rand();
+
+		RDTSC(s);
+		mpq_set_f(t, f);
+		RDTSC(e);
+		ts += e-s;
+
+		RDTSC(s);
+		f2 = mpq_get_f(t);
+		RDTSC(e);
+		tg += e-s;
+
+		if (f!=f2)
+			printf("f1=%.*f f2=%.*f\n|f/f2|=%.*g\n",
+				   FLT_DIG+2, f, FLT_DIG+2, f2, FLT_DIG+2, (f/f2));
+
+		f = 1.0f / f;
+		mpq_set_f(t, f);
+		f2 = mpq_get_f(t);
+		if (f!=f2)
+			printf("f=%.*g f2=%.*g |f/f2|=%.*g\n",
+				   FLT_DIG+2, f, FLT_DIG+2, f2, FLT_DIG+2, (f/f2));
+#endif
+	}
+	printf("avg time for mpq_set: %llu\n", (ts + N - 1) / N);
+	printf("avg time for mpq_get: %llu\n", (tg + N - 1) / N);
+#undef N
+
+	mpq_free(t);
+}
+
+void
+test_mpq_acc(void)
+{
+	mpq_t t,t2,t3;
+	volatile float f,f2,f3;
+
+	f = 1000.43f;
+	f2 = f - 1000.0f;
+	f3 = f2 + 10000000.0f;
+	printf("f3=%.*f\n", FLT_DIG+1, f3);
+
+	mpq_init_d(t, 1000.43);
+	mpq_init_d(t2, 1000.0);
+	mpq_sub(t, t2, t2);
+	mpq_init_d(t3, 10000000.0);
+	mpq_add(t3, t2, t3);
+	printf("t3=%.*f\n", FLT_DIG+1, mpq_get_d(t3));
+
+	mpq_free(t);
+	mpq_free(t2);
+	mpq_free(t3);
+}
+
+void
+time_gcd()
+{
+#define A 15
+#define B 12
+#define C MIN(A,B)
+	mp_digit a[A], b[B], c[C], d[C];
+	mp64_t bs, be, bt, ss, se, st;
+	int i;
+
+	bt=st=0;
+	for (i=0; i<1000; i++) {
+		mp_rand(a, A);
+		mp_rand(b, B);
+
+		RDTSC(bs);
+		mp_gcd(a, A, b, B, c);
+		RDTSC(be);
+		bt += be - bs;
+
+		RDTSC(ss);
+		mp_gcd(a, A, b, B, d);
+		RDTSC(se);
+		st += se - ss;
+
+		if (mp_cmp_n(c, d, C)) {
+			printf("Different GCD's!\n");
+			printf("A="), mp_print_dec(a, A), printf("\n");
+			printf("B="), mp_print_dec(b, B), printf("\n");
+			printf("C="), mp_print_dec(c, C), printf("\n");
+			printf("D="), mp_print_dec(d, C), printf("\n");
+		}
+	}
+
+	printf("Binary cycles: %llu\n", bt);
+	printf("Normal cycles: %llu\n", st);
+#undef A
+#undef B
+#undef C
+}

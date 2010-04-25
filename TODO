@@ -1,0 +1,87 @@
+* Implement an mp_dmul_add() in both C and assembly, to speed up multiplication.
+  Completed, 08/05/01
+
+* Implement mp_ddiv(), mp_ddivi(), and mp_dmod() in assembly.
+  Completed, 08/13/01
+
+* Fix assembly mp_ddivi() and mp_dmod() to take advantage of optimizations for
+  power-of-2 divisors.
+  Completed, 8/22/01
+
+* Fix assembly mp_dmul(), mp_dmuli(), and mp_dmul_add() to use shifting instead
+  of multiplying by a power of 2.
+
+* Unroll loops in assembly functions.
+  Completed for mp_add_n() 12/26/01
+  Completed for mp_addi_n() 12/26/01
+  Completed for mp_dmul_add() 12/27/01
+  Completed for mp_sub_n() 12/28/01
+  Completed for mp_subi_n() 12/28/01
+
+* Implement Karatsuba squaring.
+  Completed, 5/20/02
+
+* Implement binary GCD algorithm.
+  Completed, 5/20/02
+
+* Finish implementing MPI functions (mpi.h & mpi.c)
+
+* Implement mp_cmp_n() in assembly.
+
+* Fix mp_to_str() and mp_fprint() so they don't output leading zeroes for
+  special cases 2, 4, 8, and 16.
+
+* Fix mp_to_str() and mp_fprint() to use mp_rshifti() instead of mp_ddivi() if
+  the base is a power of two.
+  Completed, 6/4/02
+
+* Fix mp_to_str() and mp_fprint() so that if the base is not a power of 2, to
+  divide by the largest power of BASE that fits in an mp_digit, and then do
+  single precision ops on that to get the individual digits.
+  Completed, 6/3/02
+
+* Find and fix bug in mp_rshifti.S
+  Completed, 6/10/02
+
+* Fix mp_sqrt()
+  Completed, 7/4/02
+
+* Implement Montgomery or Barrett reduction
+  Completed mp_barrett() and mp_barrett_ul() on 7/18/02
+* Implement exact division a la Jebelean.
+
+* Implement conversion from character strings back to multi-precision
+
+* Implement Lehmer's GCD algorithm
+
+* Implement extended GCD algorithm.
+
+* Implement evaluation of Jacobi/Legendre symbols.
+
+* Implement some probabilistic primality tests.
+  Completed (Miller-Rabin), 7/13/02
+
+* Special-case divide code for divisor of form 2^K (divide using only shift &
+  mask)
+
+* Fix code in mpi_add() for mpi_add(a, b, a) etc.
+  Completed, 6/22/02
+
+* Pre-normalize divisor/modulus in mpi_divrem(), mpi_div(), mpi_mod(), etc.
+
+* Implement some MMX-optimized assembly routines for 586+ (lshift/rshift)
+
+* Devise and implement mpr interface for real numbers, with selectable rounding
+  modes (-OO, +OO, and nearest).
+
+* Devise and implement mpc interface for complex numbers.
+
+* Fix Karatsuba squaring so it only uses squares, instead of using a multiply
+  for the cross product of the middle terms.
+  Completed, 7/9/02
+
+* Define a macro for 64-bit constants (VC doesn't like ULL postfix that GCC
+  uses, etc.)
+
+* Base64 Encoding
+  Completed 04/21/2010
