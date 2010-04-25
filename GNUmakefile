@@ -14,8 +14,12 @@ ST_LIB=$(BUILDIR)/lib$(LIB).a
 PR_LIB=$(BUILDIR)/lib$(LIB)_p.a
 SH_LIB=$(BUILDIR)/lib$(LIB).so
 
-#CC=gcc
-CC=/Developer/usr/bin/clang
+OS=$(shell uname)
+ifeq ($(OS),Darwin)
+	CC=/Developer/usr/bin/clang
+else
+	CC=gcc
+endif
 COPTS=-O -g3 -m32
 ASFLAGS=-m32
 #COPTS=-O2 -march=core2 -fomit-frame-pointer -ftracer -DNDEBUG
