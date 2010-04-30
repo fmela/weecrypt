@@ -181,28 +181,25 @@ mpi_set_ui(mpi *n, unsigned int m)
 		n->size = 0;
 		return n;
 	}
-#if MP_DIGIT_MAX <= UINT_MAX
+#if MP_DIGIT_MAX >= UINT_MAX
 	MPI_SIZE(n, 1);
 	n->digits[0] = (mp_digit)m;
 #else
 	{
 		mp_size j;
-		mp_digit t;
+		unsigned int t = m;
 
-		if (m == 0) {
-			mpi_zero(n);
-			return;
-		}
-		for (j = 0, t = m; t != 0; j++)
+		for (j = 0; t != 0; j++)
 			t >>= MP_DIGIT_BITS;
 		MPI_MIN_ALLOC(n, j);
-		for (j = 0; m; j++) {
+		for (j = 0; m != 0; j++) {
 			n->digits[j] = (mp_digit)m;
 			m >>= MP_DIGIT_BITS;
 		}
 		n->size = j;
 	}
 #endif
+	n->sign = 0;
 	return n;
 }
 
@@ -223,21 +220,28 @@ mpi_set_ul(mpi *n, unsigned long m)
 {
 	if (m == 0) {
 		mpi_zero(n);
-	} else if (sizeof(mp_digit) >= sizeof(long)) {
-		MPI_SIZE(n, 1);
-		n->digits[0] = (mp_digit)m;
-	} else {
-		mp_size l;
-
-		l = (sizeof(long) + sizeof(mp_digit) - 1) / sizeof(mp_digit);
-		MPI_MIN_ALLOC(n, l);
-		for (l = 0; m; l++) {
-			n->digits[l] = (mp_digit)m;
-			m >>= MP_DIGIT_BITS/2;
-			m >>= MP_DIGIT_BITS/2;
-		}
-		n->size = l;
+		return n;
 	}
+
+#if MP_DIGIT_MAX >= ULONG_MAX
+	MPI_SIZE(n, 1);
+	n->digits[0] = (mp_digit)m;
+#else
+	{
+		mp_size j;
+		unsigned long t = m;
+
+		for (j = 0; t != 0; j++)
+			t >>= MP_DIGIT_BITS;
+
+		MPI_MIN_ALLOC(n, j);
+		for (j = 0; m; j++) {
+			n->digits[j] = (mp_digit)m;
+			m >>= MP_DIGIT_BITS;
+		}
+		n->size = j;
+	}
+#endif
 	n->sign = 0;
 	return n;
 }
