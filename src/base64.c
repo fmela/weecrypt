@@ -38,23 +38,22 @@ void *
 base64_encode(const void *input, unsigned input_size, unsigned *output_size)
 {
 	const unsigned char *in;
-	unsigned char *data, *code;
+	unsigned char *outbuf, *code;
 	unsigned pos, outbuf_size, pad, line = 0;
 
 	ASSERT(input != NULL);
-	ASSERT(input_size != 0);
-	ASSERT(output_size != NULL);
+	ASSERT(input_size > 0);
 
 	in = (const unsigned char *)input;
 	pad = input_size % 3;
-	outbuf_size = (input_size * 4 + 2)/3;
+	outbuf_size = (input_size * 4 + 2) / 3;
 	outbuf_size += (outbuf_size / 36) + 2;
 	if (pad)
 		outbuf_size++;
 	outbuf_size += 2;
-	data = MALLOC(outbuf_size);
+	outbuf = MALLOC(outbuf_size);
 
-	for (code = data, pos = 0; pos + 3 <= input_size; in += 3, pos += 3) {
+	for (code = outbuf, pos = 0; pos + 3 <= input_size; in += 3, pos += 3) {
 		*code++ = base64_chars[((in[0] >> 2) & 0x3f)];
 		*code++ = base64_chars[((in[0] << 4) & 0x30) | ((in[1] >> 4) & 0xf)];
 		*code++ = base64_chars[((in[1] << 2) & 0x3c) | ((in[2] >> 6) & 0x3)];
@@ -82,28 +81,29 @@ base64_encode(const void *input, unsigned input_size, unsigned *output_size)
 	*code++ = '\r';
 	*code++ = '\n';
 	*code++ = '\0';
-	*output_size = code - data;
+	if (output_size != NULL)
+		*output_size = code - outbuf;
 
-	if (*output_size > outbuf_size)
-		printf("%u: Allocated %u, wrote %u\n", input_size, outbuf_size, *output_size);
+	if ((unsigned)(code - outbuf) > outbuf_size)
+		printf("%u: Allocated %u, wrote %u\n", input_size, outbuf_size, code - outbuf);
 
-	return data;
+	return outbuf;
 }
 
 void *
 base64_decode(const void *input, unsigned input_size, unsigned *output_size)
 {
 	const unsigned char *p, *in;
-	unsigned char *output, *code;
+	unsigned char *outbuf, *code;
 	unsigned int data[4];
 	int i;
-	unsigned pos = 0;
+	unsigned pos = 0, outbuf_size;
 
 	ASSERT(input != NULL);
 	ASSERT(input_size != 0);
-	ASSERT(output_size != NULL);
 
-	code = output = MALLOC(((input_size * 3) / 4) + 2);
+	outbuf_size = ((input_size * 3) / 4) + 2;
+	code = outbuf = MALLOC(outbuf_size);
 	in = (const unsigned char *)input;
 
 	while (pos + 3 < input_size) {
@@ -134,7 +134,11 @@ base64_decode(const void *input, unsigned input_size, unsigned *output_size)
 		code += 3;
 	}
 
-	*output_size = code - output;
+	if (output_size != NULL)
+		*output_size = code - outbuf;
 
-	return output;
+	if ((unsigned)(code - outbuf) > outbuf_size)
+		printf("%u: Allocated %u, wrote %u\n", input_size, outbuf_size, code - outbuf);
+
+	return outbuf;
 }
