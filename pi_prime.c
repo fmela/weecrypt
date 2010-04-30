@@ -139,7 +139,6 @@ int
 main(void)
 {
 	mp_digit *n;
-	mp_digit factor, remainder;
 	mp_size len;
 	char buf[NDIGITS+1];
 
