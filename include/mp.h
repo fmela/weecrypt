@@ -25,19 +25,28 @@
 #  define __STDC__ 1
 # endif
 typedef unsigned char		mp8_t;
+typedef   signed char		mps8_t;
 typedef unsigned short		mp16_t;
+typedef   signed short		mps16_t;
 typedef unsigned int		mp32_t;
+typedef   signed int		mps32_t;
 typedef unsigned __int64	mp64_t;
+typedef   signed __int64	mps64_t;
 # define CONST64(u)			u ## UI64
 #elif defined(__GNUC__)
 typedef unsigned char		mp8_t;
+typedef   signed char		mps8_t;
 typedef unsigned short		mp16_t;
+typedef   signed short		mps16_t;
 # if UINT_MAX == 0xffffffffU
 typedef unsigned int		mp32_t;
+typedef   signed int		mps32_t;
 # else
 typedef unsigned long		mp32_t;
+typedef   signed long		mps32_t;
 # endif
 typedef unsigned long long	mp64_t;
+typedef   signed long long	mps64_t;
 # define CONST64(u)			u ## ULL
 #endif
 
