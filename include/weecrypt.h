@@ -8,7 +8,9 @@
 #define _WEECRYPT_H_
 
 #include "weecrypt_memory.h"
+
 #include "mp.h"
+#include "mp_defs.h"
 #include "mpi.h"
 #include "mpq.h"
 #include "mpq_poly.h"
