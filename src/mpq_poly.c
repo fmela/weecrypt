@@ -126,7 +126,33 @@ mpq_poly_mul(const mpq_poly_t u, const mpq_poly_t v, mpq_poly_t w)
 }
 
 void
-mpq_poly_qmul(mpq_poly_t p, mpq_t q)
+mpq_poly_mul_ui(mpq_poly_t p, unsigned int q)
+{
+	if (q == 0) {
+		mpq_poly_deg(p, 0);
+		mpq_zero(p->c[0]);
+	} else if (q != 1) {
+		int j;
+		for (j = 0; j <= p->deg; j++)
+			mpq_mul_ui(p->c[j], q, p->c[j]);
+	}
+}
+
+void
+mpq_poly_mul_si(mpq_poly_t p, signed int q)
+{
+	if (q == 0) {
+		mpq_poly_deg(p, 0);
+		mpq_zero(p->c[0]);
+	} else if (q != 1) {
+		int j;
+		for (j = 0; j <= p->deg; j++)
+			mpq_mul_si(p->c[j], q, p->c[j]);
+	}
+}
+
+void
+mpq_poly_mulq(mpq_poly_t p, mpq_t q)
 {
 	int j;
 
@@ -156,7 +182,7 @@ mpq_poly_equ(const mpq_poly_t u, const mpq_poly_t v)
 void
 mpq_poly_print(const mpq_poly_t p, char coeff, const char *fmt, ...)
 {
-	int j, k=0;
+	int j, k=0, den;
 
 	if (fmt) {
 		va_list args;
@@ -171,17 +197,21 @@ mpq_poly_print(const mpq_poly_t p, char coeff, const char *fmt, ...)
 			if (neg)
 				mpq_neg(p->c[j]);
 			if (k || neg) printf("%c", neg ? '-' : '+');
-			if (mpi_is_one(p->c[j]->den)) {
-				mpi_print_dec(p->c[j]->num);
+			den = !mpi_is_one(p->c[j]->den);
+			if (!den) {
+				if (!((k || neg) && mpi_is_one(p->c[j]->num))) {
+					mpi_print_dec(p->c[j]->num);
+				//	printf("*");
+				}
 			} else {
 				printf("(");
 				mpq_print_dec(p->c[j]);
-				printf(")");
+				printf(")*");
 			}
 			if (j > 1)
-				printf("*%c^%d", coeff, j);
+				printf("%c^%d", coeff, j);
 			else
-				printf("*%c", coeff);
+				printf("%c", coeff);
 			if (neg)
 				mpq_neg(p->c[j]);
 
