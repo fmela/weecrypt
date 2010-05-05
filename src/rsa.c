@@ -39,6 +39,8 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 	mpi_sub(rsa->phi, q, rsa->phi);		/* phi = phi-q */
 	mpi_inc(rsa->phi);					/* phi = phi+1 */
 
+	mpi_free_zero(q);
+
 	/* Choose an integer E such that 1<E<Phi and E coprime to Phi */
 	mpi_init(rsa->e);
 	for (;;) {
@@ -52,7 +54,6 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 	}
 
 	mpi_free_zero(p);
-	mpi_free_zero(q);
 
 	/* Compute D = multiplicative inverse of E, mod Phi */
 	mpi_init(rsa->d);
