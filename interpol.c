@@ -163,7 +163,7 @@ main(int argc, char **argv)
 		mpq_neg(tp->c[0]);
 		mpq_poly_mul(pp0, tp, pp1);
 		mpq_poly_set(pp1, mp);
-		mpq_poly_qmul(mp, ff[i][i]);
+		mpq_poly_mulq(mp, ff[i][i]);
 		mpq_poly_add(pp, mp, pp);
 		mpq_poly_swap(pp0, pp1);
 	}

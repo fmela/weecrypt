@@ -64,10 +64,10 @@ main(int argc, char **argv)
 	for (k=2; k<N; k++) {
 		mpq_set_ui_ui(q, 2*k-1, k);
 		mpq_poly_mul(&p[1], &p[k-1], tmp);
-		mpq_poly_qmul(tmp, q);
+		mpq_poly_mulq(tmp, q);
 		mpq_set_si_si(q,   k-1, -k);
 		mpq_poly_set(&p[k-2], tmp2);
-		mpq_poly_qmul(tmp2, q);
+		mpq_poly_mulq(tmp2, q);
 		mpq_poly_add(tmp, tmp2, &p[k]);
 	}
 
