@@ -1,7 +1,6 @@
 #include "mpq_poly.h"
 
 #include <stdarg.h>
-#include <assert.h>
 
 #include "weecrypt_memory.h"
 
@@ -28,8 +27,8 @@ mpq_poly_deg(mpq_poly_t p, int deg)
 {
 	int j;
 
-	assert(p->deg >= 0);
-	assert(deg >= 0);
+	ASSERT(p->deg >= 0);
+	ASSERT(deg >= 0);
 
 	if (p->deg < deg) {			/* "Grow" coefficient array. */
 		p->c = REALLOC(p->c, sizeof(mpq_t) * (deg+1));
@@ -51,16 +50,27 @@ mpq_poly_zero(mpq_poly_t p)
 }
 
 void
+mpq_poly_neg(mpq_poly_t p)
+{
+	int j;
+
+	ASSERT(p->deg >= 0);
+
+	for (j = p->deg; j>=0; j--)
+		mpq_neg(p->c[j]);
+}
+
+void
 mpq_poly_normalize(mpq_poly_t p)
 {
 	int j;
 
-	assert(p->deg >= 0);
+	ASSERT(p->deg >= 0);
 
 	j = p->deg;
 	while (j && mpq_is_zero(p->c[j]))
 		j--;
-	assert(j >= 0);
+	ASSERT(j >= 0);
 	mpq_poly_deg(p, j);
 }
 
@@ -69,9 +79,9 @@ mpq_poly_add(const mpq_poly_t u, const mpq_poly_t v, mpq_poly_t w)
 {
 	int i, ud, vd;
 
-	assert(u->deg >= 0);
-	assert(v->deg >= 0);
-	assert(w->deg >= 0);
+	ASSERT(u->deg >= 0);
+	ASSERT(v->deg >= 0);
+	ASSERT(w->deg >= 0);
 
 	ud = u->deg;
 	vd = v->deg;
@@ -99,9 +109,9 @@ mpq_poly_mul(const mpq_poly_t u, const mpq_poly_t v, mpq_poly_t w)
 	int i, j, d;
 	mpq_t t, *p;
 
-	assert(u->deg >= 0);
-	assert(v->deg >= 0);
-	assert(w->deg >= 0);
+	ASSERT(u->deg >= 0);
+	ASSERT(v->deg >= 0);
+	ASSERT(w->deg >= 0);
 
 	d = u->deg + v->deg;
 	p = MALLOC(sizeof(*p) * (d+1));
@@ -152,7 +162,7 @@ mpq_poly_mul_si(mpq_poly_t p, signed int q)
 }
 
 void
-mpq_poly_mulq(mpq_poly_t p, mpq_t q)
+mpq_poly_mulq(mpq_poly_t p, const mpq_t q)
 {
 	int j;
 
@@ -182,7 +192,7 @@ mpq_poly_equ(const mpq_poly_t u, const mpq_poly_t v)
 void
 mpq_poly_print(const mpq_poly_t p, char coeff, const char *fmt, ...)
 {
-	int j, k=0, den;
+	int j;
 
 	if (fmt) {
 		va_list args;
@@ -192,38 +202,46 @@ mpq_poly_print(const mpq_poly_t p, char coeff, const char *fmt, ...)
 	}
 
 	for (j = p->deg; j > 0; j--) {
-		if (!mpq_is_zero(p->c[j])) {
-			int neg = mpq_is_neg(p->c[j]);
-			if (neg)
-				mpq_neg(p->c[j]);
-			if (k || neg) printf("%c", neg ? '-' : '+');
-			den = !mpi_is_one(p->c[j]->den);
-			if (!den) {
-				if (!((k || neg) && mpi_is_one(p->c[j]->num))) {
-					mpi_print_dec(p->c[j]->num);
-				//	printf("*");
-				}
-			} else {
-				printf("(");
-				mpq_print_dec(p->c[j]);
-				printf(")*");
-			}
-			if (j > 1)
-				printf("%c^%d", coeff, j);
-			else
-				printf("%c", coeff);
-			if (neg)
-				mpq_neg(p->c[j]);
+		int neg, have_den;
 
-			k = 1;
+		if (mpq_is_zero(p->c[j]))
+			continue;
+
+		if (neg = mpq_is_neg(p->c[j])) {
+			mpq_neg(p->c[j]);
+			putchar('-');
+		} else {
+			if (j != p->deg)
+				putchar('+');
 		}
+
+		if (mpi_is_one(p->c[j]->den)) {
+			if (!mpi_is_one(p->c[j]->num))
+				mpi_print_dec(p->c[j]->num);
+		} else {
+			printf("(");
+			mpq_print_dec(p->c[j]);
+			printf(")");
+		}
+		putchar(coeff);
+		if (j > 1)
+			printf("^%d", j);
+
+		if (neg)
+			mpq_neg(p->c[j]);
 	}
 	if (mpq_is_zero(p->c[0])) {
-		if (!k)
-			mpq_print_dec(p->c[0]);
+		/* If the last coefficient is zero, we don't have to bother printing
+		 * anything if we've already printed prior coefficients. If we haven't
+		 * printed any prior coefficients, just print zero. */
+		if (p->deg == 0)
+			printf("0");
 	} else {
-		if (k && mpq_is_pos(p->c[0]))
+		/* If we already printed previous coefficients and the last coefficient
+		 * is positive, print a plus sign. */
+		if (p->deg != 0 && mpq_is_pos(p->c[0]))
 			printf("+");
+
 		if (mpi_is_one(p->c[j]->den))
 			mpi_print_dec(p->c[0]->num);
 		else
