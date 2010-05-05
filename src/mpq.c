@@ -880,10 +880,9 @@ mpq_mul_ui(const mpq *u, unsigned int v, mpq *w)
 	} else if (v == 1) {
 		mpq_set_mpq(w, u);
 	} else {
-		mpq_t vv;
-		mpq_init_ui(vv, v);
-		mpq_mul(u, vv, w);
-		mpq_free(vv);
+		mpi_mul_ui(u->num, v, w->num);
+		mpi_set_mpi(w->den, u->den);
+		mpq_normalize(w);
 	}
 }
 
@@ -908,44 +907,39 @@ mpq_mul_si(const mpq *u, signed int v, mpq *w)
 void
 mpq_div_ui(const mpq *u, unsigned int v, mpq *w)
 {
-	if (v == 0)
-		abort();
+	ASSERT(v != 0);
 
 	if (mpq_is_zero(u)) {
 		mpq_zero(w);
 	} else if (v == 1) {
 		mpq_set_mpq(w, u);
 	} else {
-		mpq_t vv;
-		mpq_init_ui(vv, v);
-		mpq_div(u, vv, w);
-		mpq_free(vv);
+		mpi_set_mpi(w->num, u->num);
+		mpi_mul_ui(u->den, v, w->den);
+		mpq_normalize(w);
 	}
 }
 
 void
 mpq_div_si(const mpq *u, signed int v, mpq *w)
 {
-	if (v == 0)
-		abort();
+	ASSERT(v != 0);
 
 	if (mpq_is_zero(u)) {
 		mpq_zero(w);
 	} else if (v == 1) {
 		mpq_set_mpq(w, u);
 	} else {
-		mpq_t vv;
-		mpq_init_si(vv, v);
-		mpq_div(u, vv, w);
-		mpq_free(vv);
+		mpi_set_mpi(w->num, u->num);
+		mpi_mul_si(u->den, v, w->den);
+		mpq_normalize(w);
 	}
 }
 
 void
 mpq_div(const mpq *u, const mpq *v, mpq *w)
 {
-	if (mpi_is_zero(v->num))
-		abort();
+	ASSERT(!mpi_is_zero(v->num));
 
 	if (mpi_is_zero(u->num)) {
 		mpq_zero(w);
@@ -957,6 +951,7 @@ mpq_div(const mpq *u, const mpq *v, mpq *w)
 		return;
 	}
 
+	/* TODO: implement gcd optimization. */
 	mpi_mul(u->num, v->den, w->num);
 	mpi_mul(u->den, v->num, w->den);
 	mpq_normalize(w);
