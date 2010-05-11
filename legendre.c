@@ -27,8 +27,8 @@ main(int argc, char **argv)
 	mpq_t q, r;
 
 	if (argc == 1) {
-		printf("This program will exactly compute the first N Legendre polynomials\n");
-		printf("Please enter how many polynomials to compute: ");
+		printf("This program will exactly compute the first N Legendre polynomials.\n"
+			   "Please enter how many polynomials to compute: ");
 		fflush(stdout);
 		if (!fscanf(stdin, "%d", &N) || N<=1) {
 			fprintf(stderr, "Invalid value for N\n");
@@ -55,9 +55,9 @@ main(int argc, char **argv)
 	mpq_poly_deg(&p[1], 1);
 	mpq_init_ui(p[1].c[1], 1);
 
-	// P(x) = (2k-1)        k-1
-	//  k     ------xP(x) + ---P(x)
-	//           k    k-1    k  k-2
+	/* P(x) = (2k-1)        k-1
+	    k     ------xP(x) + ---P(x)
+	             k    k-1    k  k-2 */
 	mpq_init(q);
 	mpq_init(r);
 
@@ -77,7 +77,7 @@ main(int argc, char **argv)
 	}
 
 #if 0
-	// check for orthogonality on [-1,1]
+	/* Check for orthogonality on [-1,1] */
 	for (j=0; j<N; j++) {
 		for (k=j+1; k<N; k++) {
 			mpq_poly_mul(&p[j], &p[k], tmp);
