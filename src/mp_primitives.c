@@ -57,17 +57,14 @@ void
 _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 			  mp_digit *q, mp_digit *r)
 {
-	unsigned sh;
-	mp_digit d1, d0;
-	mp_digit q1, q0;
-	mp_digit r1, r0, m;
-
-	ASSERT(n1 < d);
 	ASSERT(d != 0);
+	ASSERT(n1 < d);	/* This must be true for the quotient to fit in a single digit. */
 
 	if (n1 == 0) {
-		if (n0 == 0) {
-			*q = *r = 0;
+		/* Simple case. */
+		if (n0 < d) {
+			*q = 0;
+			*r = n0;
 		} else {
 			*q = n0 / d;
 			*r = n0 % d;
@@ -75,38 +72,38 @@ _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 		return;
 	}
 
-	sh = mp_msb_shift(d);
-	if (sh != 0) {
+	unsigned sh = mp_msb_shift(d);
+	if (sh != 0) {	/* Normalize divisor. */
 		d  <<= sh;
-		n1 <<= sh;
-		n1 |= n0 >> (MP_DIGIT_BITS - sh);
+		n1 = (n1 << sh) | (n0 >> (MP_DIGIT_BITS - sh));
 		n0 <<= sh;
 	}
 
-	d1 = HIHALF(d); d0 = LOHALF(d);
+	mp_digit d1 = HIHALF(d);
+	mp_digit d0 = LOHALF(d);
 
-	q1 = n1 / d1;
-	r1 = n1 % d1;
-	m = q1 * d0;
+	mp_digit q1 = n1 / d1;
+	mp_digit r1 = n1 % d1;
+	mp_digit m = q1 * d0;
 	r1 = COMBINE(r1, HIHALF(n0));
-	if (m > r1) {
-		q1 -= 1, r1 += d;
-		if (r1 >= d && m > r1)
-			q1 -= 1, r1 += d;
+	if (r1 < m) {
+		--q1, r1 += d;
+		if (r1 >= d && r1 < m)
+			--q1, r1 += d;
 	}
 	r1 -= m;
 
-	q0 = r1 / d1;
-	r0 = r1 % d1;
+	mp_digit q0 = r1 / d1;
+	mp_digit r0 = r1 % d1;
 	m = q0 * d0;
 	r0 = COMBINE(r0, LOHALF(n0));
-	if (m > r0) {
-		q0 -= 1, r0 += d;
-		if (r0 >= d && m > r0)
-			q0 -= 1, r0 += d;
+	if (r0 < m) {
+		--q0, r0 += d;
+		if (r0 >= d && r0 < m)
+			--q0, r0 += d;
 	}
 	r0 -= m;
 
-	*q = COMBINE(q1, q0) >> sh;
+	*q = COMBINE(q1, q0);
 	*r = r0 >> sh;
 }
