@@ -16,8 +16,10 @@ void rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx);
 void rsa_free(rsa_ctx *rsa);
 
 /* Transform cleartext into encrypted data. */
-void rsa_encrypt(rsa_ctx *ctx, const void *input, unsigned input_size, void *output, unsigned *output_size);
+void rsa_encrypt(rsa_ctx *ctx, const void *input, unsigned input_size,
+				 void *output, unsigned *output_size);
 /* Transform encrypted data back to cleartext. */
-void rsa_decrypt(rsa_ctx *ctx, const void *input, unsigned input_size, void *output, unsigned *output_size);
+void rsa_decrypt(rsa_ctx *ctx, const void *input, unsigned input_size,
+				 void *output, unsigned *output_size);
 
 #endif /* !_RSA_H_ */
