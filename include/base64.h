@@ -9,7 +9,8 @@
 #ifndef _BASE64_H_
 #define _BASE64_H_
 
-void *base64_encode(const void *input, unsigned input_size, unsigned *output_size);
-void *base64_decode(const void *input, unsigned input_size, unsigned *output_size);
+char *base64_encode(const void *input, unsigned input_size);
+char *base64_encode_string(const char *input);
+void *base64_decode(const char *input, unsigned *output_size);
 
 #endif // !_BASE64_H_
