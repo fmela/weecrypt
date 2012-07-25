@@ -23,29 +23,29 @@ void	mpq_init(mpq *p);
 void	mpq_init_mpq(mpq *p, const mpq *q);
 void	mpq_init_mpi(mpq *p, const mpi *q);
 
-void	mpq_init_ui(mpq *p, unsigned int q);
-void	mpq_init_si(mpq *p,   signed int q);
-void	mpq_init_ul(mpq *p, unsigned long q);
-void	mpq_init_sl(mpq *p,   signed long q);
+void	mpq_init_u32(mpq *p, uint32_t q);
+void	mpq_init_s32(mpq *p, int32_t q);
+void	mpq_init_u64(mpq *p, uint64_t q);
+void	mpq_init_s64(mpq *p, int64_t q);
 void	mpq_init_f(mpq *p, float f);
 void	mpq_init_d(mpq *p, double d);
 
-void	mpq_init_ui_ui(mpq *p, unsigned int n, unsigned int d);
-void	mpq_init_si_si(mpq *p, signed int n, signed int d);
-void	mpq_init_ul_ul(mpq *p, unsigned long n, unsigned long d);
-void	mpq_init_sl_sl(mpq *p, signed long n, signed long d);
+void	mpq_init_u32_u32(mpq *p, uint32_t n, uint32_t d);
+void	mpq_init_s32_s32(mpq *p, int32_t n, int32_t d);
+void	mpq_init_u64_u64(mpq *p, uint64_t n, uint64_t d);
+void	mpq_init_s64_s64(mpq *p, int64_t n, int64_t d);
 
 void	mpq_free(mpq *p);
 
 void	mpq_set_mpq(mpq *p, const mpq *q);
-void	mpq_set_ui(mpq *p, unsigned int q);
-void	mpq_set_si(mpq *p,   signed int q);
-void	mpq_set_ul(mpq *p, unsigned long q);
-void	mpq_set_sl(mpq *p,   signed long q);
-void	mpq_set_ui_ui(mpq *p, unsigned int n, unsigned int d);
-void	mpq_set_si_si(mpq *p, signed int n, signed int d);
-void	mpq_set_ul_ul(mpq *p, unsigned long n, unsigned long d);
-void	mpq_set_sl_sl(mpq *p, signed long n, signed long d);
+void	mpq_set_u32(mpq *p, uint32_t q);
+void	mpq_set_s32(mpq *p, int32_t q);
+void	mpq_set_u64(mpq *p, uint64_t q);
+void	mpq_set_s64(mpq *p, int64_t q);
+void	mpq_set_u32_u32(mpq *p, uint32_t n, uint32_t d);
+void	mpq_set_s32_s32(mpq *p, int32_t n, int32_t d);
+void	mpq_set_u64_u64(mpq *p, uint64_t n, uint64_t d);
+void	mpq_set_s64_s64(mpq *p, int64_t n, int64_t d);
 
 /* Conversion to/from IEEE754 floating point. */
 void	mpq_set_f(mpq *p, float f);
@@ -87,15 +87,15 @@ void	mpq_undef(mpq *q);
 void	mpq_add(const mpq *u, const mpq *v, mpq *w);
 void	mpq_sub(const mpq *u, const mpq *v, mpq *w);
 void	mpq_mul(const mpq *u, const mpq *v, mpq *w);
-void	mpq_mul_si(const mpq *u,   signed int v, mpq *w);
-void	mpq_mul_ui(const mpq *u, unsigned int v, mpq *w);
+void	mpq_mul_s32(const mpq *u, int32_t v, mpq *w);
+void	mpq_mul_u32(const mpq *u, uint32_t v, mpq *w);
 void	mpq_div(const mpq *u, const mpq *v, mpq *w);
-void	mpq_div_si(const mpq *u,   signed int v, mpq *w);
-void	mpq_div_ui(const mpq *u, unsigned int v, mpq *w);
+void	mpq_div_s32(const mpq *u, int32_t v, mpq *w);
+void	mpq_div_u32(const mpq *u, uint32_t v, mpq *w);
 
 int		mpq_cmp(const mpq *p, const mpq *q);
-int		mpq_cmp_ui(const mpq *p, unsigned int q);
-int		mpq_cmp_si(const mpq *p,   signed int q);
+int		mpq_cmp_u32(const mpq *p, uint32_t q);
+int		mpq_cmp_s32(const mpq *p, int32_t q);
 int		mpq_cmp_f(const mpq *p,  float q);
 int		mpq_cmp_d(const mpq *p, double q);
 #define	mpq_cmp_gt(p,q)	(mpq_cmp((p), (q)) >  0)
