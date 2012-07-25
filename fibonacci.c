@@ -11,10 +11,8 @@ main(void)
 	mpi_t fib;
 	mpi_init(fib);
 
-	for (;;) {
-		printf("Enter N: ");
-		if (!fgets(buf, sizeof(buf), stdin))
-			break;
+	while (printf("Enter N: ") &&
+		   fgets(buf, sizeof(buf), stdin)) {
 		unsigned n = (unsigned)strtoul(buf, NULL, 10);
 		if (n == 0)
 			break;
@@ -22,6 +20,7 @@ main(void)
 		printf("You entered %u\n", n);
 		mpi_fibonacci(n, fib);
 		printf("F(%u)=", n), mpi_print_dec(fib), printf("\n");
+		printf("As double: %g\n", mpi_get_d(fib));
 	}
 
 	return 0;
