@@ -27,34 +27,38 @@ mpi*	mpi_init_mpi(mpi *p, const mpi *q);
 mpi*	mpi_init_size(mpi *p, mp_size size);
 mpi*	mpi_init_str(mpi *p, const char *str, unsigned base);
 mpi*	mpi_init_mp(mpi *p, mp_digit *n, mp_size size);
-mpi*	mpi_init_ui(mpi *p, unsigned int q);
-mpi*	mpi_init_si(mpi *p,   signed int q);
-mpi*	mpi_init_ul(mpi *p, unsigned long q);
-mpi*	mpi_init_sl(mpi *p,   signed long q);
+mpi*	mpi_init_u32(mpi *p, uint32_t q);
+mpi*	mpi_init_s32(mpi *p, int32_t q);
+mpi*	mpi_init_u64(mpi *p, uint64_t q);
+mpi*	mpi_init_s64(mpi *p, int64_t q);
 void	mpi_free(mpi *p);
 void	mpi_free_zero(mpi *p);
 
 mpi*	mpi_set_mpi(mpi *p, const mpi *q);
-mpi*	mpi_set_ui(mpi *p, unsigned int q);
-mpi*	mpi_set_si(mpi *p,   signed int q);
-mpi*	mpi_set_ul(mpi *p, unsigned long q);
-mpi*	mpi_set_sl(mpi *p,   signed long q);
+mpi*	mpi_set_u32(mpi *p, uint32_t q);
+mpi*	mpi_set_s32(mpi *p, int32_t q);
+mpi*	mpi_set_u64(mpi *p, uint64_t q);
+mpi*	mpi_set_s64(mpi *p, int64_t q);
 
-int		mpi_get_si(const mpi *p,   signed  int *q);
-int		mpi_get_ui(const mpi *p, unsigned  int *q);
-int		mpi_get_sl(const mpi *p,   signed long *q);
-int		mpi_get_ul(const mpi *p, unsigned long *q);
+int		mpi_get_u32(const mpi *p, uint32_t *q);
+int		mpi_get_s32(const mpi *p, int32_t *q);
+int		mpi_get_u64(const mpi *p, int64_t *q);
+int		mpi_get_s64(const mpi *p, uint64_t *q);
 
 float	mpi_get_f(const mpi *p);
 double	mpi_get_d(const mpi *p);
 
-#define mpi_is_zero(n)	((n)->size == 0)
-#define mpi_is_pos(n)	((n)->size != 0 && (n)->sign == 0)
-#define mpi_is_neg(n)	((n)->sign)
-#define mpi_is_one(n)	((n)->size == 1 && (n)->sign == 0 && (n)->digits[0] == 1)
-#define mpi_is_even(n)	((n)->size == 0 ? 1 : (0 == ((n)->digits[0] & 1)))
-#define mpi_is_odd(n)	((n)->size == 0 ? 0 : (1 == ((n)->digits[0] & 1)))
-#define mpi_sig_bits(n)	mp_significant_bits((n)->digits, (n)->size)
+#define mpi_is_zero(n)		((n)->size == 0)
+#define mpi_is_one(n)		((n)->size == 1 && (n)->sign == 0 && \
+							 (n)->digits[0] == 1)
+#define mpi_is_negone(n)	((n)->size == 1 && (n)->sign == 1 && \
+							 (n)->digits[0] == 1)
+#define mpi_is_pos(n)		((n)->size != 0 && (n)->sign == 0)
+#define mpi_is_neg(n)		((n)->sign)
+#define mpi_is_even(n)		((n)->size == 0 ? 1 : (0 == ((n)->digits[0] & 1)))
+#define mpi_is_odd(n)		((n)->size == 0 ? 0 : (1 == ((n)->digits[0] & 1)))
+#define mpi_significant_bits(n) \
+							mp_significant_bits((n)->digits, (n)->size)
 
 mpi*	mpi_zero(mpi *p);
 mpi*	mpi_one(mpi *p);
@@ -71,8 +75,10 @@ int		mpi_cmp(const mpi *p, const mpi *q);
 #define	mpi_cmp_le(p,q)	(mpi_cmp((p), (q)) <= 0)
 #define mpi_cmp_eq(p,q)	(mpi_cmp((p), (q)) == 0)
 #define mpi_cmp_ne(p,q)	(mpi_cmp((p), (q)) != 0)
-int		mpi_cmp_ui(const mpi *p, unsigned int q);
-int		mpi_cmp_si(const mpi *p,   signed int q);
+int		mpi_cmp_u32(const mpi *p, uint32_t q);
+int		mpi_cmp_s32(const mpi *p, int32_t q);
+int		mpi_cmp_u64(const mpi *p, uint64_t q);
+int		mpi_cmp_s64(const mpi *p, int64_t q);
 
 void	mpi_setbit(mpi *p, unsigned bit);
 void	mpi_clrbit(mpi *p, unsigned bit);
@@ -88,22 +94,22 @@ void	mpi_inc(mpi *a);
 void	mpi_dec(mpi *b);
 /* S = A + B */
 void	mpi_add(const mpi *a, const mpi *b, mpi *s);
-void	mpi_add_ui(const mpi *a, unsigned int b, mpi *s);
-void	mpi_add_si(const mpi *a,   signed int b, mpi *s);
+void	mpi_add_u32(const mpi *a, uint32_t b, mpi *s);
+void	mpi_add_s32(const mpi *a, int32_t b, mpi *s);
 /* S = A - B */
 void	mpi_sub(const mpi *a, const mpi *b, mpi *s);
-void	mpi_sub_ui(const mpi *a, unsigned int b, mpi *s);
-void	mpi_sub_si(const mpi *a,   signed int b, mpi *s);
+void	mpi_sub_u32(const mpi *a, uint32_t b, mpi *s);
+void	mpi_sub_s32(const mpi *a, int32_t b, mpi *s);
 /* P = A * B */
 void	mpi_mul(const mpi *a, const mpi *b, mpi *p);
-void	mpi_mul_ui(const mpi *a, unsigned int b, mpi *p);
-void	mpi_mul_si(const mpi *a,   signed int b, mpi *p);
+void	mpi_mul_u32(const mpi *a, uint32_t b, mpi *p);
+void	mpi_mul_s32(const mpi *a, int32_t b, mpi *p);
 /* B = A * A */
 void	mpi_sqr(const mpi *a, mpi *b);
 /* Q = A / B, R = A % B */
 void	mpi_divrem(const mpi *a, const mpi *b, mpi *q, mpi *r);
-void	mpi_divrem_ui(const mpi *a, unsigned int b, mpi *q, mpi *r);
-void	mpi_divrem_si(const mpi *a,   signed int b, mpi *q, mpi *r);
+void	mpi_divrem_u32(const mpi *a, uint32_t b, mpi *q, mpi *r);
+void	mpi_divrem_s32(const mpi *a, int32_t b, mpi *q, mpi *r);
 /* Q = A / B */
 void	mpi_div(const mpi *a, const mpi *b, mpi *q);
 void	mpi_divexact(const mpi *a, const mpi *b, mpi *q);
@@ -122,7 +128,7 @@ void	mpi_gcdext(const mpi *a, const mpi *b, mpi *u, mpi *v, mpi *d);
 /* Modular inverse */
 int		mpi_modinv(const mpi *m, const mpi *b, mpi *inv);
 /* Modular exponentiation: R = (A ^ P) mod M */
-void	mpi_modexp_ui(const mpi *a, unsigned p, const mpi *m, mpi *r);
+void	mpi_modexp_u32(const mpi *a, uint32_t p, const mpi *m, mpi *r);
 void	mpi_modexp(const mpi *a, const mpi *p, const mpi *m, mpi *r);
 /* Compute fibonacci number. */
 void mpi_fibonacci(unsigned n, mpi *fib);
