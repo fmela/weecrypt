@@ -15,10 +15,12 @@
 
 void test_mp_digit_mul();
 void test_mp_digit_div();
+void test_mp_digit_invert();
 
 CU_TestInfo mp_primitives[] = {
 	TEST_FUNC(test_mp_digit_mul),
 	TEST_FUNC(test_mp_digit_div),
+	TEST_FUNC(test_mp_digit_invert),
 	CU_TEST_INFO_NULL
 };
 
@@ -121,6 +123,17 @@ void test_mp_digit_div()
 	CU_ASSERT_EQUAL(q, 866996971464ULL);
 	CU_ASSERT_EQUAL(r, 478342540ULL);
 #endif
+}
+
+void test_mp_digit_invert()
+{
+	for (int i = 0; i < 10000; ++i) {
+		mp_digit r;
+		mp_rand(&r, 1);
+		r |= 1; /* Ensure r is odd. */
+		mp_digit inverse = mp_digit_invert(r);
+		CU_ASSERT_EQUAL(r * inverse, (mp_digit)1);
+	}
 }
 
 void
