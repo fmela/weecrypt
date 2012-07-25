@@ -37,13 +37,14 @@ mp_sqrtrem(const mp_digit *u, mp_size usize, mp_digit *v, mp_digit *r)
 
 	/* TODO: Implement a higher-order iteration for faster convergence? */
 
-	if (v == NULL && r == NULL)
+	if (!v && !r)
 		return;	/* Nothing to do. */
-	if (v != NULL)
+	if (v)
 		mp_zero(v, (usize + 1) / 2);
-	if (r != NULL)
+	if (r)
 		mp_zero(r, usize);
-	if ((usize = mp_rsize(u, usize)) == 0)
+	MP_NORMALIZE(u, usize);
+	if (!usize)
 		return;
 	if (usize == 1) {
 		cy = digit_sqrt(u[0]);
@@ -69,13 +70,10 @@ mp_sqrtrem(const mp_digit *u, mp_size usize, mp_digit *v, mp_digit *r)
 		y_len = usize - x_len + 1;
 		mp_zero(y + y_len, ysize - y_len);
 		mp_div(u, usize, x, x_len, y);
-		y_len -= (y[y_len - 1] == 0);
 		/* Y += X */
-		cy = mp_addi(y, y_len, x, x_len);
+		cy = mp_addi(y, ysize, x, x_len);
 		ASSERT(cy == 0);
-		if (y_len < x_len)
-			y_len = x_len;
-		y_len += (y[y_len] != 0);
+		y_len = mp_rsize(y, ysize);
 		/* Y /= 2 */
 		mp_rshifti(y, y_len, 1);
 		y_len -= (y[y_len - 1] == 0);
