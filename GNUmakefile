@@ -14,16 +14,13 @@ ST_LIB=$(BUILDIR)/lib$(LIB).a
 PR_LIB=$(BUILDIR)/lib$(LIB)_p.a
 SH_LIB=$(BUILDIR)/lib$(LIB).so
 
-OS=$(shell uname)
-ifeq ($(OS),Darwin)
-	CC=/Developer/usr/bin/clang
-else
-	CC=gcc
+CC=$(shell which clang || which gcc)
+ifeq ($(CC),)
+$(error Neither clang nor gcc found)
 endif
-COPTS=-O -g3 -m32
-ASFLAGS=-m32
-#COPTS=-O2 -march=core2 -fomit-frame-pointer -ftracer -DNDEBUG
-CFLAGS=-Wall -W $(COPTS) -Iinclude
+CFLAGS=-Wall -Wextra -Werror $(COPTS) $(ARCH) -Iinclude
+#COPTS=-std=c99 -march=native -g3
+COPTS=-std=c99 -march=native -O2
 PIC=-DPIC -fPIC
 PROF=-pg
 
@@ -53,10 +50,10 @@ $(SH_LIB): $(SH_OBJ)
 	$(CC) -shared -o $(@) $(SH_OBJ)
 
 $(BUILDIR)/%.o: asm/%.S
-	$(CC) $(ASFLAGS) -Iinclude -c $(<) -o $(@)
+	$(CC) -Iinclude -c $(<) -o $(@)
 
 $(BUILDIR)/%.po: asm/%.S
-	$(CC) $(ASFLAGS) -Iinclude $(PROF) -c $(<) -o $(@)
+	$(CC) -Iinclude $(PROF) -c $(<) -o $(@)
 
 $(BUILDIR)/%.So: asm/%.S
 	$(CC) -Iinclude $(PIC) -c $(<) -o $(@)
@@ -70,15 +67,23 @@ $(BUILDIR)/%.po: src/%.c
 $(BUILDIR)/%.So: src/%.c
 	$(CC) $(CFLAGS) $(PIC) -c $(<) -o $(@)
 
+$(BUILDIR)/unit_tests: unit_tests.c $(ST_LIB)
+	$(CC) $(CFLAGS) -I/opt/local/include -L/opt/local/lib -lcunit -lncurses -o $(@) $(<) $(ST_LIB)
+
 $(BUILDIR)/%: %.c $(ST_LIB)
 	$(CC) $(CFLAGS) -o $(@) $(<) $(ST_LIB)
 
 .PHONY : clean
-clean :
+clean:
 	rm -f $(ST_LIB) $(PR_LIB) $(SH_LIB)
 	rm -f $(ST_OBJ) $(PR_OBJ) $(SH_OBJ)
 	rm -f $(TEST_BIN)
 	rm -rf $(DEPDIR)
+
+.PHONY : analyze
+analyze:
+	clang $(CFLAGS) --analyze $(SRC)
+	rm -f *.plist
 
 $(DEPDIR)/%.dep : %.c
 	@$(SHELL) -c '[ -d $(DEPDIR) ] || mkdir $(DEPDIR)'
