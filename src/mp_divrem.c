@@ -23,7 +23,7 @@ mp_norm_div(mp_digit *u, mp_size usize,
 	ASSERT((vd & MP_DIGIT_MSB) != 0);
 
 	/* D2: Initialize j. */
-	u_j = &u[j = usize - vsize];	/* u_j will point to u[j] throughout loop. */
+	u_j = &u[j = usize - vsize]; /* u_j will point to u[j] throughout loop. */
 	do {
 		/* D3: Calculate qhat. */
 		if (u_j[vsize] == vd) {
@@ -61,7 +61,7 @@ mp_norm_div(mp_digit *u, mp_size usize,
 
 /* Divide u[usize] by v[vsize], storing the result in q[usize - vsize + 1], and
  * remainder in r[vsize]. v[vsize - 1] must NOT be zero if q != NULL. */
-int
+void
 mp_divrem(const mp_digit *u, mp_size usize,
 		  const mp_digit *v, mp_size vsize, mp_digit *q, mp_digit *r)
 {
@@ -77,8 +77,8 @@ mp_divrem(const mp_digit *u, mp_size usize,
 //	ASSERT(usize >= vsize);
 
 
-	if (q == NULL && r == NULL) /* Nothing to do. */
-		return 0;
+	if (!q && !r) /* Nothing to do. */
+		return;
 
 	/* Initialize quotient and remainder to zero. */
 	if (r != NULL)
@@ -98,12 +98,12 @@ mp_divrem(const mp_digit *u, mp_size usize,
 		/* If equal, set quotient to 1; finished. */
 		if (q != NULL)
 			q[0] = 1;
-		return 0;
+		return;
 	} else if (rv < 0) {
 		/* If U < V, set remainder to U; finished. */
 		if (r != NULL)
 			mp_copy(u, usize, r);
-		return 0;
+		return;
 	}
 
 	if (vsize == 1) {
@@ -116,7 +116,7 @@ mp_divrem(const mp_digit *u, mp_size usize,
 			ASSERT(r != NULL);
 			r[0] = mp_dmod(u, usize, v[0]);
 		}
-		return 0;
+		return;
 	}
 	/* TODO: add a special case handler for VLEN == 2? */
 
@@ -155,5 +155,4 @@ mp_divrem(const mp_digit *u, mp_size usize,
 
 	/* Release space for U. */
 	MP_TMP_FREE(utmp);
-	return 0;
 }
