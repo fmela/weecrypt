@@ -1,5 +1,5 @@
-Weecrypt is an ANSI C library for RSA encryption and arbitrary-precision
-integer and rational computation.
+Weecrypt is an ANSI C library for and arbitrary-precision integer and rational
+computation, and RSA encryption.
 
 Weecrypt is released under the BSD license; please refer to the file
 LICENSE for details.
