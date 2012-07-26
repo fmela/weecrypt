@@ -49,9 +49,10 @@ void factor(mp_digit *n, mp_size len) {
 			npowers++;
 		} while (mp_dmod(n, len, factor) == 0);
 		if (npowers > 1)
-			printf("Trivial factor %u^%d removed\n", factor, npowers);
+			printf("Trivial factor " MP_FORMAT "^%d removed\n",
+				   factor, npowers);
 		else
-			printf("Trivial factor %u removed\n", factor);
+			printf("Trivial factor " MP_FORMAT " removed\n", factor);
 	}
 
 	printf("Remainder after removing %d trivial factors is:\n", nfactors);
