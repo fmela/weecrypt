@@ -21,13 +21,13 @@ mpi_gcdext(const mpi *a, const mpi *b, mpi *u, mpi *v, mpi *g)
 	ASSERT(b->sign == 0);
 
 	/* 1. Initialize. */
-	mpi_set_ui(u, 1);
+	mpi_set_u32(u, 1);
 	mpi_set_mpi(g, a);
 	if (mpi_is_zero(b)) {
 		mpi_zero(v);
 		return;
 	}
-	mpi_init_ui(v1, 0);
+	mpi_init_u32(v1, 0);
 	mpi_init_mpi(v3, b);
 
 	mpi_init(t1);
@@ -39,10 +39,6 @@ mpi_gcdext(const mpi *a, const mpi *b, mpi *u, mpi *v, mpi *g)
 		if (mpi_is_zero(v3)) {
 			/* Set v = (g-a*u)/b */
 			mpi_mul(a, u, v);		/* v = a*u */
-			/*
-			mpi_neg(v);
-			mpi_add(v, g, v);
-			*/
 			mpi_sub(g, v, v);		/* v = g-v */
 			mpi_divexact(v, b, v);	/* v = v/b */
 
@@ -54,7 +50,7 @@ mpi_gcdext(const mpi *a, const mpi *b, mpi *u, mpi *v, mpi *g)
 			return;
 		}
 		/* 3. Euclidean step. */
-		/* Calculate q and t3 with g = q*v3 + t3, using division with remainder. */
+		/* Calculate q and t3 with g = q*v3 + t3. */
 		mpi_divrem(g, v3, q, t3);	/* q=floor(g/v3), t3=g mod v3 */
 		/* Set t1 = u - q*v1 */
 		mpi_mul(q, v1, t1);			/* t1 = q*v1 */
