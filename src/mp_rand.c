@@ -21,7 +21,7 @@
 #define MT_DEF_SEED		(unsigned)time(0)
 
 static void
-mt_init32(mp_rand_ctx *ctx, mp32_t s)
+mt_init32(mp_rand_ctx *ctx, uint32_t s)
 {
 	int mti;
 
@@ -32,11 +32,11 @@ mt_init32(mp_rand_ctx *ctx, mp32_t s)
 	ctx->mti = mti;
 }
 
-static mp32_t
+static uint32_t
 mt_rand32(mp_rand_ctx *ctx)
 {
 	int mti;
-    mp32_t y, mag01[2] = { 0, MT_MATRIX_A };
+    uint32_t y, mag01[2] = { 0, MT_MATRIX_A };
 
 	mti = ctx->mti;
     if (mti >= MT_N) { /* generate MT_N words at one time */
@@ -83,7 +83,7 @@ mp_rand_ctx_init(mp_rand_ctx *ctx)
 }
 
 void
-mp_rand_ctx_init_seed(mp_rand_ctx *ctx, mp32_t seed)
+mp_rand_ctx_init_seed(mp_rand_ctx *ctx, uint32_t seed)
 {
 	ASSERT(ctx != NULL);
 
@@ -95,7 +95,7 @@ mp_rand_ctx_clear(mp_rand_ctx *ctx)
 {
 	ASSERT(ctx != NULL);
 
-	memset(ctx, 0, sizeof(ctx));
+	memset(ctx, 0, sizeof(*ctx));
 }
 
 /* Try to use all bits output by RNG. */
@@ -104,7 +104,7 @@ mp_rand_digits(mp_rand_ctx *ctx, mp_digit *u, mp_size size)
 {
 	unsigned char *ptr;
 	static mp_rand_ctx stat_ctx = { MT_N + 1, { 0 } };
-	mp32_t k;
+	uint32_t k;
 	mp_size l;
 
 	if (ctx == NULL)
