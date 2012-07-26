@@ -17,7 +17,7 @@
 
 #include "weecrypt.h"
 
-char* strtompq(const char *str, mpq_t n);
+char *strtompq(const char *str, mpq_t n);
 
 /*
  * Given a set of N distinct points x_i for i = 1 .. N and a corresponding
@@ -38,12 +38,6 @@ char* strtompq(const char *str, mpq_t n);
 int
 main(int argc, char **argv)
 {
-	int i, j, n;
-	mpq_t *x, *f;
-	mpq_t **ff, t;
-	char *p;
-	mpq_poly_t tp, pp0, pp1, mp, pp;
-
 	/* Read command line arguments. For example, to find the coefficients of
 	 * the 2nd degree polynomial for p(0) = 1, p(1) = 2, p(2) = 3, use
 	 * ./interpol 0:1 1:2 2:3, etc. */
@@ -51,32 +45,32 @@ main(int argc, char **argv)
 		fprintf(stderr, "usage: interpol x_1:f_1 x_2:f_2 ... x_N:f_N\n");
 		exit(1);
 	}
-	n = argc - 1;
+	const int n = argc - 1;
 
-	x = MALLOC(sizeof(*x) * n);
-	f = MALLOC(sizeof(*f) * n);
+	mpq_t *x = MALLOC(sizeof(*x) * n);
+	mpq_t *f = MALLOC(sizeof(*f) * n);
 
-	for (j = 0; j < n; j++) {
+	for (int j = 0; j < n; j++) {
 		/*
-		double d,td;
 
-		d = strtod(argv[j+1], &p);
+		double d = strtod(argv[j+1], &p);
 		if (*p != ':') {
 			fprintf(stderr, "interpol: bad input format\n");
 			exit(1);
 		}
 		mpq_init_d(x[j], d);
-		if ((td = mpq_get_d(x[j])) != d)
+		double td = mpq_get_d(x[j]);
+		if (td != d) {
 			printf("interpol: Warning! Non-exact representation of X=%g: %g\n",
 				   d, td);
 		*/
 		mpq_init(x[j]);
-		p = strtompq(argv[j+1], x[j]);
+		char *p = strtompq(argv[j+1], x[j]);
 		if (*p != ':') {
 			fprintf(stderr, "interpol: bad input format\n");
 			exit(1);
 		}
-		for (i = 0; i < j; i++)
+		for (int i = 0; i < j; i++)
 			if (mpq_cmp_eq(x[i], x[j])) {
 				fprintf(stderr, "interpol: cannot have duplicate x values\n");
 				fprintf(stderr, "x[%d]=", i); mpq_print_dec(x[i]); fprintf(stderr, "\n");
@@ -106,23 +100,35 @@ main(int argc, char **argv)
 		printf("\n");
 		*/
 		printf("f[");
-		mpq_print_dec(x[j]);
+
+		if (mpi_is_zero(x[j]->num))
+			printf("0");
+		else if (mpi_is_one(x[j]->den))
+			mpi_print_dec(x[j]->num);
+		else
+			mpq_print_dec(x[j]);
 		printf("]=");
-		mpq_print_dec(f[j]);
+
+		if (mpi_is_zero(f[j]->num))
+			printf("0");
+		else if (mpi_is_one(f[j]->den))
+			mpi_print_dec(f[j]->num);
+		else
+			mpq_print_dec(f[j]);
 		printf("\n");
 	}
 
 	/* Allocate and initialize coefficient table. */
-	ff = MALLOC(sizeof(*ff) * n);
-	for (i = 0; i < n; i++) {
+	mpq_t **ff = MALLOC(sizeof(*ff) * n);
+	for (int i = 0; i < n; i++) {
 		ff[i] = MALLOC(sizeof(**ff) * (i+1));
 		mpq_init_mpq(ff[i][0], f[i]);
-		for (j = 1; j <= i; j++)
+		for (int j = 1; j <= i; j++)
 			mpq_init(ff[i][j]);
 	}
 
-	/* Compute the coefficients by the divided difference formula. */
-	/*
+	/* Compute the coefficients by the divided difference formula:
+	 *
 	 * for i <- 1 to n do
 	 *     f[i,0] <- f_i
 	 * for i <- 1 to n-1 do
@@ -130,9 +136,10 @@ main(int argc, char **argv)
 	 *     f[i,j] <- (f[i,j-1] - f[i-1][j-1]) / (x[i] - x[i-j])
 	 * Then the f[i,i] entries are the coefficients for the forward-difference
 	 * formula. */
+	mpq_t t;
 	mpq_init(t);
-	for (i = 1; i < n; i++) {
-		for (j = 1; j <= i; j++) {
+	for (int i = 1; i < n; i++) {
+		for (int j = 1; j <= i; j++) {
 			mpq_sub(ff[i][j-1], ff[i-1][j-1], ff[i][j]);
 			mpq_sub(x[i], x[i-j], t);
 			mpq_div(ff[i][j], t, ff[i][j]);
@@ -141,6 +148,7 @@ main(int argc, char **argv)
 	mpq_free(t);
 
 	/* Compute the polynomials p_k=\prod_{i=0}^{k-1}(x-x_i) for i = 0 ... n-1 */
+	mpq_poly_t tp, pp0, pp1, mp, pp;
 	mpq_poly_init(tp);
 	mpq_poly_init(pp0);
 	mpq_poly_init(pp1);
@@ -152,12 +160,12 @@ main(int argc, char **argv)
 
 	/* tp <- (x-?) */
 	mpq_poly_deg(tp, 1);
-	mpq_set_si(tp->c[1], 1);
+	mpq_set_u32(tp->c[1], 1);
 
 	/* pp0 <- 1 */
-	mpq_set_si(pp0->c[0], 1);
+	mpq_set_u32(pp0->c[0], 1);
 
-	for (i = 1; i < n; i++) {
+	for (int i = 1; i < n; i++) {
 		/* tp <- (1-x[i-1]) */
 		mpq_set_mpq(tp->c[0], x[i-1]);
 		mpq_neg(tp->c[0]);
@@ -172,13 +180,13 @@ main(int argc, char **argv)
 #if 0
 	printf("Points interpolated by degree-%d polynomial\n", pp->deg);
 	printf("p(x)=c0+c1*x+c2*x^2+...+cn*x^n where:\n");
-	i = (pp->deg >= 1000) ? 4 :
+	int places = (pp->deg >= 1000) ? 4 :
 		(pp->deg >=  100) ? 3 :
 		(pp->deg >=   10) ? 2 : 1;
 	for (j = pp->deg; j >= 0; j--) {
-		printf("c%*d=", i, j);
-		mpq_print_dec(pp->c + j);
-		printf(" (%.*g)", DBL_DIG+1, mpq_get_d(pp->c + j));
+		printf("c%*d=", places, j);
+		mpq_print_dec(pp->c[j]);
+		printf(" (%.*g)", DBL_DIG+1, mpq_get_d(pp->c[j]));
 		printf("\n");
 	}
 	printf("\n");
@@ -188,7 +196,7 @@ main(int argc, char **argv)
 
 	/* Evaluate it at supplied points. */
 	mpq_init(t);
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		mpq_poly_eval(pp, x[i], t);
 		printf("p(%.*g)=", DBL_DIG+1, mpq_get_d(x[i])); mpq_print_dec(t);
 		printf("=%.*g", DBL_DIG+1, mpq_get_d(t));
@@ -205,14 +213,14 @@ main(int argc, char **argv)
 	mpq_poly_free(pp1);
 	mpq_poly_free(mp);
 	mpq_poly_free(pp);
-	for (i = 0; i < n; i++) {
-		for (j = 0; j <= i; j++)
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j <= i; j++)
 			mpq_free(ff[i][j]);
 		FREE(ff[i]);
 	}
 	FREE(ff);
 
-	for (j = 0; j < n; j++) {
+	for (int j = 0; j < n; j++) {
 		mpq_free(x[j]);
 		mpq_free(f[j]);
 	}
@@ -222,7 +230,7 @@ main(int argc, char **argv)
 	return 0;
 }
 
-char*
+char *
 strtompq(const char *str, mpq_t n)
 {
 	int neg = 0;
@@ -235,21 +243,21 @@ strtompq(const char *str, mpq_t n)
 	} else if (*str == '+') {
 		str++;
 	}
-	mpq_set_ui(n, 0);
+	mpq_set_u32(n, 0);
 	while (*str && isdigit(*str)) {
-		mpi_mul_ui(n->num, 10, n->num);
-		mpi_add_ui(n->num, *str++ - '0', n->num);
+		mpi_mul_u32(n->num, 10, n->num);
+		mpi_add_u32(n->num, *str++ - '0', n->num);
 	}
 	if (*str == '.') {
 		str++;
 		while (*str && isdigit(*str)) {
-			mpi_mul_ui(n->num, 10, n->num);
-			mpi_add_ui(n->num, *str++ - '0', n->num);
-			mpi_mul_ui(n->den, 10, n->den);
+			mpi_mul_u32(n->num, 10, n->num);
+			mpi_add_u32(n->num, *str++ - '0', n->num);
+			mpi_mul_u32(n->den, 10, n->den);
 		}
 	}
 	if (neg)
 		mpq_neg(n);
 	mpq_normalize(n);
-	return (char*)str;
+	return (char *)str;
 }
