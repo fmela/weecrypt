@@ -22,14 +22,13 @@ _mp_mul_base(const mp_digit *u, mp_size usize,
 	/* Find real sizes and zero any part of answer which will not be set. */
 	ul = mp_rsize(u, usize);
 	vl = mp_rsize(v, vsize);
-	/* One or both are zero. */
-	if (ul == 0 || vl == 0) {
-		mp_zero(w, usize + vsize);
-		return;
-	}
 	/* Zero digits which won't be set in multiply-and-add loop. */
 	if (ul + vl != usize + vsize)
 		mp_zero(w + (ul + vl), usize + vsize - (ul + vl));
+	/* One or both are zero. */
+	if (!ul || !vl) {
+		return;
+	}
 
 	/* Now multiply by forming partial products and adding them to the result
 	 * so far. Rather than zero the low ul digits of w before starting, we
@@ -168,11 +167,6 @@ mp_mul(const mp_digit *u, mp_size usize,
 {
 	mp_digit cy, *tmp = NULL;
 	mp_size wsize;
-
-	if (usize != 0)
-		ASSERT(u[usize - 1] != 0);
-	if (vsize != 0)
-		ASSERT(v[vsize - 1] != 0);
 
 	{
 		mp_size ul, vl;
