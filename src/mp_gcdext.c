@@ -45,10 +45,12 @@ mp_gcdext(const mp_digit *u, mp_size ulen, const mp_digit *v, mp_size vlen,
 {
 	unsigned ki, ks;
 	mp_digit tt;
+#if 0
 	mp_digit *v1, *v2, *v3;
 	mp_size v1len, v2len, v3len;
 	mp_digit *t1, *t2, *t3;
 	mp_size t1len, t2len, t3len;
+#endif
 
 	mp_zero(u1, vlen);
 	mp_zero(u2, ulen);
