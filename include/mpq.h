@@ -89,9 +89,11 @@ void	mpq_sub(const mpq *u, const mpq *v, mpq *w);
 void	mpq_mul(const mpq *u, const mpq *v, mpq *w);
 void	mpq_mul_s32(const mpq *u, int32_t v, mpq *w);
 void	mpq_mul_u32(const mpq *u, uint32_t v, mpq *w);
+void	mpq_muli(mpq *w, const mpi *v);
 void	mpq_div(const mpq *u, const mpq *v, mpq *w);
 void	mpq_div_s32(const mpq *u, int32_t v, mpq *w);
 void	mpq_div_u32(const mpq *u, uint32_t v, mpq *w);
+void	mpq_divi(mpq *w, const mpi *v);
 
 int		mpq_cmp(const mpq *p, const mpq *q);
 int		mpq_cmp_u32(const mpq *p, uint32_t q);
