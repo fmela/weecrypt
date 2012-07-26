@@ -16,17 +16,19 @@
 void test_mp_digit_mul();
 void test_mp_digit_div();
 void test_mp_digit_invert();
+void test_mp_digit_log2();
 
-CU_TestInfo mp_primitives[] = {
+CU_TestInfo mp_digit_tests[] = {
 	TEST_FUNC(test_mp_digit_mul),
 	TEST_FUNC(test_mp_digit_div),
 	TEST_FUNC(test_mp_digit_invert),
+	TEST_FUNC(test_mp_digit_log2),
 	CU_TEST_INFO_NULL
 };
 
 void test_mp_from_to_str();
 
-CU_TestInfo mp_conversion[] = {
+CU_TestInfo mp_conversion_tests[] = {
 	TEST_FUNC(test_mp_from_to_str),
 	CU_TEST_INFO_NULL
 };
@@ -39,7 +41,7 @@ void test_mp_div();
 void test_mp_lshift();
 void test_mp_rshift();
 
-CU_TestInfo mp_basic[] = {
+CU_TestInfo mp_basic_tests[] = {
 	TEST_FUNC(test_mp_add_n),
 	TEST_FUNC(test_mp_sub_n),
 	TEST_FUNC(test_mp_mul),
@@ -53,7 +55,7 @@ CU_TestInfo mp_basic[] = {
 void test_mpi_rand();
 void test_mpi_cmp();
 
-CU_TestInfo mpi_basic[] = {
+CU_TestInfo mpi_basic_tests[] = {
 	TEST_FUNC(test_mpi_rand),
 	TEST_FUNC(test_mpi_cmp),
 	CU_TEST_INFO_NULL
@@ -63,7 +65,7 @@ void test_base64_encode();
 void test_base64_decode();
 void test_base64_encode_decode();
 
-CU_TestInfo base64[] = {
+CU_TestInfo base64_tests[] = {
 	TEST_FUNC(test_base64_encode),
 	TEST_FUNC(test_base64_decode),
 	TEST_FUNC(test_base64_encode_decode),
@@ -73,11 +75,11 @@ CU_TestInfo base64[] = {
 #define TEST_SUITE(suite) { #suite, NULL, NULL, suite }
 
 CU_SuiteInfo test_suites[] = {
-	TEST_SUITE(mp_primitives),
-	TEST_SUITE(mp_conversion),
-	TEST_SUITE(mp_basic),
-	TEST_SUITE(mpi_basic),
-	TEST_SUITE(base64),
+	TEST_SUITE(mp_digit_tests),
+	TEST_SUITE(mp_conversion_tests),
+	TEST_SUITE(mp_basic_tests),
+	TEST_SUITE(mpi_basic_tests),
+	TEST_SUITE(base64_tests),
 	CU_SUITE_INFO_NULL
 };
 
@@ -133,6 +135,18 @@ void test_mp_digit_invert()
 		r |= 1; /* Ensure r is odd. */
 		mp_digit inverse = mp_digit_invert(r);
 		CU_ASSERT_EQUAL(r * inverse, (mp_digit)1);
+	}
+}
+
+void test_mp_digit_log2()
+{
+	for (unsigned i = 0; i < 10000; ++i) {
+		mp_digit r;
+		mp_rand(&r, 1);
+		r |= ((mp_digit)1) << (MP_DIGIT_BITS - 1); /* Ensure MSB is set. */
+		unsigned log2 = i % MP_DIGIT_BITS;
+		r >>= log2;
+		CU_ASSERT_EQUAL(mp_digit_log2(r), MP_DIGIT_BITS - 1 - log2);
 	}
 }
 
@@ -193,6 +207,27 @@ test_mp_add_n()
 			} else {
 				CU_ASSERT_EQUAL(C[j], MP_DIGIT_MAX);
 			}
+		}
+	}
+
+	/* Initialize A to random, B to maximum value minus A. */
+	mp_rand(A, N);
+	for (mp_size i = 0; i < N; ++i) {
+		B[i] = MP_DIGIT_MAX - A[i];
+	}
+	for (mp_size i = 0; i < N; ++i) {
+		mp_digit carry = mp_add_n(A, B, i, C);
+		CU_ASSERT_EQUAL(carry, 0);
+		for (mp_size j = 0; j < i; ++j) {
+			CU_ASSERT_EQUAL(C[j], MP_DIGIT_MAX);
+		}
+	}
+	CU_ASSERT_EQUAL(mp_inc(B, N), 0);
+	for (mp_size i = 0; i < N; ++i) {
+		mp_digit carry = mp_add_n(A, B, i, C);
+		CU_ASSERT_EQUAL(carry, 1);
+		for (mp_size j = 0; j < i; ++j) {
+			CU_ASSERT_EQUAL(C[j], 0);
 		}
 	}
 }
@@ -372,7 +407,7 @@ void test_mpi_rand() {
 	mpi_init(t);
 	for (unsigned bits = 0; bits <= 1024; ++bits) {
 		mpi_rand(t, bits);
-		CU_ASSERT_EQUAL(mpi_sig_bits(t), bits);
+		CU_ASSERT_EQUAL(mpi_significant_bits(t), bits);
 	}
 	mpi_free(t);
 }
