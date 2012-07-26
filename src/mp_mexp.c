@@ -13,7 +13,7 @@
 
 /* Decompose an unsigned 8-bit integer N into the form 2^K * Q, Q odd:
  * K = pow2tab[N], Q = odd_tab[N] */
-static const mp8_t pow2tab[256] = {
+static const uint8_t pow2tab[256] = {
 	0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
 	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
 	5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
@@ -32,7 +32,7 @@ static const mp8_t pow2tab[256] = {
 	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
 };
 
-static const mp8_t odd_tab[256] = {
+static const uint8_t odd_tab[256] = {
 	0x00, 0x01, 0x01, 0x03, 0x01, 0x05, 0x03, 0x07, 0x01, 0x09, 0x05, 0x0b,
 	0x03, 0x0d, 0x07, 0x0f, 0x01, 0x11, 0x09, 0x13, 0x05, 0x15, 0x0b, 0x17,
 	0x03, 0x19, 0x0d, 0x1b, 0x07, 0x1d, 0x0f, 0x1f, 0x01, 0x21, 0x11, 0x23,
@@ -98,7 +98,7 @@ redc(mp_digit *t, const mp_digit *n, mp_digit n0_inv, mp_size s)
 }
 
 /* Base 2^k exponentiation with Montgomery modular reduction */
-static void
+void
 mon_exp_2k(const mp_digit *u, mp_size usize,
 		   const mp_digit *p, mp_size psize,
 		   const mp_digit *m, mp_size msize, mp_digit *w)
@@ -227,7 +227,7 @@ mon_exp_2k(const mp_digit *u, mp_size usize,
 #define MODI
 
 /* Base 2^k exponentiation with modular reduction by division */
-static void
+void
 mod_exp_2k(const mp_digit *u, mp_size usize,
 		   const mp_digit *p, mp_size psize,
 		   const mp_digit *m, mp_size msize, mp_digit *w)
