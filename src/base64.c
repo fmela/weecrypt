@@ -138,7 +138,6 @@ base64_encode(const void *input, unsigned input_size)
 		if (line >= 72) {
 			*code++ = '\r';
 			*code++ = '\n';
-			line = 0;
 		}
 		*code++ = base64_chars[((in[0] >> 2) & 0x3f)];
 		if (pad == 2) {
@@ -154,7 +153,7 @@ base64_encode(const void *input, unsigned input_size)
 	}
 	*code++ = '\0';
 
-	ASSERT(outbuf_size == code - outbuf);
+	ASSERT(outbuf_size == (unsigned)(code - outbuf));
 	return (char *)outbuf;
 }
 
@@ -211,6 +210,6 @@ base64_decode(const char *input, unsigned *output_size)
 
 	if (output_size != NULL)
 		*output_size = code - outbuf;
-	ASSERT(outbuf_size == code - outbuf);
+	ASSERT(outbuf_size == (unsigned)(code - outbuf));
 	return outbuf;
 }
