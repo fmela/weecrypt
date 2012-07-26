@@ -13,21 +13,14 @@ main(void)
 	mp_size len;
 	char buf[8192];
 
-	for (;;) {
-		printf("Enter an integer greater than 2 in base 10:\n");
-		if (!fgets(buf, sizeof(buf), stdin))
-			break;
-
+	while (printf("Enter an integer greater than 2 in base 10:\n") &&
+		   fgets(buf, sizeof(buf), stdin)) {
 		n = mp_from_str(buf, 10, &len);
 
-		if (n == 0 || len == 0 || (len == 1 && n[0]<=2)) {
-			printf("Invalid number\n");
-			exit(1);
+		if (!n || !len || (len == 1 && n[0] <= 2)) {
+			printf("Invalid number.\n");
+			continue;
 		}
-
-		printf("The number you entered was:\n");
-		mp_print_dec(n, len);
-		printf("\n");
 
 		factor(n, len);
 	}
@@ -36,35 +29,41 @@ main(void)
 }
 
 void factor(mp_digit *n, mp_size len) {
+	printf("Factors(");
+	mp_print_dec(n, len);
+	printf(") = ");
 	int nfactors = 0;
 	mp_digit factor;
 	while ((factor = mp_sieve(n, len, 0)) != 0) {
 		int npowers = 0;
-
-		nfactors++;
 		do {
 			mp_digit remainder = mp_ddivi(n, len, factor);
 			ASSERT(remainder == 0);
 			len -= (n[len-1] == 0);
 			npowers++;
 		} while (mp_dmod(n, len, factor) == 0);
+		if (nfactors++)
+			printf(" * ");
 		if (npowers > 1)
-			printf("Trivial factor " MP_FORMAT "^%d removed\n",
-				   factor, npowers);
+			printf(MP_FORMAT "^%d", factor, npowers);
 		else
-			printf("Trivial factor " MP_FORMAT " removed\n", factor);
+			printf(MP_FORMAT, factor);
 	}
 
-	printf("Remainder after removing %d trivial factors is:\n", nfactors);
-	mp_print_dec(n, len); printf("\n");
+	if (nfactors == 0 || !(len == 1 && n[0] == 1)) {
+		if (nfactors)
+			printf(" * ");
+		mp_print_dec(n, len);
+	}
+	printf("\n");
 
-	if (len == 1 && n[0] <= 2) {
-		printf("Trivial remainder\n");
-	} else {
+	if (!(len == 1 && n[0] <= 2)) {
 		/* Now run 10 rounds of the Rabin-Miller test. */
+		printf("Remainder ");
+		mp_print_dec(n, len);
 		if (mp_composite(n, len, 10))
-			printf("Remainder is definitely composite.\n");
+			printf(" is definitely composite.\n");
 		else
-			printf("Remainder is prime with extreme probability.\n");
+			printf(" is prime with high probability.\n");
 	}
 }
