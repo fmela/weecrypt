@@ -94,7 +94,9 @@ mp_lehmer(const mp_digit *u, mp_size usize,
 		D = 1;
 
 		for (;;) {
-			printf("ul=%u vl=%u uhat=%u vhat=%u A=%u B=%u C=%u D=%u\n",
+			printf("ul=%u vl=%u uhat=" MP_FORMAT
+				   " vhat=" MP_FORMAT" A=" MP_FORMAT " B=" MP_FORMAT
+				   " C=" MP_FORMAT " D=" MP_FORMAT "\n",
 				   usize, vsize, uhat, vhat, A, B, C, D);
 			/* If \^v + C = 0 or \^v + D = 0, do multiprecision step, because
 			 * either of these cases would result in division by zero. */
@@ -124,7 +126,7 @@ mp_lehmer(const mp_digit *u, mp_size usize,
 				q2 = uu / vv;
 			}
 
-			printf("q1=%u q2=%u\n", q, q2);
+			printf("q1=" MP_FORMAT " q2=" MP_FORMAT "\n", q, q2);
 
 			if (q != q2)
 				break;
