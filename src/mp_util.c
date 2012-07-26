@@ -52,7 +52,7 @@ mp_free(mp_digit *u)
 void
 mp_one(mp_digit *u, mp_size size)
 {
-	if (size == 0)
+	if (!size)
 		return;
 
 	*u = 1;
@@ -160,12 +160,9 @@ mp_cmp(const mp_digit *u, mp_size usize,
 mp_size
 mp_rsize(const mp_digit *u, mp_size size)
 {
-	if (size == 0)
-		return 0;
-
 	u += size;
-	while (size && *--u == 0)
-		size--;
+	while (size && !*--u)
+		--size;
 	return size;
 }
 #endif /* !MP_RSIZE_ASM */
@@ -263,19 +260,37 @@ mp_msb_shift(mp_digit u)
 #elif MP_DIGIT_BITS == 32
 	mp_digit high8 = 0xff000000U;
 #elif MP_DIGIT_BITS == 64
-	mp_digit high8 = CONST64(0xff00000000000000);
+	mp_digit high8 = CONST64(0xff00000000000000U);
 #endif
 	unsigned steps = 0;
 
-	if (u == 0)
+	if (!u)
 		return -1;
 
 #if MP_DIGIT_BITS != 8
-	while ((u & high8) == 0)
+	while (!(u & high8))
 		steps += 8, u <<= 8;
 #endif
-	while ((u & MP_DIGIT_MSB) == 0)
+	while (!(u & MP_DIGIT_MSB))
 		steps += 1, u <<= 1;
+	return steps;
+}
+
+unsigned
+mp_lsb_shift(mp_digit u)
+{
+	mp_digit low8 = 0xff;
+	unsigned steps = 0;
+
+	if (!u)
+		return -1;
+
+#if MP_DIGIT_BITS != 8
+	while (!(u & low8))
+		steps += 8, u >>= 8;
+#endif
+	while (!(u & 1))
+		steps += 1, u >>= 1;
 	return steps;
 }
 
@@ -292,7 +307,7 @@ mp_msb_normalize(mp_digit *u, mp_size size)
 		mp_digit cy;
 
 		cy = mp_lshifti(u, size, sh);
-		ASSERT(cy == 0);
+		ASSERT(!cy);
 	}
 	return sh;
 }
@@ -300,39 +315,39 @@ mp_msb_normalize(mp_digit *u, mp_size size)
 unsigned
 mp_digit_log2(mp_digit u)
 {
-	unsigned lg;
-
 	ASSERT(u != 0);
 
-	for (lg = 0; u != 1; lg++)
+	unsigned lg = 0;
+	while (u != 1) {
+		++lg;
 		u >>= 1;
-
+	}
 	return lg;
 }
 
 unsigned
 mp_odd_shift(const mp_digit *u, mp_size size)
 {
-	unsigned i, j;
+	unsigned digits, bits;
 	mp_digit ui;
 
-	if ((size = mp_rsize(u, size)) == 0)
+	if (!mp_rsize(u, size))
 		return 0;
 
-	for (i = 0; u[i] == 0; i++)
+	for (digits = 0; !u[digits]; ++digits)
 		/* void */;
-	ui = u[i];
-	for (j = 0; (ui & 1) == 0; j++)
+	ui = u[digits];
+	for (bits = 0; !(ui & 1); ++bits)
 		ui >>= 1;
 
-	return (MP_DIGIT_BITS * i) + j;
+	return (MP_DIGIT_BITS * digits) + bits;
 }
 
 unsigned
 mp_significant_bits(const mp_digit *u, mp_size size)
 {
 	size = mp_rsize(u, size);
-	if (size == 0)
+	if (!size)
 		return 0;
 	/* +1 because we want to know how many bits it takes to represent most
 	 * significant digit */
