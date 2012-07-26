@@ -14,22 +14,20 @@
 int
 mpi_modinv(const mpi *m, const mpi *b, mpi *inv)
 {
-	int r;
-	mpi_t v, g;
-
 	ASSERT(mpi_cmp(b, m) < 0);
 
+	mpi_t v, g;
 	mpi_init(v);
 	mpi_init(g);
 	mpi_gcdext(b, m, inv, v, g);
-	if (mpi_is_one(g)) {
+	mpi_free(v);
+	int g_is_one = mpi_is_one(g);
+	mpi_free(g);
+	if (g_is_one) {
 		if (mpi_is_neg(inv))
 			mpi_add(inv, m, inv);
-		r = 1;
+		return 1;
 	} else {
-		r = 0;
+		return 0;
 	}
-	mpi_free(v);
-	mpi_free(g);
-	return r;
 }
