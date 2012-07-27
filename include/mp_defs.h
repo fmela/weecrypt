@@ -44,29 +44,26 @@
 # define MP_DIGIT_BITS		32
 # define MP_DIGIT_HSHIFT	16
 #elif MP_DIGIT_SIZE == 8
-# define MP_DIGIT_MASK		CONST64(0xffffffffffffffff)
-# define MP_DIGIT_HMASK		CONST64(0xffffffff00000000)
-# define MP_DIGIT_LMASK		CONST64(0x00000000ffffffff)
-# define MP_DIGIT_LSB		CONST64(0x0000000000000001)
-# define MP_DIGIT_MSB		CONST64(0x8000000000000000)
+# define MP_DIGIT_MASK		CONST64(0xffffffffffffffffU)
+# define MP_DIGIT_HMASK		CONST64(0xffffffff00000000U)
+# define MP_DIGIT_LMASK		CONST64(0x00000000ffffffffU)
+# define MP_DIGIT_LSB		CONST64(0x0000000000000001U)
+# define MP_DIGIT_MSB		CONST64(0x8000000000000000U)
 # define MP_DIGIT_BITS		64
 # define MP_DIGIT_HSHIFT	32
 #endif
 
-#if defined(__GNUC__)
-# if (defined(i386) || defined(__i386__))
-#  if MP_DIGIT_SIZE == 1
-#  if 0 /* GCC can't deal with these. */
-#   define digit_mul(u,v,hi,lo)												\
+#if (defined(i386) || defined(__i386__))
+# if MP_DIGIT_SIZE == 1
+#  define digit_mul(u,v,hi,lo)												\
 	__asm__("mulb %3"														\
 			: "=a"(lo), "=a"(hi)											\
 			: "%0"(u), "g"(v)												\
 			: "cc")
-#   define digit_div(n1,n0,d,q,r)											\
+#  define digit_div(n1,n0,d,q,r)											\
 	__asm__("divb %4"														\
 			: "=a"(q), "=a"(r)												\
 			: "0"(n0), "1"(n1),	"g"(d))
-#  endif
 #  define digit_mul(u,v,hi,lo)												\
 	do {																	\
 		mp16_t __p = (mp16_t)(u) * (mp16_t)(v);								\
@@ -80,29 +77,37 @@
 		(q) = (mp8_t)(__n / __d);											\
 		(r) = (mp8_t)(__n % __d);											\
 	} while (0)
-#  elif MP_DIGIT_SIZE == 2
-#   define digit_mul(u,v,hi,lo)												\
+# elif MP_DIGIT_SIZE == 2
+#  define digit_mul(u,v,hi,lo)												\
 	__asm__("mulw %3"														\
 			: "=a"(lo), "=d"(hi)											\
 			: "%0"(u), "g"(v)												\
 			: "cc")
-#   define digit_div(n1,n0,d,q,r)											\
+#  define digit_div(n1,n0,d,q,r)											\
 	__asm__("divw %4"														\
 			: "=a"(q), "=d"(r)												\
 			: "0"(n0), "1"(n1), "g"(d))
-#  elif MP_DIGIT_SIZE == 4
-#   define digit_mul(u,v,hi,lo)												\
+# elif MP_DIGIT_SIZE == 4
+#  define digit_mul(u,v,hi,lo)												\
 	__asm__("mull %3"														\
 			: "=a"(lo), "=d"(hi)											\
 			: "%0"((u)), "g"(v)												\
 			: "cc")
-#   define digit_div(n1,n0,d,q,r)											\
+#  define digit_div(n1,n0,d,q,r)											\
 	__asm__("divl %4"														\
 			: "=a"(q), "=d"(r)												\
 			: "0"(n0), "1"(n1),	"g"(d))
-#  endif
-# endif /* (i386 || __i386__) */
-#endif /* __GNUC__ */
+# endif
+#elif MP_DIGIT_SIZE == 8 && (defined(__amd64__) || defined(__x86_64__))
+# define digit_mul(u,v,hi,lo)												\
+	__asm__("mulq %3"														\
+			: "=a" (lo), "=d" (hi)											\
+			: "%0" ((u)), "rm" ((v)))
+# define digit_div(n1,n0,d,q,r)												\
+	__asm__("divq %4"														\
+			: "=a" (q), "=d" (r)											\
+			: "0" ((n0)), "1" ((n1)), "rm" ((d)))
+#endif
 
 #if defined(_MSC_VER) /* MS Visual C++ */
 # if MP_DIGIT_SIZE == 1
@@ -207,7 +212,7 @@ void _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 #  define digit_sqr(u,hi,lo) \
 	do { \
 		mp_digit __u0, __u1, __hi, __lo; \
-		__u1 = (u); __u0 = __u1 & MP_DIGIT_LMASK; __u1 >>= MP_DIGIT_HSHIFT; \
+		__u0 = (u); __u1 = __u0 >> MP_DIGIT_HSHIFT; __u0 &= MP_DIGIT_LMASK; \
 		__lo = __u0 * __u0; \
 		__hi = __u1 * __u1; \
 		__u1 *= __u0; \
@@ -224,8 +229,8 @@ void _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 # define digit_mul(u,v,hi,lo) \
 	do { \
 		mp_digit __u0, __u1, __v0, __v1, __lo, __hi; \
-		__u1 = (u); __u0 = __u1 & MP_DIGIT_LMASK; __u1 >>= MP_DIGIT_HSHIFT; \
-		__v1 = (v); __v0 = __v1 & MP_DIGIT_LMASK; __v1 >>= MP_DIGIT_HSHIFT; \
+		__u0 = (u); __u1 = __u0 >> MP_DIGIT_HSHIFT; __u0 &= MP_DIGIT_LMASK; \
+		__v0 = (v); __v1 = __v0 >> MP_DIGIT_HSHIFT; __v0 &= MP_DIGIT_LMASK; \
 		__lo = __u0 * __v0; \
 		__hi = __u1 * __v1; \
 		__u1 *= __v0; \
