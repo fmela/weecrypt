@@ -12,11 +12,6 @@
 void
 mp_modi(mp_digit *u, mp_size usize, const mp_digit *v, mp_size vsize)
 {
-	mp_digit u_high, *u_j;
-	mp_digit q1, q0, rhat, qhat, vd;
-	unsigned vs;
-	int rv;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 
@@ -29,10 +24,11 @@ mp_modi(mp_digit *u, mp_size usize, const mp_digit *v, mp_size vsize)
 	if (usize == 0)
 		return;
 
-	if ((rv = mp_cmp(u, usize, v, vsize)) <= 0) {
+	int cmp = mp_cmp(u, usize, v, vsize);
+	if (cmp <= 0) {
 		/* If U < V, nothing to do. */
 		/* If U == V, remainder is zero. */
-		if (rv == 0)
+		if (cmp == 0)
 			mp_zero(u, vsize);
 		return;
 	}
@@ -44,19 +40,22 @@ mp_modi(mp_digit *u, mp_size usize, const mp_digit *v, mp_size vsize)
 	}
 
 	/* Normalize operands. XXX assumes V is writable. */
-	vs = mp_msb_normalize((mp_digit *)v, vsize);
-	u_high = vs ? mp_lshifti(u, usize, vs) : 0;
+	const unsigned vshift = mp_msb_normalize((mp_digit *)v, vsize);
+	mp_digit u_high = vshift ? mp_lshifti(u, usize, vshift) : 0;
 
-	u_j = &u[usize - vsize];
-	vd = v[vsize - 1];
+	mp_digit *u_j = &u[usize - vsize];
+	const mp_digit vd = v[vsize - 1];
 
 	for (;;) {
+		mp_digit qhat;
 		if (u_high == vd) {
 			qhat = ~(mp_digit)0;	/* largest value for an mp_digit */
 		} else {
 			ASSERT(u_high < vd);
 
+			mp_digit rhat;
 			digit_div(u_high, u_j[vsize - 1], vd, qhat, rhat);
+			mp_digit q1, q0;
 			digit_mul(qhat, v[vsize - 2], q1, q0);
 			while ((q1 > rhat) ||
 				   (q1 == rhat && q0 > u_j[vsize - 2])) {
@@ -74,8 +73,8 @@ mp_modi(mp_digit *u, mp_size usize, const mp_digit *v, mp_size vsize)
 		u_high = u_j[vsize];
 	}
 
-	if (vs) {
-		mp_rshifti((mp_digit *)v, vsize, vs);
-		mp_rshifti(u, vsize, vs);
+	if (vshift) {
+		mp_rshifti((mp_digit *)v, vsize, vshift);
+		mp_rshifti(u, vsize, vshift);
 	}
 }
