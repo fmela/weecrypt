@@ -122,7 +122,7 @@ mp_divrem(const mp_digit *u, mp_size usize,
 
 	/* D1: Normalize. */
 	/* Find number of leading zero bits in most significant digit of V. */
-	scale = mp_msb_shift(v[vsize - 1]);
+	scale = mp_digit_msb_shift(v[vsize - 1]);
 	/* Allocate space for U << SCALE. */
 	MP_TMP_ALLOC(utmp, usize + 1);
 	mp_copy(u, usize, utmp);
