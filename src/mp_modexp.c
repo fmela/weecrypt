@@ -13,9 +13,6 @@ mp_modexp(const mp_digit *u, mp_size usize,
 		  const mp_digit *p, mp_size psize,
 		  const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	mp_digit *umod, *t, k;
-	mp_size umsize, i;
-
 	ASSERT(u != NULL);
 	ASSERT(p != NULL);
 	ASSERT(m != NULL);
@@ -41,29 +38,32 @@ mp_modexp(const mp_digit *u, mp_size usize,
 			return;
 		}
 		if (p[0] == 2) {
-			MP_TMP_ALLOC(t, usize * 2);
-			mp_sqr(u, usize, t);
-			mp_mod(t, usize * 2, m, msize, w);
-			MP_TMP_FREE(t);
+			mp_digit *tmp;
+			MP_TMP_ALLOC(tmp, usize * 2);
+			mp_sqr(u, usize, tmp);
+			mp_mod(tmp, usize * 2, m, msize, w);
+			MP_TMP_FREE(tmp);
 			return;
 		}
 	}
 
 	/* Precompute U mod M. */
 	mp_mod(u, usize, m, msize, w);
-	umsize = mp_rsize(w, msize);
+	const mp_size umsize = mp_rsize(w, msize);
 	if (umsize == 0) {
 		/* If U is congruent to 0 mod M, the final answer is zero. */
 		mp_zero(w, msize);
 		return;
 	}
 
-	MP_TMP_ALLOC(t, umsize + (msize * 2));
-	umod = t + (msize * 2);
+	mp_digit *tmp;
+	MP_TMP_ALLOC(tmp, umsize + (msize * 2));
+	mp_digit *umod = tmp + (msize * 2);
 	mp_copy(w, umsize, umod);
 
-	k = p[psize - 1];
-	for (i = 0; k != 1; i++)
+	mp_digit k = p[psize - 1];
+	unsigned i = 0;
+	for (; k != 1; i++)
 		k >>= 1;
 	k <<= i;
 	i = psize - 1;
@@ -75,26 +75,21 @@ mp_modexp(const mp_digit *u, mp_size usize,
 			--i;
 			k = MP_DIGIT_MSB;
 		}
-		mp_sqr(w, msize, t);
-		mp_mod(t, msize * 2, m, msize, w);
+		mp_sqr(w, msize, tmp);
+		mp_mod(tmp, msize * 2, m, msize, w);
 		if (p[i] & k) {
-			mp_mul(w, msize, umod, umsize, t);
-			mp_mod(t, msize + umsize, m, msize, w);
+			mp_mul(w, msize, umod, umsize, tmp);
+			mp_mod(tmp, msize + umsize, m, msize, w);
 		}
 	}
 
-	MP_TMP_FREE(t);
+	MP_TMP_FREE(tmp);
 }
 
 void
 mp_modexp_ul(const mp_digit *u, mp_size usize, unsigned long power,
 			 const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	mp_digit *umod, *t;
-	mp_size umsize;
-	unsigned long k;
-	unsigned i;
-
 	ASSERT(u != NULL);
 	ASSERT(m != NULL);
 	ASSERT(w != NULL);
@@ -118,42 +113,45 @@ mp_modexp_ul(const mp_digit *u, mp_size usize, unsigned long power,
 	}
 
 	if (power == 2) {
-		MP_TMP_ALLOC(t, usize * 2);
-		mp_sqr(u, usize, t);
-		mp_mod(t, usize * 2, m, msize, w);
-		MP_TMP_FREE(t);
+		mp_digit *tmp;
+		MP_TMP_ALLOC(tmp, usize * 2);
+		mp_sqr(u, usize, tmp);
+		mp_mod(tmp, usize * 2, m, msize, w);
+		MP_TMP_FREE(tmp);
 		return;
 	}
 
 	/* Precompute U mod M. */
 	mp_mod(u, usize, m, msize, w);
-	umsize = mp_rsize(w, msize);
+	const mp_size umsize = mp_rsize(w, msize);
 	if (umsize == 0) {
 		/* If U is congruent to 0 mod M, the final answer is zero. */
 		return;
 	}
 
+	mp_digit *tmp, *umod;
 	if (power & (power - 1)) {
-		MP_TMP_ALLOC(t, umsize + (msize * 2));
-		umod = t + (msize * 2);
+		MP_TMP_ALLOC(tmp, umsize + (msize * 2));
+		umod = tmp + (msize * 2);
 		mp_copy(w, umsize, umod);
 	} else {
 		/* With power of the form 2^K, we never have to multiply by U mod M. */
-		MP_TMP_ALLOC(t, msize * 2);
+		MP_TMP_ALLOC(tmp, msize * 2);
 		umod = NULL;
 	}
 
-	k = power;
-	for (i = 0; k != 1; i++)
+	unsigned long k = power;
+	unsigned i = 0;
+	for (; k != 1; i++)
 		k >>= 1;
 	k <<= i;
 
 	while (k >>= 1) {
-		mp_sqr(w, msize, t);
-		mp_mod(t, msize * 2, m, msize, w);
+		mp_sqr(w, msize, tmp);
+		mp_mod(tmp, msize * 2, m, msize, w);
 		if (power & k) {
-			mp_mul(w, msize, umod, umsize, t);
-			mp_mod(t, msize + umsize, m, msize, w);
+			mp_mul(w, msize, umod, umsize, tmp);
+			mp_mod(tmp, msize + umsize, m, msize, w);
 		}
 	}
 
