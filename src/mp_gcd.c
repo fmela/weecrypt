@@ -14,7 +14,8 @@ dgcd(mp_digit u, mp_digit v)
 	ASSERT(u > 0);
 	ASSERT(v > 0);
 
-	unsigned ushift = mp_lsb_shift(u), vshift = mp_lsb_shift(v);
+	const unsigned ushift = mp_digit_lsb_shift(u);
+	const unsigned vshift = mp_digit_lsb_shift(v);
 	u >>= ushift;
 	v >>= vshift;
 	while (u != v) {
@@ -100,7 +101,7 @@ mp_gcd(const mp_digit *u, mp_size usize,
 	u += k_skip; usize -= k_skip;
 	v += k_skip; vsize -= k_skip;
 	w += k_skip;
-	const unsigned k_shift = mp_lsb_shift(u[0] | v[0]);
+	const unsigned k_shift = mp_digit_lsb_shift(u[0] | v[0]);
 
 	const mp_size size = MAX(usize, vsize);
 	mp_digit *utmp, *vtmp;
@@ -118,8 +119,8 @@ mp_gcd(const mp_digit *u, mp_size usize,
 	mp_zero(utmp + usize, size - usize);
 	mp_zero(vtmp + vsize, size - vsize);
 
-	mp_digit *T;
-	int tneg;
+	mp_digit *T = NULL;
+	int tneg = 0;
 	mp_size tsize;
 	MP_TMP_ALLOC0(T, size);
 	/* B2: */
@@ -130,7 +131,6 @@ mp_gcd(const mp_digit *u, mp_size usize,
 	} else {
 		mp_copy(utmp, usize, T);
 		tsize = usize;
-		tneg = 0;
 	}
 
 B3:	/* Combined with B4. */
