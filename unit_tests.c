@@ -222,10 +222,15 @@ test_mp_add_n()
 			CU_ASSERT_EQUAL(C[j], MP_DIGIT_MAX);
 		}
 	}
+	/* Now increment B by one, causing the addition to overflow. */
 	CU_ASSERT_EQUAL(mp_inc(B, N), 0);
 	for (mp_size i = 0; i < N; ++i) {
 		mp_digit carry = mp_add_n(A, B, i, C);
-		CU_ASSERT_EQUAL(carry, 1);
+		if (i == 0) {
+			CU_ASSERT_EQUAL(carry, 0);
+		} else {
+			CU_ASSERT_EQUAL(carry, 1);
+		}
 		for (mp_size j = 0; j < i; ++j) {
 			CU_ASSERT_EQUAL(C[j], 0);
 		}
