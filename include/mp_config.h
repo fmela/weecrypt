@@ -9,10 +9,14 @@
 #define _MP_CONFIG_H_
 
 #ifndef MP_DIGIT_SIZE
-# define MP_DIGIT_SIZE	4
+# if defined(x86_64) || defined(__x86_64__)
+#  define MP_DIGIT_SIZE	8
+# else
+#  define MP_DIGIT_SIZE	4
+# endif
 #endif
 
-#if 0 && MP_DIGIT_SIZE == 4 && (defined(i386) || defined(__i386__))
+#if MP_DIGIT_SIZE == 4 && (defined(i386) || defined(__i386__))
 # define MP_ADDI_N_ASM
 # define MP_ADD_N_ASM
 # define MP_CMP_N_ASM
@@ -35,6 +39,12 @@
 # define MP_SUBI_N_ASM
 # define MP_SUB_N_ASM
 # define MP_XCHG_ASM
+#endif
+
+#if defined(__APPLE__)
+# define MP_ASM_NAME(fn)	_ ## fn
+#else
+# define MP_ASM_NAME(fn)	fn
 #endif
 
 /* Tunable parameters - Karatsuba multiplication and squaring cutoff. */
