@@ -22,8 +22,8 @@ mp_jacobi(const mp_digit *a, mp_size asize,
 	ASSERT(a != NULL);
 	ASSERT(p != NULL);
 
-	asize = mp_rsize(a, asize);
-	psize = mp_rsize(p, psize);
+	MP_NORMALIZE(a, asize);
+	MP_NORMALIZE(p, psize);
 
 	/* J(0,1) = 1, otherwise J(0,x) = 0 */
 	if (asize == 0)

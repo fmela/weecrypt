@@ -565,7 +565,7 @@ mpi_add(const mpi *a, const mpi *b, mpi *c)
 		if (cy)
 			c->digits[size++] = cy;
 		else
-			size = mp_rsize(c->digits, size);
+			MP_NORMALIZE(c->digits, size);
 		c->sign = a->sign;
 	} else {					/* Differing signs. */
 		if (a->sign)
@@ -658,8 +658,8 @@ mpi_mul(const mpi *a, const mpi *b, mpi *c)
 		mp_copy(prod, csize, c->digits);
 		MP_TMP_FREE(prod);
 	} else {
-		ASSERT(mp_rsize(a->digits, a->size) == a->size);
-		ASSERT(mp_rsize(b->digits, b->size) == b->size);
+		ASSERT(a->digits[a->size - 1] != 0);
+		ASSERT(b->digits[b->size - 1] != 0);
 		MPI_MIN_ALLOC(c, csize);
 		mp_mul(a->digits, a->size, b->digits, b->size, c->digits);
 		c->size = csize - (c->digits[csize - 1] == 0);
@@ -845,7 +845,7 @@ mpi_div(const mpi *a, const mpi *b, mpi *q)
 		MPI_MIN_ALLOC(q, qsize);
 		mp_div(a->digits, a->size,
 			   b->digits, b->size, q->digits);
-		q->size = mp_rsize(q->digits, qsize);
+		MP_NORMALIZE(q->digits, q->size);
 	}
 	q->sign = a->sign ^ b->sign;
 }
@@ -874,7 +874,7 @@ mpi_divexact(const mpi *a, const mpi *b, mpi *q)
 		MP_TMP_ALLOC(quot, qsize);
 		mp_divexact(a->digits, a->size,
 					b->digits, b->size, quot);
-		qsize = mp_rsize(quot, qsize);
+		MP_NORMALIZE(quot, qsize);
 		MPI_SIZE(q, qsize);
 		mp_copy(quot, qsize, q->digits);
 		MP_TMP_FREE(quot);
@@ -882,7 +882,7 @@ mpi_divexact(const mpi *a, const mpi *b, mpi *q)
 		MPI_MIN_ALLOC(q, qsize);
 		mp_divexact(a->digits, a->size,
 					b->digits, b->size, q->digits);
-		qsize = mp_rsize(q->digits, qsize);
+		MP_NORMALIZE(q->digits, qsize);
 	}
 	q->size = qsize;
 	q->sign = a->sign ^ b->sign;

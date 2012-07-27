@@ -51,8 +51,8 @@ mp_gcd(const mp_digit *u, mp_size usize,
 {
 	mp_zero(w, MIN(usize, vsize));
 
-	usize = mp_rsize(u, usize);
-	vsize = mp_rsize(v, vsize);
+	MP_NORMALIZE(u, usize);
+	MP_NORMALIZE(v, vsize);
 	if (!usize || !vsize)
 		return; /* Don't handle these. */
 
@@ -159,8 +159,8 @@ B3:	/* Combined with B4. */
 		usize = tsize;
 	}
 
-	usize = mp_rsize(utmp, usize);
-	vsize = mp_rsize(vtmp, vsize);
+	MP_NORMALIZE(utmp, usize);
+	MP_NORMALIZE(vtmp, vsize);
 	int cmp = mp_cmp(utmp, usize, vtmp, vsize);
 	if (cmp > 0) {
 		tsize = usize;
@@ -189,7 +189,7 @@ B3:	/* Combined with B4. */
 		return;
 	}
 
-	tsize = mp_rsize(T, tsize);
+	MP_NORMALIZE(T, tsize);
 	ASSERT(tsize != 0);
 	goto B3;
 }
@@ -201,8 +201,8 @@ mp_coprime(const mp_digit *u, mp_size usize,
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 
-	usize = mp_rsize(u, usize);
-	vsize = mp_rsize(v, vsize);
+	MP_NORMALIZE(u, usize);
+	MP_NORMALIZE(v, vsize);
 
 	if (usize == 0)
 		return vsize == 0;	/* Is 0 relatively prime to itself? Who knows. */

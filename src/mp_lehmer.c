@@ -47,8 +47,8 @@ mp_lehmer(const mp_digit *u, mp_size usize,
 	for (;;) {
 		mp_digit uu, vv, dummy;
 
-		usize = mp_rsize(utmp, usize);
-		vsize = mp_rsize(vtmp, vsize);
+		MP_NORMALIZE(utmp, usize);
+		MP_NORMALIZE(vtmp, vsize);
 		rv = mp_cmp(utmp, usize, vtmp, vsize);
 		if (rv < 0) {
 			SWAP(utmp, vtmp, mp_digit *);
@@ -155,7 +155,8 @@ mp_lehmer(const mp_digit *u, mp_size usize,
 			/* Set t = u mod v, u = v, v = t */
 			mp_modi(utmp, usize, vtmp, vsize);	/* u[0..vsize-1] = u % v */
 			mp_xchg(utmp, vtmp, vsize);			/* u <=> v */
-			vsize = mp_rsize(vtmp, usize = vsize);
+			usize = vsize;
+			MP_NORMALIZE(vtmp, vsize);
 		} else {
 			/* t = A*u, t = t+B*v, w = C*u, w = w+D*v, u = t, v = w */
 			mp_digit cy;

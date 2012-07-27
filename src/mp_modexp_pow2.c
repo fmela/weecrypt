@@ -66,13 +66,13 @@ mp_modexp_pow2_ul(const mp_digit *u, mp_size usize, unsigned long power,
 	ASSERT(w != NULL);
 
 	mp_zero(w, msize);
-	msize = mp_rsize(m, msize);
+	MP_NORMALIZE(m, msize);
 	ASSERT(msize != 0);
 
 	if (msize == 1 && m[0] == 1)
 		return;
 
-	usize = mp_rsize(u, usize);
+	MP_NORMALIZE(u, usize);
 	if (usize == 0 || power == 0) {
 		w[0] = (usize != 0);
 		return;
@@ -182,14 +182,14 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 	ASSERT(w != NULL);
 
 	mp_zero(w, msize);
-	msize = mp_rsize(m, msize);
+	MP_NORMALIZE(m, msize);
 	ASSERT(msize != 0);
 
 	if (msize == 1 && m[0] == 1)
 		return;
 
-	usize = mp_rsize(u, usize);
-	psize = mp_rsize(p, psize);
+	MP_NORMALIZE(u, usize);
+	MP_NORMALIZE(p, psize);
 	if (usize == 0 || psize == 0) {
 		w[0] = (usize != 0);
 		return;

@@ -27,7 +27,7 @@ mp_divexact(const mp_digit *u, mp_size usize,
 	ASSERT(q);
 
 	mp_zero(q, usize - dsize + 1);
-	usize = mp_rsize(u, usize);
+	MP_NORMALIZE(u, usize);
 	if (!usize) /* U is zero; we are done. */
 		return;
 

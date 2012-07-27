@@ -50,7 +50,7 @@ mp_perfsqr(const mp_digit *u, mp_size usize)
 {
 	ASSERT(u != NULL);
 
-	usize = mp_rsize(u, usize);
+	MP_NORMALIZE(u, usize);
 	if (!usize)
 		return true;
 

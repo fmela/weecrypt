@@ -22,7 +22,7 @@
 bool
 mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 {
-	nsize = mp_rsize(n, nsize);
+	MP_NORMALIZE(n, nsize);
 	if (!nsize)				/* Call 0 prime. */
 		return false;
 	if ((n[0] & 1) == 0) {	/* Even N. */

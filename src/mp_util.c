@@ -129,8 +129,8 @@ int
 mp_cmp(const mp_digit *u, mp_size usize,
 	   const mp_digit *v, mp_size vsize)
 {
-	usize = mp_rsize(u, usize);
-	vsize = mp_rsize(v, vsize);
+	MP_NORMALIZE(u, usize);
+	MP_NORMALIZE(v, vsize);
 	if (usize < vsize) return -1;
 	if (usize > vsize) return +1;
 	return usize ? mp_cmp_n(u, v, usize) : 0;

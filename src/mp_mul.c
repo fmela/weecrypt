@@ -259,8 +259,8 @@ mp_mul_mod_powb(const mp_digit *u, mp_size usize,
 
 	ASSERT(wsize != 0);
 
-	usize = mp_rsize(u, usize);
-	vsize = mp_rsize(v, vsize);
+	MP_NORMALIZE(u, usize);
+	MP_NORMALIZE(v, vsize);
 	if (usize == 0 || vsize == 0) {
 		mp_zero(w, wsize);
 		return;

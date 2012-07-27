@@ -659,10 +659,8 @@ static unsigned char prime_offsets[] = {
 mp_digit
 mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
 {
-	unsigned i, j, pi;
-	mp_digit p, pa[NP], bp, r, p1, p0;
-
-	if ((size = mp_rsize(u, size)) == 0)
+	MP_NORMALIZE(u, size);
+	if (!size)
 		return 0;
 	if ((u[0] & 1) == 0) {
 		if (size == 1 && u[0] == 2)
@@ -675,8 +673,8 @@ mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
 		nprimes = NPRIMES;
 
 	if (size == 1) {
-		p = 1;
-		for (i = 0; i < nprimes; i++) {
+		mp_digit p = 1;
+		for (unsigned i = 0; i < nprimes; i++) {
 			p += (mp_digit)prime_offsets[i] * 2;
 			if (p >= u[0])
 				break;
@@ -686,14 +684,16 @@ mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
 		return 0;
 	}
 
-	p = bp = 1;
-	pi = 0;
-	for (i = 0; i < nprimes; i++) {
+	mp_digit p = 1, bp = 1, pa[NP];
+	unsigned pi = 0;
+	for (unsigned i = 0; i < nprimes; i++) {
 		p += (mp_digit)prime_offsets[i] * 2;
+
+		mp_digit p1, p0;
 		digit_mul(bp, p, p1, p0);
 		if (p1 != 0 || pi == NP) {
-			r = mp_dmod(u, size, bp);
-			for (j = 0; j < pi; j++)
+			const mp_digit r = mp_dmod(u, size, bp);
+			for (unsigned j = 0; j < pi; j++)
 				if (r % pa[j] == 0)
 					return pa[j];
 			pa[0] = bp = p;
@@ -704,8 +704,8 @@ mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
 		}
 	}
 	if (pi) {
-		r = mp_dmod(u, size, bp);
-		for (j = 0; j < pi; j++)
+		const mp_digit r = mp_dmod(u, size, bp);
+		for (unsigned j = 0; j < pi; j++)
 			if (r % pa[j] == 0)
 				return pa[j];
 	}
@@ -715,10 +715,8 @@ mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
 mp_digit
 mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
 {
-	unsigned i;
-	mp_digit p;
-
-	if ((size = mp_rsize(u, size)) == 0)
+	MP_NORMALIZE(u, size);
+	if (!size)
 		return 0;
 	if ((u[0] & 1) == 0)
 		return (u[0] == 2) ? 0 : 2;
@@ -726,8 +724,8 @@ mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
 	if (nprimes == 0 || nprimes > NPRIMES)
 		nprimes = NPRIMES;
 
-	p = 1;
-	for (i = 0; i < nprimes; i++) {
+	mp_digit p = 1;
+	for (unsigned i = 0; i < nprimes; i++) {
 		p += (mp_digit)prime_offsets[i] * 2;
 		if (size == 1 && u[0] <= p)
 			break;

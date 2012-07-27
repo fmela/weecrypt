@@ -66,7 +66,7 @@ mp_sqrtrem(const mp_digit *u, mp_size usize, mp_digit *v, mp_digit *r)
 
 	for (;;) {
 		/* Y = U / X */
-		x_len = mp_rsize(x, x_len);
+		MP_NORMALIZE(x, x_len);
 		y_len = usize - x_len + 1;
 		mp_zero(y + y_len, ysize - y_len);
 		mp_div(u, usize, x, x_len, y);

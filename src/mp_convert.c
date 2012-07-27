@@ -325,7 +325,7 @@ mp_fprint(const mp_digit *u, mp_size size, unsigned radix, FILE *fp)
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
 
-	size = mp_rsize(u, size);
+	MP_NORMALIZE(u, size);
 	const size_t string_size = mp_string_size(size, radix) + 1;
 	char *str;
 	MP_TMP_ALLOC(str, string_size);
@@ -342,7 +342,7 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
 
-	size = mp_rsize(u, size);
+	MP_NORMALIZE(u, size);
 	if (size == 0 || (size == 1 && u[0] < radix)) {
 		if (out == NULL)
 			out = MALLOC(2);

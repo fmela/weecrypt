@@ -16,11 +16,11 @@ mp_modi(mp_digit *u, mp_size usize, const mp_digit *v, mp_size vsize)
 	ASSERT(v != NULL);
 
 	/* V cannot be zero. */
-	vsize = mp_rsize(v, vsize);
+	MP_NORMALIZE(v, vsize);
 	ASSERT(vsize != 0);
 
 	/* Find U's real size. */
-	usize = mp_rsize(u, usize);
+	MP_NORMALIZE(u, usize);
 	if (usize == 0)
 		return;
 

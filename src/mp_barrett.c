@@ -22,7 +22,7 @@ mp_barrett_ctx_init(mp_barrett_ctx *ctx, const mp_digit *m, mp_size msize)
 	ASSERT(ctx->mu == NULL);
 	ASSERT(ctx->k == 0);
 
-	msize = mp_rsize(m, msize);
+	MP_NORMALIZE(m, msize);
 	ASSERT(msize != 0);
 
 	MP_TMP_ALLOC0(s, msize * 2 + 1);
@@ -73,14 +73,14 @@ mp_barrett(const mp_digit *u, mp_size usize,
 	m = ctx->m;
 	msize = ctx->k;
 	mp_zero(w, msize);
-	msize = mp_rsize(m, msize);
+	MP_NORMALIZE(m, msize);
 	ASSERT(msize == ctx->k);
 
 	if (msize == 1 && m[0] == 1) /* Anything mod 1 is zero. */
 		return;
 
-	usize = mp_rsize(u, usize);
-	psize = mp_rsize(p, psize);
+	MP_NORMALIZE(u, usize);
+	MP_NORMALIZE(p, psize);
 	if (usize == 0 || psize == 0) {
 		w[0] = (psize != 0);
 		return;
@@ -162,13 +162,13 @@ mp_barrett_ul(const mp_digit *u, mp_size usize, unsigned long power,
 	m = ctx->m;
 	msize = ctx->k;
 	mp_zero(w, msize);
-	msize = mp_rsize(m, msize);
+	MP_NORMALIZE(m, msize);
 	ASSERT(msize == ctx->k);
 
 	if (msize == 1 && m[0] == 1) /* Anything mod 1 is zero. */
 		return;
 
-	usize = mp_rsize(u, usize);
+	MP_NORMALIZE(u, usize);
 	if (usize == 0 || power == 0) {
 		w[0] = (usize != 0);
 		return;
@@ -265,7 +265,7 @@ barrett_reduce(const mp_digit *x, const mp_barrett_ctx *ctx, mp_digit *r)
 	if (mp_cmp(r2, rsize, m, k) > 0) {
 		mp_digit cy = mp_subi(r2, rsize, m, k);
 		ASSERT(cy == 0);
-		rsize = mp_rsize(r2, rsize);
+		MP_NORMALIZE(r2, rsize);
 		if (mp_cmp(r2, rsize, m, k) > 0) {
 			cy = mp_subi(r2, rsize, m, k);
 			ASSERT(cy == 0);

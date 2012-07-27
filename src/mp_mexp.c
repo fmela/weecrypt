@@ -383,14 +383,14 @@ mp_mexp(const mp_digit *u, mp_size usize,
 		const mp_digit *m, mp_size msize, mp_digit *w)
 {
 	mp_zero(w, msize);
-	msize = mp_rsize(m, msize);
+	MP_NORMALIZE(m, msize);
 	ASSERT(msize != 0);
 
 	if (msize == 1 && m[0] == 1)
 		return;
 
-	usize = mp_rsize(u, usize);
-	psize = mp_rsize(p, psize);
+	MP_NORMALIZE(u, usize);
+	MP_NORMALIZE(p, psize);
 	if (usize == 0 || psize == 0) {
 		w[0] = (usize != 0);
 		return;
