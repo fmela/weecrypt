@@ -9,7 +9,7 @@
 #define _MP_CONFIG_H_
 
 #ifndef MP_DIGIT_SIZE
-# if defined(x86_64) || defined(__x86_64__)
+# if defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
 #  define MP_DIGIT_SIZE	8
 # else
 #  define MP_DIGIT_SIZE	4
