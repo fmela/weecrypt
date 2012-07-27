@@ -965,7 +965,7 @@ mpi_gcd(const mpi *a, const mpi *b, mpi *g)
 		size = MIN(a->size, b->size);
 		MPI_SIZE(g, size);
 		mp_gcd(a->digits, a->size, b->digits, b->size, g->digits);
-		MPI_RSIZE(g);
+		MPI_NORMALIZE(g);
 	}
 	g->sign = 0;
 }
