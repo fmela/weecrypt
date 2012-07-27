@@ -79,7 +79,7 @@ mpq_normalize(mpq *q)
 		if (gcd[0] != 1) {
 			mp_digit r = gcd[0];
 			if ((r & (r - 1)) == 0) {
-				mp_digit lg = mp_digit_log2(r);
+				mp_digit lg = mp_digit_lsb_shift(r);
 
 				r = mp_rshifti(q->num->digits, q->num->size, lg);
 				ASSERT(r == 0);
