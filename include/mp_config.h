@@ -20,7 +20,6 @@
 # define MP_ADDI_N_ASM
 # define MP_ADD_N_ASM
 # define MP_CMP_N_ASM
-//# define MP_COPY_ASM
 # define MP_DDIVI_ASM
 # define MP_DDIV_ASM
 # define MP_DEC_ASM
