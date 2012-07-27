@@ -65,17 +65,17 @@ mp_daddi(mp_digit *u, mp_size size, mp_digit v)
 mp_digit
 mp_add_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 {
-	mp_digit cy, ud, vd;
+	ASSERT(u);
+	ASSERT(v);
+	ASSERT(w);
 
-	ASSERT(u != NULL);
-	ASSERT(v != NULL);
-	ASSERT(w != NULL);
-
-	for (cy = 0; size--; ++w) {
-		ud = *u++;
-		vd = *v++;
+	mp_digit cy = 0;
+	while (size--) {
+		mp_digit ud = *u++;
+		const mp_digit vd = *v++;
 		cy  = (ud += cy) < cy;
 		cy += (*w = ud + vd) < vd;
+		++w;
 	}
 	return cy;
 }
@@ -85,8 +85,6 @@ mp_digit
 mp_add(const mp_digit *u, mp_size usize,
 	   const mp_digit *v, mp_size vsize, mp_digit *w)
 {
-	mp_digit cy;
-
 	ASSERT(u);
 	ASSERT(usize > 0);
 	ASSERT(u[usize - 1]);
@@ -95,13 +93,13 @@ mp_add(const mp_digit *u, mp_size usize,
 	ASSERT(v[vsize - 1]);
 
 	if (usize < vsize) {
-		cy = mp_add_n(u, v, usize, w);
+		mp_digit cy = mp_add_n(u, v, usize, w);
 		if (v != w) {
 			mp_copy(v + usize, vsize - usize, w + usize);
 		}
 		return cy ? mp_inc(w + usize, vsize - usize) : 0;
 	} else if (usize > vsize) {
-		cy = mp_add_n(u, v, vsize, w);
+		mp_digit cy = mp_add_n(u, v, vsize, w);
 		if (u != w) {
 			mp_copy(u + vsize, usize - vsize, w + vsize);
 		}
@@ -115,13 +113,11 @@ mp_add(const mp_digit *u, mp_size usize,
 mp_digit
 mp_addi(mp_digit *u, mp_size usize, const mp_digit *v, mp_size vsize)
 {
-	mp_digit cy;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 	ASSERT(usize >= vsize);
 
-	cy = mp_addi_n(u, v, vsize);
+	mp_digit cy = mp_addi_n(u, v, vsize);
 	return cy ? mp_inc(u + vsize, usize - vsize) : 0;
 }
 
@@ -135,12 +131,10 @@ mp_dsub(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 mp_digit
 mp_dsubi(mp_digit *u, mp_size size, mp_digit v)
 {
-	mp_digit u0;
-
 	if (v == 0 || size == 0)
 		return v;
-	u0 = u[0];
-	return ((u[0] -= v) > u0) ? mp_dec(&u[1], size - 1) : 0;
+	const mp_digit u0 = u[0];
+	return ((u[0] -= v) > u0) ? mp_dec(u + 1, size - 1) : 0;
 }
 
 /* Set w[size] = u[size] - v[size] and return the borrow. */
@@ -148,17 +142,17 @@ mp_dsubi(mp_digit *u, mp_size size, mp_digit v)
 mp_digit
 mp_sub_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 {
-	mp_digit ud, vd, cy;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 	ASSERT(w != NULL);
 
-	for (cy = 0; size--; ++w) {
-		ud = *u++;
-		vd = *v++;
+	mp_digit cy = 0;
+	while (size--) {
+		const mp_digit ud = *u++;
+		mp_digit vd = *v++;
 		cy  = (vd += cy) < cy;
 		cy += (*w = ud - vd) > ud;
+		++w;
 	}
 	return cy;
 }
@@ -187,16 +181,16 @@ mp_sub(const mp_digit *u, mp_size usize,
 mp_digit
 mp_subi_n(mp_digit *u, const mp_digit *v, mp_size size)
 {
-	mp_digit ud, vd, cy;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 
-	for (cy = 0; size--; ++u) {
-		vd = *v++;
-		ud = *u;
+	mp_digit cy = 0;
+	while (size--) {
+		mp_digit vd = *v++;
+		const mp_digit ud = *u;
 		cy  = (vd += cy) < cy;
 		cy += (*u -= vd) > ud;
+		++u;
 	}
 	return cy;
 }
@@ -237,8 +231,6 @@ mp_diff_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 mp_digit
 mp_dmul(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 {
-	mp_digit cy, p0, p1;
-
 	if (v <= 1) {
 		if (v == 0)
 			mp_zero(w, size);
@@ -247,10 +239,13 @@ mp_dmul(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 		return 0;
 	}
 
-	for (cy = 0; size--; ++u, ++w) {
+	mp_digit cy = 0;
+	while (size--) {
+		mp_digit p1, p0;
 		digit_mul(*u, v, p1, p0);
 		cy = ((p0 += cy) < cy) + p1;
-		*w = p0;
+		*w++ = p0;
+		++u;
 	}
 	return cy;
 }
@@ -260,18 +255,18 @@ mp_dmul(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 mp_digit
 mp_dmuli(mp_digit *u, mp_size size, mp_digit v)
 {
-	mp_digit cy, p0, p1;
-
 	if (v <= 1) {
 		if (v == 0)
 			mp_zero(u, size);
 		return 0;
 	}
 
-	for (cy = 0; size--; ++u) {
+	mp_digit cy = 0;
+	while (size--) {
+		mp_digit p1, p0;
 		digit_mul(*u, v, p1, p0);
 		cy = ((p0 += cy) < cy) + p1;
-		*u = p0;
+		*u++ = p0;
 	}
 	return cy;
 }
@@ -281,18 +276,19 @@ mp_dmuli(mp_digit *u, mp_size size, mp_digit v)
 mp_digit
 mp_dmul_add(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 {
-	mp_digit cy, p0, p1;
-
-	ASSERT(u != NULL);
-	ASSERT(w != NULL);
+	ASSERT(u);
+	ASSERT(w);
 
 	if (v <= 1)
 		return v ? mp_addi_n(w, u, size) : 0;
 
-	for (cy = 0; size--; ++u, ++w) {
+	mp_digit cy = 0;
+	while (size--) {
+		mp_digit p1, p0;
 		digit_mul(*u, v, p1, p0);
 		cy  = ((p0 += cy) < cy) + p1;
 		cy += ((*w += p0) < p0);
+		++u; ++w;
 	}
 	return cy;
 }
@@ -324,21 +320,16 @@ mp_dmul_sub(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 void
 mp_exp(const mp_digit *u, mp_size size, unsigned long exp, mp_digit *v)
 {
-	int odd;
-	unsigned long n;
-	mp_digit *y, *z;
-	mp_size ysize, zsize;
-
 	/* Knuth's algorithm 4.6.3-A.
 	 * Perform binary powering, making use of the basic identity
 	 *      2i     2 i
 	 *     u   = (u )
-	 * to exponentiate a number faster than the naive method.  While the
+	 * to exponentiate a number faster than the naive method. While the
 	 * exponent is greater than one, we square the intermediate result (which
-	 * began at base).  If the exponent is odd, we multiply by the base.  Then
+	 * began at base). If the exponent is odd, we multiply by the base. Then
 	 * we halve the exponent and repeat the process. */
 	mp_zero(v, size * exp);
-	/* Strictly speaking, 0^0 is undefined, but we return 0 here. */
+	/* 0^0 is not clearly defined, but we return 0 here. */
 	if (size == 0)
 		return;
 	if (exp == 0) {
@@ -351,26 +342,27 @@ mp_exp(const mp_digit *u, mp_size size, unsigned long exp, mp_digit *v)
 	}
 
 	/* A1. */
-	n = exp;
+	mp_digit *y;
 	MP_TMP_ALLOC(y, size * exp);
 	y[0] = 1;
-	ysize = 1;
+	mp_size ysize = 1;
 
+	mp_digit *z;
 	MP_TMP_ALLOC0(z, size * exp);
 	mp_copy(u, size, z);
-	zsize = size;
+	mp_size zsize = size;
 
 	for (;;) {
 		/* A2. */
-		odd = n & 1;
-		n >>= 1;
+		const bool odd = exp & 1;
+		exp >>= 1;
 		if (odd) {
 			/* A3. */
 			mp_mul(y, ysize, z, zsize, v);
 			ysize = mp_rsize(v, ysize + zsize);
 			mp_copy(v, ysize, y);
 			/* A4. */
-			if (n == 0) {
+			if (exp == 0) {
 				mp_copy(y, ysize, v);
 				MP_TMP_FREE(y);
 				MP_TMP_FREE(z);
@@ -384,97 +376,89 @@ mp_exp(const mp_digit *u, mp_size size, unsigned long exp, mp_digit *v)
 	}
 }
 
-/* Multiply u[size] by 2^power and store in v[size], returning carry.
- * Power will be taken modulo MP_DIGIT_BITS. */
+/* Multiply u[size] by 2^shift and store in v[size], returning carry.
+ * shift will be taken modulo MP_DIGIT_BITS. */
 mp_digit
-mp_lshift(const mp_digit *u, mp_size size, unsigned power, mp_digit *v)
+mp_lshift(const mp_digit *u, mp_size size, unsigned shift, mp_digit *v)
 {
-	unsigned subp;
-	mp_digit p, q;
-
-	if (size == 0)
+	if (!size)
 		return 0;
-	if ((power &= (MP_DIGIT_BITS - 1)) == 0) {
+	shift &= MP_DIGIT_BITS - 1;
+	if (!shift) {
 		if (u != v)
 			mp_copy(u, size, v);
 		return 0;
 	}
-	q = 0;
-	subp = MP_DIGIT_BITS - power;
+	const unsigned subp = MP_DIGIT_BITS - shift;
+	mp_digit q = 0;
 	do {
-		p = *u++;
-		*v++ = (p << power) | q;
+		const mp_digit p = *u++;
+		*v++ = (p << shift) | q;
 		q = p >> subp;
 	} while (--size);
 	return q;
 }
 
-/* Divide u[size] by 2^power. */
+/* Divide u[size] by 2^shift. */
 mp_digit
-mp_rshift(const mp_digit *u, mp_size size, unsigned power, mp_digit *v)
+mp_rshift(const mp_digit *u, mp_size size, unsigned shift, mp_digit *v)
 {
-	unsigned subp;
-	mp_digit p, q;
-
 	if (size == 0)
 		return 0;
-	if ((power &= (MP_DIGIT_BITS - 1)) == 0) {
+	shift &= MP_DIGIT_BITS - 1;
+	if (!shift) {
 		if (u != v)
 			mp_copy(u, size, v);
 		return 0;
 	}
 
-	subp = MP_DIGIT_BITS - power;
+	const unsigned subp = MP_DIGIT_BITS - shift;
 	u += size;
 	v += size;
-	q = 0;
+	mp_digit q = 0;
 	do {
-		p = *--u;
-		*--v = (p >> power) | q;
+		const mp_digit p = *--u;
+		*--v = (p >> shift) | q;
 		q = p << subp;
 	} while (--size);
 	return q >> subp;
 }
 
-/* Multiply u[size] by 2^power, power taken modulo MP_DIGIT_BITS. */
+/* Multiply u[size] by 2^shift, shift taken modulo MP_DIGIT_BITS. */
 #ifndef MP_LSHIFTI_ASM
 mp_digit
-mp_lshifti(mp_digit *u, mp_size size, unsigned power)
+mp_lshifti(mp_digit *u, mp_size size, unsigned shift)
 {
-	unsigned subp;
-	mp_digit p, q;
-
-	if (size == 0 || (power &= (MP_DIGIT_BITS - 1)) == 0)
+	shift &= MP_DIGIT_BITS - 1;
+	if (!size || !shift)
 		return 0;
 
-	subp = MP_DIGIT_BITS - power;
-	q = 0;
+	const unsigned subp = MP_DIGIT_BITS - shift;
+	mp_digit q = 0;
 	do {
-		p = *u;
-		*u++ = (p << power) | q;
+		const mp_digit p = *u;
+		*u++ = (p << shift) | q;
 		q = p >> subp;
 	} while (--size);
 	return q;
 }
 #endif /* !MP_LSHIFTI_ASM */
 
-/* Divide u[size] by 2^power, power taken modulo MP_DIGIT_BITS. */
+/* Divide u[size] by 2^shift, shift taken modulo MP_DIGIT_BITS. */
 #ifndef MP_RSHIFTI_ASM
 mp_digit
-mp_rshifti(mp_digit *u, mp_size size, unsigned power)
+mp_rshifti(mp_digit *u, mp_size size, unsigned shift)
 {
-	unsigned subp;
-	mp_digit p, q;
-
-	if (size == 0 || (power &= (MP_DIGIT_BITS - 1)) == 0)
+	shift &= MP_DIGIT_BITS - 1;
+	if (!size || !shift)
 		return 0;
 
-	subp = MP_DIGIT_BITS - power;
+	unsigned subp = MP_DIGIT_BITS - shift;
 	u += size;
-	q = 0;
+	mp_digit q = 0;
 	do {
-		p = *--u;
-		*u = (p >> power) | q;
+		const mp_digit p = *--u;
+		*u = (p >> shift) | q;
 		q = p << subp;
 	} while (--size);
 	return q >> subp;
@@ -511,14 +495,13 @@ mp_ddivi(mp_digit *u, mp_size size, mp_digit v)
 		return 0;
 
 	if ((v & (v - 1)) == 0) {
-		return mp_rshifti(u, size, mp_digit_log2(v));
+		return mp_rshifti(u, size, mp_digit_lsb_shift(v));
 	} else {
-		mp_digit q, r, s0, s1;
-
-		s1 = 0;
+		mp_digit s1 = 0;
 		u += size;
 		do {
-			s0 = *--u;
+			mp_digit s0 = *--u;
+			mp_digit q, r;
 			if (s1 == 0) {
 				q = s0 / v;
 				r = s0 % v;
@@ -547,16 +530,15 @@ mp_dmod(const mp_digit *u, mp_size size, mp_digit v)
 	if ((v & (v - 1)) == 0) {
 		return u[0] & (v - 1);
 	} else {
-		mp_digit q, r, s0, s1;
-
-		s1 = 0;
+		mp_digit s1 = 0;
 		u += size;
 		do {
-			s0 = *--u;
+			mp_digit s0 = *--u;
+			mp_digit r;
 			if (s1 == 0) {
-				q = s0 / v;
 				r = s0 % v;
 			} else {
+				mp_digit q;
 				digit_div(s1, s0, v, q, r);
 			}
 			s1 = r;
@@ -601,13 +583,11 @@ mp_hamming_weight(const mp_digit *u, mp_size size)
 		sum += mp_byte_pop[*u++];
 	} while (--size);
 #else
-	mp_digit q;
-
 	MP_NORMALIZE(u, size);
 	if (size == 0)
 		return 0;
 	do {
-		for (q = *u++; q != 0; q >>= 8)
+		for (mp_digit q = *u++; q != 0; q >>= 8)
 			sum += mp_byte_pop[q & 0xff];
 	} while (--size);
 #endif
@@ -624,10 +604,8 @@ mp_hamming_dist(const mp_digit *u, mp_size size, const mp_digit *v)
 	while (size--)
 		hdist += mp_byte_pop[u[size] ^ v[size]];
 #else
-	mp_digit k;
-
 	while (size--)
-		for (k = u[size] ^ v[size]; k != 0; k >>= 8)
+		for (mp_digit k = u[size] ^ v[size]; k != 0; k >>= 8)
 			hdist += mp_byte_pop[k & 0xff];
 #endif
 	return hdist;
