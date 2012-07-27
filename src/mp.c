@@ -87,28 +87,27 @@ mp_add(const mp_digit *u, mp_size usize,
 {
 	mp_digit cy;
 
-	ASSERT(u != NULL);
-	ASSERT(usize != 0);
-	ASSERT(u[usize - 1] != 0);
-	ASSERT(v != NULL);
-	ASSERT(vsize != 0);
-	ASSERT(v[vsize - 1] != 0);
-
-	if (usize == vsize)
-		return mp_add_n(u, v, usize, w);
+	ASSERT(u);
+	ASSERT(usize > 0);
+	ASSERT(u[usize - 1]);
+	ASSERT(v);
+	ASSERT(vsize > 0);
+	ASSERT(v[vsize - 1]);
 
 	if (usize < vsize) {
 		cy = mp_add_n(u, v, usize, w);
-		vsize -= usize;
-		w += usize;
-		mp_copy(v + usize, vsize, w);
-		return cy ? mp_inc(w, vsize) : 0;
-	} else {
+		if (v != w) {
+			mp_copy(v + usize, vsize - usize, w + usize);
+		}
+		return cy ? mp_inc(w + usize, vsize - usize) : 0;
+	} else if (usize > vsize) {
 		cy = mp_add_n(u, v, vsize, w);
-		usize -= vsize;
-		w += vsize;
-		mp_copy(u + vsize, usize, w);
-		return cy ? mp_inc(w, usize) : 0;
+		if (u != w) {
+			mp_copy(u + vsize, usize - vsize, w + vsize);
+		}
+		return cy ? mp_inc(w + vsize, usize - vsize) : 0;
+	} else { /* usize == vsize */
+		return mp_add_n(u, v, usize, w);
 	}
 }
 
@@ -508,7 +507,7 @@ mp_ddivi(mp_digit *u, mp_size size, mp_digit v)
 		return 0;
 
 	MP_NORMALIZE(u, size);
-	if (size == 0)
+	if (!size)
 		return 0;
 
 	if ((v & (v - 1)) == 0) {
