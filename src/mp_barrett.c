@@ -11,7 +11,7 @@
 static void barrett_reduce(const mp_digit *x,
 						   const mp_barrett_ctx *ctx, mp_digit *r);
 
-/* Compute MU = floor(B^2K / M) (K = MLEN) */
+/* Compute MU = floor(B^2K / M) where K = MLEN. */
 void
 mp_barrett_ctx_init(mp_barrett_ctx *ctx, const mp_digit *m, mp_size msize)
 {
@@ -38,7 +38,7 @@ mp_barrett_ctx_init(mp_barrett_ctx *ctx, const mp_digit *m, mp_size msize)
 }
 
 void
-mp_barrett_ctx_clear(mp_barrett_ctx *ctx)
+mp_barrett_ctx_free(mp_barrett_ctx *ctx)
 {
 	ASSERT(ctx != NULL);
 	ASSERT(ctx->m != NULL);
@@ -212,11 +212,6 @@ mp_barrett_ul(const mp_digit *u, mp_size usize, unsigned long power,
 		k >>= 1;
 	k <<= i;		/* power mask. */
 
-	k = power;
-	for (i = 0; k != 1; i++)
-		k >>= 1;
-	k <<= i;
-
 	while (k >>= 1) {
 		mp_sqr(w, msize, t);
 		barrett_reduce(t, ctx, w);
@@ -242,39 +237,33 @@ mp_barrett_ul(const mp_digit *u, mp_size usize, unsigned long power,
 static void
 barrett_reduce(const mp_digit *x, const mp_barrett_ctx *ctx, mp_digit *r)
 {
-	const mp_digit *q1, *m;
-	mp_digit *q2, *q3, *r2, cy;
-	mp_size q2size, rsize;
-	mp_size k;
-
-	k = ctx->k;
-	m = ctx->m;
+	const mp_size k = ctx->k;
+	const mp_digit *m = ctx->m;
 
 	/* Step 1. */
 	/* q1 = x / b^(k-1); k + 1 digits */
-	q1 = &x[k - 1];
+	const mp_digit *q1 = &x[k - 1];
 	/* q2 = q1 * mu */
-	q2size = 2 * (k + 1);
-	MP_TMP_ALLOC(q2, q2size);
+	mp_digit *q2;
+	MP_TMP_ALLOC(q2, 2 * (k + 1));
 	mp_mul_n(q1, ctx->mu, k + 1, q2);
 	/* q3 = q2 / b^(k+1); k + 1 digits */
-	q3 = &q2[k + 1];
+	mp_digit *q3 = &q2[k + 1];
 
 	/* Step 2. */
 	/* r1 = x mod b^(k+1) */
 	/* r2 = q3 * m mod b^(k+1) */
-	MP_TMP_ALLOC(r2, k + 1);
+	mp_digit *r2 = q2;	/* Alias r2 = q2 since we are done with q2. */
 	mp_mul_mod_powb(q3, k + 1, m, k, r2, k + 1);
-	MP_TMP_FREE(q2); /* done with q's */
 	/* r = r1 - r2, combined with Step 3: if r < 0, r += b^(k+1) */
-	/* it's 2's complement, so r1 if < r2 the "+= b^(k+1)" is taken care of */
+	/* it's 2's complement, so r1 if < r2 the "+= b^(k+1)" is taken care of. */
 	mp_sub_n(x, r2, k + 1, r2);
-	rsize = mp_rsize(r2, k + 1);
+	mp_size rsize = mp_rsize(r2, k + 1);
 
 	/* Step 4. */
 	/* While r >= m, r -= m (will repeat at most twice) */
 	if (mp_cmp(r2, rsize, m, k) > 0) {
-		cy = mp_subi(r2, rsize, m, k);
+		mp_digit cy = mp_subi(r2, rsize, m, k);
 		ASSERT(cy == 0);
 		rsize = mp_rsize(r2, rsize);
 		if (mp_cmp(r2, rsize, m, k) > 0) {
@@ -285,5 +274,5 @@ barrett_reduce(const mp_digit *x, const mp_barrett_ctx *ctx, mp_digit *r)
 
 	/* Step 5. Return r. */
 	mp_copy(r2, k, r);
-	MP_TMP_FREE(r2);
+	MP_TMP_FREE(q2);
 }
