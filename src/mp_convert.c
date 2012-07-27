@@ -268,10 +268,6 @@ static const unsigned char ascii_to_value[256] = {
 mp_size
 mp_string_digits(const char *str, unsigned radix)
 {
-	const char *p;
-	char c;
-	unsigned val;
-
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
 
@@ -280,38 +276,38 @@ mp_string_digits(const char *str, unsigned radix)
 	if (*str == '\0')
 		return 0;
 
-	for (p = str; (c = *p) != '\0'; p++) {
-		val = ascii_to_value[(unsigned)c];
-		if (val >= radix)
+	const char *p = str;
+	while (*p) {
+		unsigned value = ascii_to_value[(unsigned)*p];
+		if (value >= radix)
 			break;
+		++p;
 	}
-	val = (unsigned)(p - str);
-	return (mp_size)(val / (radix_sizes[radix] * MP_DIGIT_SIZE)) + 1;
+	unsigned n_digits = p - str;
+	return (mp_size)(n_digits / (radix_sizes[radix] * MP_DIGIT_SIZE)) + 1;
 }
 
-#define SIZE_INC	6
+#define SIZE_INCREMENT	4
 mp_digit *
 mp_from_str(const char *str, unsigned radix, mp_size *size)
 {
-	mp_digit *r, cy, val;
-	mp_size rsize;
-	char c;
-
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
 
-	r = mp_new0(rsize = SIZE_INC);
-	while ((c = *str++) != '\0') {
-		if ((val = ascii_to_value[(unsigned)c]) >= radix)
+	mp_size rsize = SIZE_INCREMENT;
+	mp_digit *r = mp_new0(rsize);
+	while (*str) {
+		mp_digit value = ascii_to_value[(unsigned)*str++];
+		if (value >= radix)
 			break;
-		cy = mp_dmuli(r, rsize, radix);
-		if (val)
-			cy += mp_daddi(r, rsize, val);
+		mp_digit cy = mp_dmuli(r, rsize, radix);
+		if (value)
+			cy += mp_daddi(r, rsize, value);
 		if (cy) {
-			r = mp_resize(r, rsize + SIZE_INC);
-			mp_zero(r + rsize, SIZE_INC);
+			r = mp_resize(r, rsize + SIZE_INCREMENT);
+			mp_zero(r + rsize, SIZE_INCREMENT);
 			r[rsize] = cy;
-			rsize += SIZE_INC;
+			rsize += SIZE_INCREMENT;
 		}
 	}
 
@@ -332,7 +328,7 @@ mp_fprint(const mp_digit *u, mp_size size, unsigned radix, FILE *fp)
 	ASSERT(radix <= 36);
 
 	size = mp_rsize(u, size);
-	size_t string_size = mp_string_size(size, radix) + 1;
+	const size_t string_size = mp_string_size(size, radix) + 1;
 	char *str;
 	MP_TMP_ALLOC(str, string_size);
 	char *p = mp_get_str(u, size, radix, str);
