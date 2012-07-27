@@ -338,7 +338,7 @@ mp_odd_shift(const mp_digit *u, mp_size size)
 unsigned
 mp_significant_bits(const mp_digit *u, mp_size size)
 {
-	size = mp_rsize(u, size);
+	MP_NORMALIZE(u, size);
 	if (!size)
 		return 0;
 	/* +1 because we want to know how many bits it takes to represent most
