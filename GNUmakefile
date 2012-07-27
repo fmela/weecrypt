@@ -18,9 +18,13 @@ CC=$(shell which clang || which gcc)
 ifeq ($(CC),)
 $(error Neither clang nor gcc found)
 endif
-CFLAGS=-Wall -Wextra -Werror $(COPTS) $(ARCH) -Iinclude
-#COPTS=-std=c99 -march=native -g3
-COPTS=-std=c99 -march=native -O2
+
+# On 64-bit platforms, uncomment this to generate 32-bit code.
+#ARCH=-m32
+
+#COPTS=-g3
+COPTS=-O2
+CFLAGS=-Wall -Wextra -Werror -Wshadow -std=c99 $(COPTS) $(ARCH) -Iinclude
 PIC=-DPIC -fPIC
 PROF=-pg
 
@@ -50,7 +54,7 @@ $(SH_LIB): $(SH_OBJ)
 	$(CC) -shared -o $(@) $(SH_OBJ)
 
 $(BUILDIR)/%.o: asm/%.S
-	$(CC) -Iinclude -c $(<) -o $(@)
+	$(CC) $(ARCH) -Iinclude -c $(<) -o $(@)
 
 $(BUILDIR)/%.po: asm/%.S
 	$(CC) -Iinclude $(PROF) -c $(<) -o $(@)
