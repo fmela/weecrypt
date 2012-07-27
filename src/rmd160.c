@@ -14,6 +14,9 @@ rmd160_init(rmd160_context *ctx)
 
 	memset(ctx, 0, sizeof(*ctx));
 
+	/* Bytes processed. */
+	ctx->len = 0;
+
 	/* Magic numbers. */
 	ctx->rmd[0] = 0x67452301U;
 	ctx->rmd[1] = 0xefcdab89U;
@@ -26,29 +29,31 @@ rmd160_init(rmd160_context *ctx)
 }
 
 void
-rmd160_update(rmd160_context *ctx, const void *data, unsigned len)
+rmd160_update(rmd160_context *ctx, const void *data, unsigned nbytes)
 {
-	const mp8_t *source = data;
+	const uint8_t *source = data;
 
 	ASSERT(ctx != NULL);
 	ASSERT(data != NULL);
-	ASSERT(len > 0);
+	ASSERT(nbytes > 0);
+
+	ctx->len += nbytes;
 
 	/* Check to see if we already have some data buffered. */
 	if (ctx->nbuf) {
 		/* Add data to the end of the buffer (if possible). */
 		unsigned nleft = sizeof(ctx->buf) - ctx->nbuf;
-		if (nleft > len) {
+		if (nleft > nbytes) {
 			/* We don't have enough data to make 64 bytes. Just buffer it. */
-			memcpy(ctx->buf + ctx->nbuf, source, len);
-			ctx->nbuf += len;
+			memcpy(ctx->buf + ctx->nbuf, source, nbytes);
+			ctx->nbuf += nbytes;
 			return;
 		}
 
 		/* We can fill all 64 bytes. */
 		memcpy(ctx->buf + ctx->nbuf, source, nleft);
 		source += nleft;
-		len -= nleft;
+		nbytes -= nleft;
 
 		/* Process those 64 bytes. */
 		rmd160_step(ctx, ctx->buf);
@@ -58,38 +63,45 @@ rmd160_update(rmd160_context *ctx, const void *data, unsigned len)
 	}
 
 	/* Process data 64 bytes at a time. */
-	while (len >= 64) {
+	while (nbytes >= 64) {
 		rmd160_step(ctx, source);
 		source += 64;
-		len -= 64;
+		nbytes -= 64;
 	}
 
 	/* Buffer any remaining data. */
-	ASSERT(len < 64);
-	if (len) {
-		memcpy(ctx->buf, source, len);
-		ctx->nbuf = len;
+	ASSERT(nbytes < 64);
+	if (nbytes) {
+		memcpy(ctx->buf, source, nbytes);
+		ctx->nbuf = nbytes;
 	}
 }
 
 void
-rmd160_final(rmd160_context *ctx, void *digest)
+rmd160_final(rmd160_context *ctx, unsigned char digest[20])
 {
 	ASSERT(ctx != NULL);
-	ASSERT(digest != NULL);
+	(void)digest;
 }
 
 void
-rmd160_hash(const void *input, unsigned len, void *digest) // digest must be 20 bytes
+rmd160_hash(const void *input, unsigned len, unsigned char digest[20])
 {
+	rmd160_context ctx;
+
 	ASSERT(input != NULL);
 	ASSERT(len > 0);
 	ASSERT(digest != NULL);
+
+	rmd160_init(&ctx);
+	rmd160_update(&ctx, input, len);
+	rmd160_final(&ctx, digest);
+	memset(&ctx, 0, sizeof(ctx));
 }
 
 /* ROL(x, n) cyclically rotates x over n bits to the left.
  * x must be of an unsigned 32 bits type and 0 <= n < 32. */
-#define ROL(x, n)        (((x) << (n)) | ((x) >> (32-(n))))
+#define ROL(x, n)         (((x) << (n)) | ((x) >> (32-(n))))
 
 /* The five basic functions F(), G() and H() */
 #define F(x, y, z)        ((x) ^ (y) ^ (z))
