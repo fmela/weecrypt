@@ -11,7 +11,7 @@
 #define MAX_K	8
 #define MAX_NK	(1U << MAX_K)
 
-static const mp8_t twotab[256] = {
+static const uint8_t twotab[256] = {
 	0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3,
 	0, 1, 0, 2, 0, 1, 0, 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0,
 	1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1,
@@ -25,7 +25,7 @@ static const mp8_t twotab[256] = {
 	1, 0, 2, 0, 1, 0
 };
 
-static const mp8_t oddtab[256] = {
+static const uint8_t oddtab[256] = {
 	0x00, 0x01, 0x01, 0x03, 0x01, 0x05, 0x03, 0x07, 0x01, 0x09, 0x05, 0x0b,
 	0x03, 0x0d, 0x07, 0x0f, 0x01, 0x11, 0x09, 0x13, 0x05, 0x15, 0x0b, 0x17,
 	0x03, 0x19, 0x0d, 0x1b, 0x07, 0x1d, 0x0f, 0x1f, 0x01, 0x21, 0x11, 0x23,
