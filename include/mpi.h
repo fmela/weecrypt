@@ -131,7 +131,7 @@ int		mpi_modinv(const mpi *m, const mpi *b, mpi *inv);
 void	mpi_modexp_u32(const mpi *a, uint32_t p, const mpi *m, mpi *r);
 void	mpi_modexp(const mpi *a, const mpi *p, const mpi *m, mpi *r);
 /* Compute fibonacci number. */
-void mpi_fibonacci(unsigned n, mpi *fib);
+void	mpi_fibonacci(unsigned n, mpi *fib);
 
 /* Chinese Remainder Theorem algorithm. */
 typedef struct {
@@ -139,9 +139,9 @@ typedef struct {
 	mpi_t		x;
 	mpi_t		m;
 } mpi_crt_ctx;
-void mpi_crt_init(mpi_crt_ctx *ctx);
-int  mpi_crt_step(mpi_crt_ctx *ctx, const mpi *a_i, const mpi *m_i);
-int  mpi_crt_finish(mpi_crt_ctx *ctx, mpi *a);
+void	mpi_crt_init(mpi_crt_ctx *ctx);
+int		mpi_crt_step(mpi_crt_ctx *ctx, const mpi *a_i, const mpi *m_i);
+int		mpi_crt_finish(mpi_crt_ctx *ctx, mpi *a);
 
 void	mpi_fprint(const mpi *n, unsigned base, FILE *fp);
 #define mpi_fprint_bin(n,fp)	mpi_fprint((n),  2, (fp))
@@ -154,20 +154,5 @@ void	mpi_fprint(const mpi *n, unsigned base, FILE *fp);
 #define mpi_print_dec(n)		mpi_print((n), 10)
 #define mpi_print_hex(n)		mpi_print((n), 16)
 #define mpi_to_str(n,base)		mp_to_str((n)->digits, (n)->size, (base))
-
-/* Automatic MPI register macros. */
-#define MPI_REGS_DECL(nregs) \
-	mpi __regs[nregs] = { { 0, 0, 0, 0, 0 } }; \
-	int __regno GCC_UNUSED = 0, __nregs GCC_UNUSED = (nregs)
-#define MPI_REGS_INIT \
-	for (__regno = 0; __regno < __nregs; __regno++) \
-		mpi_init(&__regs[__regno])
-/* #define MPI_REG_GET		(mpi_init(&__regs[__regno]), &__regs[__regno++]) */
-#define MPI_REG(i)		(&__regs[i])
-#define MPI_REGS_FREE \
-	do { \
-		while (__regno) \
-			mpi_free(&__regs[--__regno]) \
-	} while (0)
 
 #endif /* !_MPI_H_ */
