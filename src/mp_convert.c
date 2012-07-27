@@ -172,43 +172,43 @@ static const struct {
 	/* 35 */ { 0x6D91B519U,  6 },
 	/* 36 */ { 0x81BF1000U,  6 }
 #elif MP_DIGIT_SIZE == 8
-	/*  0 */ { CONST64(0x0000000000000000),  0 },
-	/*  1 */ { CONST64(0x0000000000000000),  0 },
-	/*  2 */ { CONST64(0x8000000000000000), 63 },
-	/*  3 */ { CONST64(0xA8B8B452291FE821), 40 },
-	/*  4 */ { CONST64(0x4000000000000000), 31 },
-	/*  5 */ { CONST64(0x6765C793FA10079D), 27 },
-	/*  6 */ { CONST64(0x41C21CB8E1000000), 24 },
-	/*  7 */ { CONST64(0x3642798750226111), 22 },
-	/*  8 */ { CONST64(0x8000000000000000), 21 },
-	/*  9 */ { CONST64(0xA8B8B452291FE821), 20 },
-	/* 10 */ { CONST64(0x8AC7230489E80000), 19 },
-	/* 11 */ { CONST64(0x4D28CB56C33FA539), 18 },
-	/* 12 */ { CONST64(0x1ECA170C00000000), 17 },
-	/* 13 */ { CONST64(0x780C7372621BD74D), 17 },
-	/* 14 */ { CONST64(0x1E39A5057D810000), 16 },
-	/* 15 */ { CONST64(0x5B27AC993DF97701), 16 },
-	/* 16 */ { CONST64(0x1000000000000000), 15 },
-	/* 17 */ { CONST64(0x27B95E997E21D9F1), 15 },
-	/* 18 */ { CONST64(0x5DA0E1E53C5C8000), 15 },
-	/* 19 */ { CONST64(0xD2AE3299C1C4AEDB), 15 },
-	/* 20 */ { CONST64(0x16BCC41E90000000), 14 },
-	/* 21 */ { CONST64(0x2D04B7FDD9C0EF49), 14 },
-	/* 22 */ { CONST64(0x5658597BCAA24000), 14 },
-	/* 23 */ { CONST64(0xA0E2073737609371), 14 },
-	/* 24 */ { CONST64(0x0C29E98000000000), 13 },
-	/* 25 */ { CONST64(0x14ADF4B7320334B9), 13 },
-	/* 26 */ { CONST64(0x226ED36478BFA000), 13 },
-	/* 27 */ { CONST64(0x383D9170B85FF80B), 13 },
-	/* 28 */ { CONST64(0x5A3C23E39C000000), 13 },
-	/* 29 */ { CONST64(0x8E65137388122BCD), 13 },
-	/* 30 */ { CONST64(0xDD41BB36D259E000), 13 },
-	/* 31 */ { CONST64(0x0AEE5720EE830681), 12 },
-	/* 32 */ { CONST64(0x1000000000000000), 12 },
-	/* 33 */ { CONST64(0x172588AD4F5F0981), 12 },
-	/* 34 */ { CONST64(0x211E44F7D02C1000), 12 },
-	/* 35 */ { CONST64(0x2EE56725F06E5C71), 12 },
-	/* 36 */ { CONST64(0x41C21CB8E1000000), 12 }
+	/*  0 */ { CONST64(0x0000000000000000U),  0 },
+	/*  1 */ { CONST64(0x0000000000000000U),  0 },
+	/*  2 */ { CONST64(0x8000000000000000U), 63 },
+	/*  3 */ { CONST64(0xA8B8B452291FE821U), 40 },
+	/*  4 */ { CONST64(0x4000000000000000U), 31 },
+	/*  5 */ { CONST64(0x6765C793FA10079DU), 27 },
+	/*  6 */ { CONST64(0x41C21CB8E1000000U), 24 },
+	/*  7 */ { CONST64(0x3642798750226111U), 22 },
+	/*  8 */ { CONST64(0x8000000000000000U), 21 },
+	/*  9 */ { CONST64(0xA8B8B452291FE821U), 20 },
+	/* 10 */ { CONST64(0x8AC7230489E80000U), 19 },
+	/* 11 */ { CONST64(0x4D28CB56C33FA539U), 18 },
+	/* 12 */ { CONST64(0x1ECA170C00000000U), 17 },
+	/* 13 */ { CONST64(0x780C7372621BD74DU), 17 },
+	/* 14 */ { CONST64(0x1E39A5057D810000U), 16 },
+	/* 15 */ { CONST64(0x5B27AC993DF97701U), 16 },
+	/* 16 */ { CONST64(0x1000000000000000U), 15 },
+	/* 17 */ { CONST64(0x27B95E997E21D9F1U), 15 },
+	/* 18 */ { CONST64(0x5DA0E1E53C5C8000U), 15 },
+	/* 19 */ { CONST64(0xD2AE3299C1C4AEDBU), 15 },
+	/* 20 */ { CONST64(0x16BCC41E90000000U), 14 },
+	/* 21 */ { CONST64(0x2D04B7FDD9C0EF49U), 14 },
+	/* 22 */ { CONST64(0x5658597BCAA24000U), 14 },
+	/* 23 */ { CONST64(0xA0E2073737609371U), 14 },
+	/* 24 */ { CONST64(0x0C29E98000000000U), 13 },
+	/* 25 */ { CONST64(0x14ADF4B7320334B9U), 13 },
+	/* 26 */ { CONST64(0x226ED36478BFA000U), 13 },
+	/* 27 */ { CONST64(0x383D9170B85FF80BU), 13 },
+	/* 28 */ { CONST64(0x5A3C23E39C000000U), 13 },
+	/* 29 */ { CONST64(0x8E65137388122BCDU), 13 },
+	/* 30 */ { CONST64(0xDD41BB36D259E000U), 13 },
+	/* 31 */ { CONST64(0x0AEE5720EE830681U), 12 },
+	/* 32 */ { CONST64(0x1000000000000000U), 12 },
+	/* 33 */ { CONST64(0x172588AD4F5F0981U), 12 },
+	/* 34 */ { CONST64(0x211E44F7D02C1000U), 12 },
+	/* 35 */ { CONST64(0x2EE56725F06E5C71U), 12 },
+	/* 36 */ { CONST64(0x41C21CB8E1000000U), 12 }
 #endif
 };
 
@@ -285,7 +285,8 @@ mp_string_digits(const char *str, unsigned radix)
 		if (val >= radix)
 			break;
 	}
-	return (mp_size)(p - str);
+	val = (unsigned)(p - str);
+	return (mp_size)(val / (radix_sizes[radix] * MP_DIGIT_SIZE)) + 1;
 }
 
 #define SIZE_INC	6
@@ -325,18 +326,16 @@ static const char radix_chars[37] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 void
 mp_fprint(const mp_digit *u, mp_size size, unsigned radix, FILE *fp)
 {
-	char *str, *p;
-	size_t ssize;
-
 	ASSERT(u != NULL);
 
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
 
 	size = mp_rsize(u, size);
-	ssize = mp_string_size(size, radix) + 1;
-	MP_TMP_ALLOC(str, ssize);
-	p = mp_get_str(u, size, radix, str);
+	size_t string_size = mp_string_size(size, radix) + 1;
+	char *str;
+	MP_TMP_ALLOC(str, string_size);
+	char *p = mp_get_str(u, size, radix, str);
 	ASSERT(p != NULL);
 	fputs(p, fp);
 	MP_TMP_FREE(str);
@@ -345,12 +344,6 @@ mp_fprint(const mp_digit *u, mp_size size, unsigned radix, FILE *fp)
 char *
 mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 {
-	mp_digit max_radix;
-	unsigned i, max_power;
-	mp_digit *tmp;
-	mp_size tsize;
-	char *outp, *s, *f;
-
 	ASSERT(u != NULL);
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
@@ -364,27 +357,24 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 		return out;
 	}
 
-	max_radix = radix_table[radix].max_radix;
-	max_power = radix_table[radix].max_power;
+	const mp_digit max_radix = radix_table[radix].max_radix;
+	const unsigned max_power = radix_table[radix].max_power;
 
-	if (out == NULL)
+	if (!out)
 		out = MALLOC(mp_string_size(size, radix) + 1);
-	outp = out;
+	char *outp = out;
 
 	if ((radix & (radix - 1)) == 0) {	/* Radix is a power of two. */
-		unsigned i, lg, od;
-		mp_digit r, mask;
-
 		/* We need to extract LG bits for each digit. */
-		lg = mp_digit_log2(radix);
-		mask = radix - 1; /* mask = ((mp_digit)1 << lg) - 1; */
-		od = MP_DIGIT_BITS / lg;
+		unsigned lg = mp_digit_log2(radix);
+		mp_digit mask = radix - 1; /* mask = ((mp_digit)1 << lg) - 1; */
+		unsigned od = MP_DIGIT_BITS / lg;
 		if (MP_DIGIT_BITS % lg == 0) {	/* bases 2 (2^1), 4 (2^2), 16 (2^4) */
 			const mp_digit *ue = u + size;
 
 			do {
-				r = *u;
-				i = 0;
+				mp_digit r = *u;
+				unsigned i = 0;
 				do {
 					*outp++ = radix_chars[r & mask];
 					r >>= lg;
@@ -396,13 +386,14 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 
 			ASSERT(shift < MP_DIGIT_BITS);
 
+			mp_digit *tmp;
 			MP_TMP_COPY(tmp, u, size);
-			tsize = size;
+			mp_size tsize = size;
 
 			do {
-				r = mp_rshifti(tmp, tsize, shift);
+				mp_digit r = mp_rshifti(tmp, tsize, shift);
 				tsize -= (tmp[tsize - 1] == 0);
-				i = 0;
+				unsigned i = 0;
 				do {
 					*outp++ = radix_chars[r & mask];
 					r >>= lg;
@@ -412,22 +403,21 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 			MP_TMP_FREE(tmp);
 		}
 	} else {
+		mp_digit *tmp;
 		MP_TMP_COPY(tmp, u, size);
-		tsize = size;
+		mp_size tsize = size;
 
 		do {
-			mp_digit r, rq, rr;
-
 			/* Multi-precision: divide U by largest power of RADIX to fit in
 			 * one mp_digit and extract remainder. */
-			r = mp_ddivi(tmp, tsize, max_radix);
+			mp_digit r = mp_ddivi(tmp, tsize, max_radix);
 			tsize -= (tmp[tsize - 1] == 0);
 			/* Single-precision: extract K remainders from that remainder,
 			 * where K is the largest integer such that RADIX^K < 2^BITS. */
-			i = 0;
+			unsigned i = 0;
 			do {
-				rq = r / radix; /* Do it this way so hopefully compiler .. */
-				rr = r % radix; /* .. combines into a single divide. */
+				mp_digit rq = r / radix; /* Hopefully compiler will .. */
+				mp_digit rr = r % radix; /* .. combine into a single divide. */
 				*outp++ = radix_chars[rr];
 				r = rq;
 				if (tsize == 0 && r == 0) /* Eliminate any leading zeroes. */
@@ -440,14 +430,14 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 		MP_TMP_FREE(tmp);
 	}
 
-	f = outp - 1;
+	char *f = outp - 1;
 	/* Eliminate leading (trailing) zeroes. */
 	while (*f == '0')
 		--f;
 	/* NUL terminate. */
 	f[1] = '\0';
 	/* Reverse digits. */
-	for (s = out; s < f; ++s, --f)
+	for (char *s = out; s < f; ++s, --f)
 		SWAP(*s, *f, char);
 	return out;
 }
