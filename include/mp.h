@@ -10,7 +10,8 @@
 #ifndef _MP_H_
 #define _MP_H_
 
-#include <stdio.h>
+#include <stdio.h>		/* for FILE*, stdout */
+#include <string.h>		/* for memmove */
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>
@@ -73,7 +74,7 @@ void		mp_flip(mp_digit *u, mp_size size);
 /* Turn u[size] into it's 2's complement. */
 void		mp_complement(mp_digit *u, mp_size size);
 /* Copy u[size] onto v[size]. */
-mp_digit   *mp_copy(const mp_digit *u, mp_size size, mp_digit *v);
+#define mp_copy(u, size, v) memmove((v), (u), (size) * MP_DIGIT_SIZE)
 /* Exchange u[size] with v[size]. */
 void		mp_xchg(mp_digit *u, mp_digit *v, mp_size size);
 
@@ -121,10 +122,10 @@ void		mp_xornot(mp_digit *u, mp_size size, const mp_digit *v);
 
 /* Return the number of shift positions that U must be shifted left until its
  * most significant bit is set. Argument MUST be non-zero. */
-unsigned	mp_msb_shift(mp_digit u);
+unsigned	mp_digit_msb_shift(mp_digit u);
 /* Return the number of shift positions that U must be shifted right until its
  * least significant bit is set. Argument MUST be non-zero. */
-unsigned	mp_lsb_shift(mp_digit u);
+unsigned	mp_digit_lsb_shift(mp_digit u);
 /* Shift U left until it's most significant digit is set, and return the number
  * of positions shifted (which may be zero). size and u[size - 1] may NOT be
  * zero. */
@@ -332,14 +333,14 @@ void		mp_sqrtrem(const mp_digit *u, mp_size size,
 /* Return true if u[usize] is a perfect square, false otherwise. */
 bool		mp_perfsqr(const mp_digit *u, mp_size usize);
 
-/* Multiply or divide by a power of two, with power taken modulo MP_RADIX_BITS,
+/* Multiply or divide by a power of two, with power taken modulo MP_DIGIT_BITS,
  * and return the carry (left shift) or remainder (right shift). */
 mp_digit	mp_lshift(const mp_digit *u, mp_size size,
-					  unsigned s, mp_digit *v);
+					  unsigned shift, mp_digit *v);
 mp_digit	mp_rshift(const mp_digit *u, mp_size size,
-					  unsigned s, mp_digit *v);
-mp_digit	mp_lshifti(mp_digit *u, mp_size size, unsigned s);
-mp_digit	mp_rshifti(mp_digit *u, mp_size size, unsigned s);
+					  unsigned shift, mp_digit *v);
+mp_digit	mp_lshifti(mp_digit *u, mp_size size, unsigned shift);
+mp_digit	mp_rshifti(mp_digit *u, mp_size size, unsigned shift);
 
 typedef struct {	/* Mersenne twister context. */
 	int			mti;
