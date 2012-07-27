@@ -219,9 +219,7 @@ mp_string_size(mp_size size, unsigned radix)
 	ASSERT(radix <= 36);
 
 	if ((radix & (radix - 1)) == 0) {
-		unsigned lg;
-
-		lg = mp_digit_log2(radix);
+		unsigned lg = mp_digit_lsb_shift(radix);
 		return ((size * MP_DIGIT_BITS + lg - 1) / lg) + 1;
 	} else {
 		/* Be generous: round up to second next largest integer. */
@@ -362,9 +360,9 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 
 	if ((radix & (radix - 1)) == 0) {	/* Radix is a power of two. */
 		/* We need to extract LG bits for each digit. */
-		unsigned lg = mp_digit_log2(radix);
-		mp_digit mask = radix - 1; /* mask = ((mp_digit)1 << lg) - 1; */
-		unsigned od = MP_DIGIT_BITS / lg;
+		const unsigned lg = mp_digit_lsb_shift(radix);
+		const mp_digit mask = radix - 1; /* mask = ((mp_digit)1 << lg) - 1; */
+		const unsigned od = MP_DIGIT_BITS / lg;
 		if (MP_DIGIT_BITS % lg == 0) {	/* bases 2 (2^1), 4 (2^2), 16 (2^4) */
 			const mp_digit *ue = u + size;
 
@@ -378,7 +376,7 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 			} while (++u < ue);
 		} else {						/* bases 8 (2^3), 32 (2^5) */
 			/* Do it the lazy way (for now..) */
-			unsigned shift = lg * od;
+			const unsigned shift = lg * od;
 
 			ASSERT(shift < MP_DIGIT_BITS);
 
