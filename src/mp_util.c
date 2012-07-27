@@ -167,46 +167,42 @@ mp_rsize(const mp_digit *u, mp_size size)
 }
 #endif /* !MP_RSIZE_ASM */
 
-int
+bool
 mp_setbit(mp_digit *u, mp_size size, unsigned bit)
 {
-	unsigned digit;
-
-	if ((digit = bit / MP_DIGIT_BITS) >= size)
-		return -1;
+	unsigned digit = bit / MP_DIGIT_BITS;
+	if (digit >= size)
+		return false;
 	u[digit] |= MP_DIGIT_LSB << (bit % MP_DIGIT_BITS);
-	return 0;
+	return true;
 }
 
-int
-mp_clrbit(mp_digit *u, mp_size size, unsigned bit)
+bool
+mp_clearbit(mp_digit *u, mp_size size, unsigned bit)
 {
-	unsigned digit;
-
-	if ((digit = bit / MP_DIGIT_BITS) >= size)
-		return -1;
+	unsigned digit = bit / MP_DIGIT_BITS;
+	if (digit >= size)
+		return false;
 	u[digit] &= ~(MP_DIGIT_LSB << (bit % MP_DIGIT_BITS));
-	return 0;
+	return true;
 }
 
-int
-mp_flpbit(mp_digit *u, mp_size size, unsigned bit)
+bool
+mp_flipbit(mp_digit *u, mp_size size, unsigned bit)
 {
-	unsigned digit;
-
-	if ((digit = bit / MP_DIGIT_BITS) >= size)
-		return -1;
+	unsigned digit = bit / MP_DIGIT_BITS;
+	if (digit >= size)
+		return false;
 	u[digit] ^= MP_DIGIT_LSB << (bit % MP_DIGIT_BITS);
-	return 0;
+	return true;
 }
 
-int
-mp_tstbit(mp_digit *u, mp_size size, unsigned bit)
+bool
+mp_testbit(mp_digit *u, mp_size size, unsigned bit)
 {
-	unsigned digit;
-
-	if ((digit = bit / MP_DIGIT_BITS) >= size)
-		return -1;
+	unsigned digit = bit / MP_DIGIT_BITS;
+	if (digit >= size)
+		return false;
 	return (u[digit] & (MP_DIGIT_LSB << (bit % MP_DIGIT_BITS))) ? 1 : 0;
 }
 
