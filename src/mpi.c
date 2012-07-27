@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "weecrypt_memory.h"
 #include "mpi.h"
@@ -17,7 +18,7 @@
 mpi*
 mpi_init(mpi *n)
 {
-	ASSERT(n != NULL);
+	ASSERT(n);
 
 	n->alloc = MPI_INIT_DIGITS;
 	n->digits = mp_new0(MPI_INIT_DIGITS);
@@ -27,42 +28,42 @@ mpi_init(mpi *n)
 }
 
 mpi*
-mpi_init_ui(mpi *n, unsigned int ui)
+mpi_init_u32(mpi *n, uint32_t ui)
 {
 	mpi_init(n);
-	mpi_set_ui(n, ui);
+	mpi_set_u32(n, ui);
 	return n;
 }
 
 mpi*
-mpi_init_si(mpi *n, signed int si)
+mpi_init_s32(mpi *n, int32_t si)
 {
 	mpi_init(n);
-	mpi_set_si(n, si);
+	mpi_set_s32(n, si);
 	return n;
 }
 
 mpi*
-mpi_init_ul(mpi *n, unsigned long ul)
+mpi_init_u64(mpi *n, uint64_t ul)
 {
 	mpi_init(n);
-	mpi_set_ul(n, ul);
+	mpi_set_u64(n, ul);
 	return n;
 }
 
 mpi*
-mpi_init_sl(mpi *n, signed long sl)
+mpi_init_s64(mpi *n, int64_t sl)
 {
 	mpi_init(n);
-	mpi_set_sl(n, sl);
+	mpi_set_s64(n, sl);
 	return n;
 }
 
 mpi*
 mpi_init_mpi(mpi *p, const mpi *q)
 {
-	ASSERT(p != NULL);
-	ASSERT(q != NULL);
+	ASSERT(p);
+	ASSERT(q);
 
 	if (q->size) {
 		p->digits = mp_dup(q->digits, q->size);
@@ -88,6 +89,29 @@ mpi_init_size(mpi *p, mp_size size)
 }
 
 mpi*
+mpi_init_str(mpi *p, const char *str, unsigned base)
+{
+	while (isspace(*str))
+		str++;
+	int neg = 0;
+	if (*str == '+') {
+		++str;
+	} else if (*str == '-') {
+		neg = 1;
+		++str;
+	}
+	mp_size size = 0;
+	mp_digit *digits = mp_from_str(str, base, &size);
+	if (digits) {
+		mpi_init_mp(p, digits, size);
+		p->sign = neg;
+	} else {
+		mpi_init(p);
+	}
+	return p;
+}
+
+mpi*
 mpi_init_mp(mpi *p, mp_digit *n, mp_size size)
 {
 	p->digits = n;
@@ -100,7 +124,7 @@ mpi_init_mp(mpi *p, mp_digit *n, mp_size size)
 void
 mpi_free(mpi *n)
 {
-	ASSERT(n != NULL);
+	ASSERT(n);
 
 	mp_free(n->digits);
 }
@@ -108,7 +132,7 @@ mpi_free(mpi *n)
 void
 mpi_free_zero(mpi *n)
 {
-	ASSERT(n != NULL);
+	ASSERT(n);
 
 	mp_zero(n->digits, n->alloc);
 	mp_free(n->digits);
@@ -117,8 +141,8 @@ mpi_free_zero(mpi *n)
 mpi*
 mpi_set_mpi(mpi *p, const mpi *q)
 {
-	ASSERT(p != NULL);
-	ASSERT(q != NULL);
+	ASSERT(p);
+	ASSERT(q);
 
 	if (p != q) {
 		if (q->size == 0) {
@@ -126,7 +150,6 @@ mpi_set_mpi(mpi *p, const mpi *q)
 		} else {
 			MPI_SIZE(p, q->size);
 			mp_copy(q->digits, q->size, p->digits);
-			p->size = q->size;
 			p->sign = q->sign;
 		}
 	}
@@ -136,7 +159,7 @@ mpi_set_mpi(mpi *p, const mpi *q)
 mpi*
 mpi_zero(mpi *n)
 {
-	ASSERT(n != NULL);
+	ASSERT(n);
 
 	n->sign = 0;
 	n->size = 0;
@@ -146,7 +169,7 @@ mpi_zero(mpi *n)
 mpi*
 mpi_one(mpi *n)
 {
-	ASSERT(n != NULL);
+	ASSERT(n);
 
 	n->sign = 0;
 	n->size = 1;
@@ -157,7 +180,7 @@ mpi_one(mpi *n)
 mpi*
 mpi_neg(mpi *n)
 {
-	ASSERT(n != NULL);
+	ASSERT(n);
 
 	if (n->size) /* Don't flip sign if N = 0 */
 		n->sign ^= 1;
@@ -167,107 +190,104 @@ mpi_neg(mpi *n)
 mpi*
 mpi_abs(mpi *n)
 {
-	ASSERT(n != NULL);
+	ASSERT(n);
 
 	n->sign = 0;
 	return n;
 }
 
 mpi*
-mpi_set_ui(mpi *n, unsigned int m)
+mpi_set_u32(mpi *n, uint32_t m)
 {
 	n->sign = 0;
 	if (m == 0) {
 		n->size = 0;
 		return n;
 	}
-#if MP_DIGIT_MAX >= UINT_MAX
+#if MP_DIGIT_MAX >= UINT32_MAX
 	MPI_SIZE(n, 1);
 	n->digits[0] = (mp_digit)m;
 #else
-	{
-		mp_size j;
-		unsigned int t = m;
+	mp_size j;
+	uint32_t t = m;
 
-		for (j = 0; t != 0; j++)
-			t >>= MP_DIGIT_BITS;
-		MPI_MIN_ALLOC(n, j);
-		for (j = 0; m != 0; j++) {
-			n->digits[j] = (mp_digit)m;
-			m >>= MP_DIGIT_BITS;
-		}
-		n->size = j;
+	for (j = 0; t; j++)
+		t >>= MP_DIGIT_BITS;
+	MPI_MIN_ALLOC(n, j);
+	for (j = 0; m; j++) {
+		n->digits[j] = (mp_digit)m;
+		m >>= MP_DIGIT_BITS;
 	}
+	n->size = j;
 #endif
 	n->sign = 0;
 	return n;
 }
 
 mpi*
-mpi_set_si(mpi *n, signed int m)
+mpi_set_s32(mpi *n, int32_t m)
 {
 	if (m >= 0) {
-		mpi_set_ui(n, m);
+		mpi_set_u32(n, m);
 	} else {
-		mpi_set_ui(n, -m);
+		mpi_set_u32(n, -m);
 		n->sign = 1;
 	}
 	return n;
 }
 
 mpi*
-mpi_set_ul(mpi *n, unsigned long m)
+mpi_set_u64(mpi *n, uint64_t m)
 {
 	if (m == 0) {
 		mpi_zero(n);
 		return n;
 	}
 
-#if MP_DIGIT_MAX >= ULONG_MAX
+#if MP_DIGIT_MAX >= UINT64_MAX
 	MPI_SIZE(n, 1);
 	n->digits[0] = (mp_digit)m;
 #else
-	{
-		mp_size j;
-		unsigned long t = m;
+	mp_size j;
+	uint64_t t = m;
 
-		for (j = 0; t != 0; j++)
-			t >>= MP_DIGIT_BITS;
+	for (j = 0; t; j++)
+		t >>= MP_DIGIT_BITS;
 
-		MPI_MIN_ALLOC(n, j);
-		for (j = 0; m; j++) {
-			n->digits[j] = (mp_digit)m;
-			m >>= MP_DIGIT_BITS;
-		}
-		n->size = j;
+	MPI_MIN_ALLOC(n, j);
+	for (j = 0; m; j++) {
+		n->digits[j] = (mp_digit)m;
+		m >>= MP_DIGIT_BITS;
 	}
+	n->size = j;
 #endif
 	n->sign = 0;
 	return n;
 }
 
 mpi*
-mpi_set_sl(mpi *n, signed long m)
+mpi_set_s64(mpi *n, int64_t m)
 {
 	if (m >= 0) {
-		mpi_set_ul(n, m);
+		mpi_set_u64(n, m);
 	} else {
-		mpi_set_ul(n, -m);
+		mpi_set_u64(n, -m);
 		n->sign = 1;
 	}
 	return n;
 }
 
 int
-mpi_get_si(const mpi *p, signed int *q)
+mpi_get_s32(const mpi *p, int32_t *q)
 {
 	unsigned i, bits;
 	signed int r;
 
 	bits = mp_significant_bits(p->digits, p->size);
-	if (bits >= (sizeof(signed int) * CHAR_BIT))
+	if (bits >= (sizeof(*q) * CHAR_BIT) - 1)
 		return 0;
 
+	/* TODO: rewrite this in a more clever way. */
 	r = 0;
 	for (i = 0; i < bits; i++)
 		if (p->digits[i / MP_DIGIT_BITS] & (1U << (i % MP_DIGIT_BITS)))
@@ -279,7 +299,7 @@ mpi_get_si(const mpi *p, signed int *q)
 }
 
 int
-mpi_get_ui(const mpi *p, unsigned int *q)
+mpi_get_u32(const mpi *p, uint32_t *q)
 {
 	unsigned i, bits;
 	unsigned int r;
@@ -287,9 +307,10 @@ mpi_get_ui(const mpi *p, unsigned int *q)
 	if (p->sign)
 		return -1;
 	bits = mp_significant_bits(p->digits, p->size);
-	if (bits >= (sizeof(unsigned int) * CHAR_BIT))
+	if (bits >= (sizeof(*q) * CHAR_BIT))
 		return 0;
 
+	/* TODO: rewrite this in a more clever way. */
 	r = 0;
 	for (i = 0; i < bits; i++)
 		if (p->digits[i / MP_DIGIT_BITS] & (1U << (i % MP_DIGIT_BITS)))
@@ -313,10 +334,10 @@ mpi_get_f(const mpi *p)
 	delta = (float)~(mp_digit)0;
 
 	q = (float)(p->digits[j = p->size - 1]);
-	while (j != 0) {
+	while (j) {
 		q *= base;
 		if (q == q + delta) {
-			while (--j != 0)
+			while (--j)
 				q *= base;
 			break;
 		}
@@ -342,10 +363,10 @@ mpi_get_d(const mpi *p)
 	delta = (double)~(mp_digit)0;
 
 	q = p->digits[j = p->size - 1];
-	while (j != 0) {
+	while (j) {
 		q *= base;
 		if (q == q + delta) {
-			while (--j != 0)
+			while (--j)
 				q *= base;
 			break;
 		}
@@ -406,23 +427,23 @@ mpi_rand_ctx(mpi *n, unsigned bits, mp_rand_ctx *ctx)
 {
 	unsigned digits, hbits;
 
-	ASSERT(n != NULL);
+	ASSERT(n);
 
-	if (bits == 0) {
+	n->sign = 0; /* XXX */
+	if (!bits) {
 		n->size = 0;
 		return n;
 	}
 
-	n->sign = 0; /* XXX */
 	hbits = bits % MP_DIGIT_BITS;
 	digits = (bits / MP_DIGIT_BITS) + (hbits != 0);
 	MPI_SIZE(n, digits);
 	/* Let mp_rand_digits worry about whether ctx is NULL or not. */
 	mp_rand_digits(ctx, n->digits, digits);
-	if (hbits != 0)
+	if (hbits)
 		n->digits[n->size - 1] &= (((mp_digit)1 << hbits) - 1);
-	n->digits[n->size - 1] |= (mp_digit)1 << (hbits-1);
-	ASSERT(mpi_sig_bits(n) == bits);
+	n->digits[n->size - 1] |= ((mp_digit)1) << (hbits-1);
+	ASSERT(mpi_significant_bits(n) == bits);
 	return n;
 }
 
@@ -457,24 +478,48 @@ mpi_cmp(const mpi *p, const mpi *q)
 }
 
 int
-mpi_cmp_ui(const mpi *p, unsigned int q)
+mpi_cmp_u32(const mpi *p, uint32_t q)
 {
 	int r;
 	mpi_t qq;
 
-	mpi_init_ui(qq, q);
+	mpi_init_u32(qq, q);
 	r = mpi_cmp(p, qq);
 	mpi_free(qq);
 	return r;
 }
 
 int
-mpi_cmp_si(const mpi *p,   signed int q)
+mpi_cmp_s32(const mpi *p, int32_t q)
 {
 	int r;
 	mpi_t qq;
 
-	mpi_init_si(qq, q);
+	mpi_init_s32(qq, q);
+	r = mpi_cmp(p, qq);
+	mpi_free(qq);
+	return r;
+}
+
+int
+mpi_cmp_u64(const mpi *p, uint64_t q)
+{
+	int r;
+	mpi_t qq;
+
+	mpi_init_u64(qq, q);
+	r = mpi_cmp(p, qq);
+	mpi_free(qq);
+	return r;
+}
+
+int
+mpi_cmp_s64(const mpi *p, int64_t q)
+{
+	int r;
+	mpi_t qq;
+
+	mpi_init_s64(qq, q);
 	r = mpi_cmp(p, qq);
 	mpi_free(qq);
 	return r;
@@ -554,11 +599,11 @@ mpi_add(const mpi *a, const mpi *b, mpi *c)
 }
 
 void
-mpi_add_ui(const mpi *a, unsigned int b, mpi *s)
+mpi_add_u32(const mpi *a, uint32_t b, mpi *s)
 {
 	mpi_t bb;
 
-	mpi_init_ui(bb, b);
+	mpi_init_u32(bb, b);
 	mpi_add(a, bb, s);
 	mpi_free(bb);
 }
@@ -623,51 +668,53 @@ mpi_mul(const mpi *a, const mpi *b, mpi *c)
 }
 
 void
-mpi_mul_ui(const mpi *a, unsigned int b, mpi *p)
+mpi_mul_u32(const mpi *a, uint32_t b, mpi *p)
 {
-	unsigned bits;
-	const unsigned msb = 1U << ((CHAR_BIT * sizeof(unsigned)) - 1);
-	mp_size j, size;
-	mp_digit *bp, _b, cy;
-
-	if (b == 0) {
+	if (mpi_is_zero(a) || b == 0) {
 		mpi_zero(p);
 		return;
 	}
 	if (b == 1) {
-		mpi_one(p);
+		if (a != p)
+			mpi_set_mpi(p, a);
 		return;
 	}
-	if ((b&(b-1)) == 0) {
-		for (j=0; (b&1)==0; j++)
+	if ((b & (b-1)) == 0) {	/* B is a power of 2 */
+		mp_size j = 0;
+		for (; !(b & 1); j++)
 			b >>= 1;
 		mpi_lshift(a, j, p);
 		return;
 	}
 
-	if (sizeof(b) >= sizeof(mp_digit)) {
-		MPI_MIN_ALLOC(p, a->size + 1);
-		cy = mp_dmul(a->digits, a->size, (mp_digit)b, p->digits);
+	if (b == (mp_digit)b) {	/* B fits in an mp_digit */
+		if (a != p)
+			MPI_MIN_ALLOC(p, a->size);
+		mp_digit cy = mp_dmul(a->digits, a->size, (mp_digit)b, p->digits);
 		if (cy) {
+			MPI_MIN_ALLOC(p, a->size + 1);
 			p->digits[a->size] = cy;
 			p->size = a->size + 1;
 		} else {
 			p->size = a->size;
 		}
-		size = 1;
-		bp = &_b;
-		bp[0] = (mp_digit)b;
 	} else {
-		j = 0;
+		const uint32_t msb = 1U << (CHAR_BIT * sizeof(uint32_t) - 1);
+		mp_size j = 0;
 		while ((b & msb) == 0) { b <<= 1; j++; }
 		b >>= j;
-		bits = CHAR_BIT * sizeof(unsigned) - j;
-		size = (bits + MP_DIGIT_BITS - 1) / MP_DIGIT_BITS;
+		unsigned bits = CHAR_BIT * sizeof(uint32_t) - j;
+		mp_size size = (bits + MP_DIGIT_BITS - 1) / MP_DIGIT_BITS;
+		mp_digit *bp;
 		MP_TMP_ALLOC(bp, size);
+#if MP_DIGIT_BITS >= 32
+		bp[0] = b;
+#else
 		for (j=0; j<size; j++) {
 			bp[j] = (mp_digit)b;
 			b >>= MP_DIGIT_BITS;
 		}
+#endif
 		if (a == p) {
 			mp_digit *tmp;
 
@@ -687,16 +734,16 @@ mpi_mul_ui(const mpi *a, unsigned int b, mpi *p)
 }
 
 void
-mpi_mul_si(const mpi *a,   signed int b, mpi *p)
+mpi_mul_s32(const mpi *a, int32_t b, mpi *p)
 {
 	if (a->size == 0 || b == 0)
 		mpi_zero(p);
 	else {
 		if (b < 0) {
-			mpi_mul_ui(a, -b, p);
+			mpi_mul_u32(a, -b, p);
 			p->sign ^= 1;
 		} else {
-			mpi_mul_ui(a, +b, p);
+			mpi_mul_u32(a, b, p);
 		}
 	}
 }
@@ -760,7 +807,7 @@ mpi_divrem(const mpi *a, const mpi *b, mpi *q, mpi *r)
 	mp_divrem(a->digits, a->size,
 			  b->digits, b->size, q->digits, r->digits);
 
-	q->size = mp_rsize(q->digits, qsize);
+	q->size = qsize - (q->digits[qsize - 1] == 0);
 	q->sign = a->sign ^ b->sign;
 	r->size = mp_rsize(r->digits, b->size);
 	r->sign = 0; /* XXX */
@@ -895,9 +942,9 @@ mpi_gcd(const mpi *a, const mpi *b, mpi *g)
 {
 	mp_size size;
 
-	ASSERT(a != NULL);
-	ASSERT(b != NULL);
-	ASSERT(g != NULL);
+	ASSERT(a);
+	ASSERT(b);
+	ASSERT(g);
 	ASSERT(a != g);
 	ASSERT(b != g);
 
@@ -941,7 +988,7 @@ mpi_rshift(const mpi *p, unsigned bits, mpi *q)
 	digits = bits / MP_DIGIT_BITS;
 	bits = bits % MP_DIGIT_BITS;
 
-	pbits = mpi_sig_bits(p);
+	pbits = mpi_significant_bits(p);
 	if (pbits <= bits) {
 		mpi_zero(q);
 		return;
@@ -1013,7 +1060,7 @@ mpi_shift(const mpi *p, int bits, mpi *q)
 void
 mpi_fprint(const mpi *n, unsigned base, FILE *fp)
 {
-	if (fp == NULL)
+	if (!fp)
 		fp = stdout;
 	if (n->size == 0) {
 		fputc('0', fp);
