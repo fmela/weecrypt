@@ -11,16 +11,12 @@
 static mp_digit
 dgcd(mp_digit u, mp_digit v)
 {
-	unsigned ushift, vshift;
+	ASSERT(u > 0);
+	ASSERT(v > 0);
 
-	ASSERT(u != 0);
-	ASSERT(v != 0);
-
-	for (ushift = 0; (u & 1) == 0; ushift++)
-		u >>= 1;
-	for (vshift = 0; (v & 1) == 0; vshift++)
-		v >>= 1;
-
+	unsigned ushift = mp_lsb_shift(u), vshift = mp_lsb_shift(v);
+	u >>= ushift;
+	v >>= vshift;
 	while (u != v) {
 		if (u > v) {
 			for (u = (u - v) >> 1; (u & 1) == 0; u >>= 1)
@@ -52,19 +48,11 @@ void
 mp_gcd(const mp_digit *u, mp_size usize,
 	   const mp_digit *v, mp_size vsize, mp_digit *w)
 {
-	unsigned ki, ks;
-
-	mp_digit *utmp, *vtmp;
-	mp_digit *t;
-	int tneg, rv;
-	mp_size tsize;
-	mp_size size;
-
 	mp_zero(w, MIN(usize, vsize));
 
 	usize = mp_rsize(u, usize);
 	vsize = mp_rsize(v, vsize);
-	if (usize == 0 || vsize == 0)
+	if (!usize || !vsize)
 		return; /* Don't handle these. */
 
 	if (usize == 1 || vsize == 1) {
@@ -106,83 +94,87 @@ mp_gcd(const mp_digit *u, mp_size usize,
 	}
 
 	/* B1: */
-	ki = 0;
-	while ((u[ki] | v[ki]) == 0)
-		ki++;
-	if (((u[ki] | v[ki]) & 1) == 0) {
-		mp_digit uk = u[ki] | v[ki];
+	unsigned k_skip = 0;
+	while ((u[k_skip] | v[k_skip]) == 0)
+		k_skip++;
+	u += k_skip; usize -= k_skip;
+	v += k_skip; vsize -= k_skip;
+	w += k_skip;
+	const unsigned k_shift = mp_lsb_shift(u[0] | v[0]);
 
-		ks = 1;
-		while (((uk >>= 1) & 1) == 0)
-			ks++;
-	} else {
-		ks = 0;
-	}
-	u += ki; usize -= ki;
-	v += ki; vsize -= ki;
-	w += ki;
-
-	size = MAX(usize, vsize);
+	const mp_size size = MAX(usize, vsize);
+	mp_digit *utmp, *vtmp;
 	MP_TMP_ALLOC0(utmp, size);
 	MP_TMP_ALLOC0(vtmp, size);
-	MP_TMP_ALLOC0(t, size);
-	mp_copy(u, usize, utmp);
-	mp_copy(v, vsize, vtmp);
-	if (ks) {
-		mp_digit cy;
-		cy = mp_rshifti(utmp, usize, ks);
+	if (k_shift) {
+		mp_digit cy = mp_rshift(u, usize, k_shift, utmp);
 		ASSERT(cy == 0);
-		cy = mp_rshifti(vtmp, vsize, ks);
+		cy = mp_rshift(v, vsize, k_shift, vtmp);
 		ASSERT(cy == 0);
+	} else {
+		mp_copy(u, usize, utmp);
+		mp_copy(v, vsize, vtmp);
 	}
+	mp_zero(utmp + usize, size - usize);
+	mp_zero(vtmp + vsize, size - vsize);
 
+	mp_digit *T;
+	int tneg;
+	mp_size tsize;
+	MP_TMP_ALLOC0(T, size);
 	/* B2: */
 	if (utmp[0] & 1) {
-		mp_copy(vtmp, vsize, t);
+		mp_copy(vtmp, vsize, T);
 		tsize = vsize;
 		tneg = 1;
-		goto B4;
 	} else {
-		mp_copy(utmp, usize, t);
+		mp_copy(utmp, usize, T);
 		tsize = usize;
 		tneg = 0;
 	}
 
-B3:
-	mp_rshifti(t, tsize, 1);
-	tsize -= (t[tsize - 1] == 0);
-	ASSERT(tsize != 0);
-B4:
-	if ((t[0] & 1) == 0)
-		goto B3;
+B3:	/* Combined with B4. */
+	if (!(T[0] & 1)) {	/* T is even. */
+		unsigned shift = mp_odd_shift(T, tsize);
+		unsigned digits = shift / MP_DIGIT_BITS;
+		shift %= MP_DIGIT_BITS;
+		if (digits) {
+			mp_digit cy = mp_rshift(T + digits, tsize, shift, T);
+			ASSERT(cy == 0);
+			tsize -= digits;
+		} else {
+			mp_digit cy = mp_rshifti(T, tsize, shift);
+			ASSERT(cy == 0);
+		}
+		tsize -= (T[tsize - 1] == 0);
+		ASSERT(tsize > 0);
+	}
 
 	/* B5: */
 	if (tneg) {
-		mp_copy(t, tsize, vtmp);
+		mp_copy(T, tsize, vtmp);
 		vsize = tsize;
 	} else {
-		mp_copy(t, tsize, utmp);
+		mp_copy(T, tsize, utmp);
 		usize = tsize;
 	}
 
 	usize = mp_rsize(utmp, usize);
 	vsize = mp_rsize(vtmp, vsize);
-	rv = mp_cmp(utmp, usize, vtmp, vsize);
-	if (rv > 0) {
+	int cmp = mp_cmp(utmp, usize, vtmp, vsize);
+	if (cmp > 0) {
 		tsize = usize;
-		rv = mp_sub(utmp, usize, vtmp, vsize, t);
-		ASSERT(rv == 0);
+		cmp = mp_sub(utmp, usize, vtmp, vsize, T);
+		ASSERT(cmp == 0);
 		tneg = 0;
-	} else if (rv < 0) {
+	} else if (cmp < 0) {
 		tsize = vsize;
-		rv = mp_sub(vtmp, vsize, utmp, usize, t);
-		ASSERT(rv == 0);
+		cmp = mp_sub(vtmp, vsize, utmp, usize, T);
+		ASSERT(cmp == 0);
 		tneg = 1;
-	} else if (rv == 0) {
-		if (ks) {
-			mp_digit cy;
-
-			cy = mp_lshift(utmp, usize, ks, w);
+	} else if (cmp == 0) {
+		if (k_shift) {
+			mp_digit cy = mp_lshift(utmp, usize, k_shift, w);
 			/* Do NOT remove this test for cy != 0. If U and V are of the same
 			 * size then W is the same size, and we cannot write past the
 			 * ULEN-th digit. */
@@ -193,23 +185,19 @@ B4:
 		}
 		MP_TMP_FREE(utmp);
 		MP_TMP_FREE(vtmp);
-		MP_TMP_FREE(t);
+		MP_TMP_FREE(T);
 		return;
 	}
 
-	tsize = mp_rsize(t, tsize);
+	tsize = mp_rsize(T, tsize);
 	ASSERT(tsize != 0);
 	goto B3;
 }
 
-int
+bool
 mp_coprime(const mp_digit *u, mp_size usize,
 		   const mp_digit *v, mp_size vsize)
 {
-	int rv;
-	mp_digit *tmp;
-	mp_size tsize;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 
@@ -219,13 +207,13 @@ mp_coprime(const mp_digit *u, mp_size usize,
 	if (usize == 0)
 		return vsize == 0;	/* Is 0 relatively prime to itself? Who knows. */
 	else if (vsize == 0)
-		return 0;
+		return false;
 
-	tsize = MIN(usize, vsize);
+	mp_size tsize = MIN(usize, vsize);
+	mp_digit *tmp;
 	MP_TMP_ALLOC(tmp, tsize);
 	mp_gcd(u, usize, v, vsize, tmp);
-	rv = mp_is_one(tmp, tsize);
+	bool gcd_is_one = mp_is_one(tmp, tsize);
 	MP_TMP_FREE(tmp);
-
-	return rv;
+	return gcd_is_one;
 }
