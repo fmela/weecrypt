@@ -10,49 +10,6 @@
 
 #include "mp_config.h"
 
-/* XXX Use these instead? */
-#if 0
-#define MP_DIGIT_MASK		~(mp_digit)0
-#define MP_DIGIT_HMASK		(MP_DIGIT_MASK << (MP_DIGIT_HSHIFT))
-#define MP_DIGIT_LMASK		(MP_DIGIT_MASK >> (MP_DIGIT_HSHIFT))
-#define MP_DIGIT_LSB		(mp_digit)1
-#define MP_DIGIT_MSB		(MP_DIGIT_LSB << (MP_DIGIT_BITS - 1))
-#endif
-
-#if MP_DIGIT_SIZE == 1
-# define MP_DIGIT_MASK		0xff
-# define MP_DIGIT_HMASK		0xf0
-# define MP_DIGIT_LMASK		0x0f
-# define MP_DIGIT_LSB		0x01
-# define MP_DIGIT_MSB		0x80
-# define MP_DIGIT_BITS		8
-# define MP_DIGIT_HSHIFT	4
-#elif MP_DIGIT_SIZE == 2
-# define MP_DIGIT_MASK		0xffff
-# define MP_DIGIT_HMASK		0xff00
-# define MP_DIGIT_LMASK		0x00ff
-# define MP_DIGIT_LSB		0x0001
-# define MP_DIGIT_MSB		0x8000
-# define MP_DIGIT_BITS		16
-# define MP_DIGIT_HSHIFT	8
-#elif MP_DIGIT_SIZE == 4
-# define MP_DIGIT_MASK		0xffffffffU
-# define MP_DIGIT_HMASK		0xffff0000U
-# define MP_DIGIT_LMASK		0x0000ffffU
-# define MP_DIGIT_LSB		0x00000001U
-# define MP_DIGIT_MSB		0x80000000U
-# define MP_DIGIT_BITS		32
-# define MP_DIGIT_HSHIFT	16
-#elif MP_DIGIT_SIZE == 8
-# define MP_DIGIT_MASK		CONST64(0xffffffffffffffffU)
-# define MP_DIGIT_HMASK		CONST64(0xffffffff00000000U)
-# define MP_DIGIT_LMASK		CONST64(0x00000000ffffffffU)
-# define MP_DIGIT_LSB		CONST64(0x0000000000000001U)
-# define MP_DIGIT_MSB		CONST64(0x8000000000000000U)
-# define MP_DIGIT_BITS		64
-# define MP_DIGIT_HSHIFT	32
-#endif
-
 #if (defined(i386) || defined(__i386__))
 # if MP_DIGIT_SIZE == 1
 #  define digit_mul(u,v,hi,lo)												\
@@ -109,71 +66,8 @@
 			: "0" ((n0)), "1" ((n1)), "rm" ((d)))
 #endif
 
-#if defined(_MSC_VER) /* MS Visual C++ */
-# if MP_DIGIT_SIZE == 1
-#  define digit_mul(u,v,hi,lo) { \
-	mp_digit __u = (u), __v = (v); \
-	__asm { mov al, byte ptr [__u] } \
-	__asm { mul byte ptr [__v] } \
-	__asm { mov byte ptr [lo], al } \
-	__asm { mov byte ptr [hi], ah } }
-#  define digit_div(u1,u0,d,q,r) { \
-	mp_digit __u1 = (u1), __u0 = (u0); \
-	__asm { mov al, byte ptr [__u0] } \
-	__asm { mov ah, byte ptr [__u1] } \
-	__asm { div byte ptr [d] } \
-	__asm { mov byte ptr [q], al } \
-	__asm { mov byte ptr [r], ah } }
-# elif MP_DIGIT_SIZE == 2
-#  define digit_mul(u,v,hi,lo) { \
-	mp_digit __u = (u), __v = (v); \
-	__asm { mov ax, word ptr [__u] } \
-	__asm { mul word ptr [__v] } \
-	__asm { mov word ptr [lo], ax } \
-	__asm { mov word ptr [hi], dx } }
-#  define digit_sqr(u,hi,lo) { \
-	mp_digit __u = (u); \
-	__asm { mov ax, word ptr [__u]; } \
-	__asm { mul ax } \
-	__asm { mov word ptr [lo], ax } \
-	__asm { mov word ptr [hi], dx } }
-#  define digit_div(u1,u0,d,q,r) { \
-	mp_digit __u1 = (u1), __u0 = (u0); \
-	__asm { mov ax, word ptr [__u0] } \
-	__asm { mov dx, word ptr [__u1] } \
-	__asm { div word ptr [d] } \
-	__asm { mov word ptr [q], ax } \
-	__asm { mov word ptr [r], dx } }
-# elif MP_DIGIT_SIZE == 4
-#  define digit_mul(u,v,hi,lo) { \
-	mp_digit __u = (u), __v = (v); \
-	__asm { mov eax, dword ptr [__u] } \
-	__asm { mul dword ptr [__v] } \
-	__asm { mov dword ptr [lo], eax } \
-	__asm { mov dword ptr [hi], edx } }
-#  define digit_sqr(u,hi,lo) { \
-	mp_digit __u = (u); \
-	__asm { mov eax, dword ptr [__u] } \
-	__asm { mul eax } \
-	__asm { mov dword ptr [lo], eax } \
-	__asm { mov dword ptr [hi], edx } }
-#  define digit_div(u1,u0,d,q,r) { \
-	mp_digit __u1 = (u1), __u0 = (u0); \
-	__asm { mov eax, dword ptr [__u0] } \
-	__asm { mov edx, dword ptr [__u1] } \
-	__asm { div dword ptr [d] } \
-	__asm { mov dword ptr [q], eax } \
-	__asm { mov dword ptr [r], edx } }
-# endif
-#endif	/* _MSC_VER */
-
 #ifdef USE_ALLOCA
-# ifdef _MSC_VER
-#  include <malloc.h>
-#  define alloca _alloca
-# else
-#  include <stdlib.h>
-# endif
+# include <stdlib.h>
 # define MP_PTR_ALLOC(p,size)	(p) = alloca(size)
 # define MP_PTR_FREE(p)			(void)0
 # define MP_TMP_ALLOC(n,size)	(n) = alloca((size) * MP_DIGIT_SIZE)

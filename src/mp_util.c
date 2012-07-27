@@ -63,7 +63,7 @@ mp_one(mp_digit *u, mp_size size)
 void
 mp_max(mp_digit *u, mp_size size)
 {
-	mp_fill(u, size, MP_DIGIT_MASK);
+	mp_fill(u, size, MP_DIGIT_MAX);
 }
 
 #ifndef MP_FILL_ASM
@@ -83,7 +83,7 @@ void
 mp_flip(mp_digit *u, mp_size size)
 {
 	while (size--)
-		*u++ ^= MP_DIGIT_MASK;
+		*u++ ^= MP_DIGIT_MAX;
 }
 #endif
 
@@ -232,11 +232,11 @@ unsigned
 mp_digit_msb_shift(mp_digit u)
 {
 #if MP_DIGIT_BITS == 16
-	mp_digit high8 = 0xff00;
+	mp_digit high8 = UINT16_C(0xff00);
 #elif MP_DIGIT_BITS == 32
-	mp_digit high8 = 0xff000000U;
+	mp_digit high8 = UINT32_C(0xff000000);
 #elif MP_DIGIT_BITS == 64
-	mp_digit high8 = CONST64(0xff00000000000000U);
+	mp_digit high8 = UINT64_C(0xff00000000000000);
 #endif
 	unsigned steps = 0;
 

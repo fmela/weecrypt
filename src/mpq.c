@@ -394,10 +394,10 @@ mpq_set_d(mpq *p, double d)
 	 *  exp = f_52..62, excess 1023
 	 * frac = f_0..51 + 2^52 */
 	uint64_t dd = *(uint64_t *)&d;
-	int sign = (dd & CONST64(0x8000000000000000U)) ? 1 : 0;
+	int sign = (dd & UINT64_C(0x8000000000000000)) ? 1 : 0;
 	int exp = (int)(dd >> 52);
 	exp &= ((1U << 11) - 1);
-	dd &= (CONST64(1U) << 53) - 1;
+	dd &= (UINT64_C(1) << 53) - 1;
 	mp_size digits = (53 + MP_DIGIT_BITS - 1) / MP_DIGIT_BITS;
 	if (p->num->alloc < digits) {
 		p->num->digits = mp_resize(p->num->digits, digits);

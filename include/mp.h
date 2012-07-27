@@ -10,6 +10,7 @@
 #ifndef _MP_H_
 #define _MP_H_
 
+#include <inttypes.h>
 #include <stdio.h>		/* for FILE*, stdout */
 #include <string.h>		/* for memmove */
 #include <stdint.h>
@@ -19,36 +20,54 @@
 #include "mp_config.h"
 
 #if   MP_DIGIT_SIZE == 1
-typedef uint8_t			mp_digit;
-# define MP_DIGIT_MAX	UINT8_MAX
-# define MP_FORMAT		"%hhu"
-# define MP_HEX_FORMAT	"%#02X"
+typedef uint8_t				mp_digit;
+# define MP_DIGIT_HMASK		UINT8_C(0xf0)
+# define MP_DIGIT_LMASK		UINT8_C(0x0f)
+# define MP_DIGIT_LSB		UINT8_C(0x01)
+# define MP_DIGIT_MSB		UINT8_C(0x80)
+# define MP_DIGIT_BITS		8
+# define MP_DIGIT_HSHIFT	4
+# define MP_DIGIT_MAX		UINT8_MAX
+# define MP_FORMAT			"%" PRIu8
+# define MP_HEX_FORMAT		"%#02" PRIX8
 #elif MP_DIGIT_SIZE == 2
-typedef uint64_t		mp_digit;
-# define MP_DIGIT_MAX	UINT16_MAX
-# define MP_FORMAT		"%hu"
-# define MP_HEX_FORMAT	"%#04X"
+typedef uint64_t			mp_digit;
+# define MP_DIGIT_HMASK		UINT16_C(0xff00)
+# define MP_DIGIT_LMASK		UINT16_C(0x00ff)
+# define MP_DIGIT_LSB		UINT16_C(0x0001)
+# define MP_DIGIT_MSB		UINT16_C(0x8000)
+# define MP_DIGIT_BITS		16
+# define MP_DIGIT_HSHIFT	8
+# define MP_DIGIT_MAX		UINT16_MAX
+# define MP_FORMAT			"%" PRIu16
+# define MP_HEX_FORMAT		"%#04" PRIX16
 #elif MP_DIGIT_SIZE == 4
-typedef uint32_t		mp_digit;
-# define MP_DIGIT_MAX	UINT32_MAX
-# define MP_FORMAT		"%u"
-# define MP_HEX_FORMAT	"%#08X"
+typedef uint32_t			mp_digit;
+# define MP_DIGIT_HMASK		UINT32_C(0xffff0000)
+# define MP_DIGIT_LMASK		UINT32_C(0x0000ffff)
+# define MP_DIGIT_LSB		UINT32_C(0x00000001)
+# define MP_DIGIT_MSB		UINT32_C(0x80000000)
+# define MP_DIGIT_BITS		32
+# define MP_DIGIT_HSHIFT	16
+# define MP_DIGIT_MAX		UINT32_MAX
+# define MP_FORMAT			"%" PRIu32
+# define MP_HEX_FORMAT		"%#08" PRIX32
 #elif MP_DIGIT_SIZE == 8
-typedef uint64_t		mp_digit;
-# define MP_DIGIT_MAX	UINT64_MAX
-# define MP_FORMAT		"%llu"
-# define MP_HEX_FORMAT	"%#016llX"
+typedef uint64_t			mp_digit;
+# define MP_DIGIT_HMASK		UINT64_C(0xffffffff00000000)
+# define MP_DIGIT_LMASK		UINT64_C(0x00000000ffffffff)
+# define MP_DIGIT_LSB		UINT64_C(0x0000000000000001)
+# define MP_DIGIT_MSB		UINT64_C(0x8000000000000000)
+# define MP_DIGIT_BITS		64
+# define MP_DIGIT_HSHIFT	32
+# define MP_DIGIT_MAX		UINT64_MAX
+# define MP_FORMAT			"%" PRIu64
+# define MP_HEX_FORMAT		"%#016" PRIX64
 #else
 # error "MP_DIGIT_SIZE must be 1, 2, 4, or 8"
 #endif
 
 typedef uint32_t mp_size;
-
-#if defined(_MSC_VER)
-# define CONST64(v)	v ## I64
-#else
-# define CONST64(v)	v ## LL
-#endif
 
 /* Allocate an uninitialized size-digit number. */
 mp_digit	*mp_new(mp_size size);
