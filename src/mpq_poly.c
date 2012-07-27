@@ -136,7 +136,7 @@ mpq_poly_mul(const mpq_poly_t u, const mpq_poly_t v, mpq_poly_t w)
 }
 
 void
-mpq_poly_mul_ui(mpq_poly_t p, unsigned int q)
+mpq_poly_mul_u32(mpq_poly_t p, unsigned int q)
 {
 	if (q == 0) {
 		mpq_poly_deg(p, 0);
@@ -144,12 +144,12 @@ mpq_poly_mul_ui(mpq_poly_t p, unsigned int q)
 	} else if (q != 1) {
 		int j;
 		for (j = 0; j <= p->deg; j++)
-			mpq_mul_ui(p->c[j], q, p->c[j]);
+			mpq_mul_u32(p->c[j], q, p->c[j]);
 	}
 }
 
 void
-mpq_poly_mul_si(mpq_poly_t p, signed int q)
+mpq_poly_mul_s32(mpq_poly_t p, signed int q)
 {
 	if (q == 0) {
 		mpq_poly_deg(p, 0);
@@ -157,7 +157,7 @@ mpq_poly_mul_si(mpq_poly_t p, signed int q)
 	} else if (q != 1) {
 		int j;
 		for (j = 0; j <= p->deg; j++)
-			mpq_mul_si(p->c[j], q, p->c[j]);
+			mpq_mul_s32(p->c[j], q, p->c[j]);
 	}
 }
 
@@ -202,12 +202,12 @@ mpq_poly_print(const mpq_poly_t p, char coeff, const char *fmt, ...)
 	}
 
 	for (j = p->deg; j > 0; j--) {
-		int neg, have_den;
+		int neg;
 
 		if (mpq_is_zero(p->c[j]))
 			continue;
 
-		if (neg = mpq_is_neg(p->c[j])) {
+		if ((neg = mpq_is_neg(p->c[j])) != 0) {
 			mpq_neg(p->c[j]);
 			putchar('-');
 		} else {
@@ -299,7 +299,7 @@ mpq_poly_dif(const mpq_poly_t p, mpq_poly_t q)
 		mpq_poly_deg(q, p->deg);
 		mpq_init(jj);
 		for (j = 1; j <= p->deg; j++) {
-			mpq_set_ui(jj, j);
+			mpq_set_u32(jj, j);
 			mpq_mul(p->c[j], jj, q->c[j-1]);
 		}
 		mpq_free(jj);
@@ -318,6 +318,6 @@ mpq_poly_int(const mpq_poly_t p, mpq_poly_t q)
 		mpq_poly_deg(q, p->deg + 1);
 		mpq_zero(q->c[0]);
 		for (j = 1; j <= q->deg; j++)
-			mpq_div_ui(p->c[j-1], j, q->c[j]);
+			mpq_div_u32(p->c[j-1], j, q->c[j]);
 	}
 }
