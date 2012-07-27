@@ -18,40 +18,41 @@
  * more minute. It usually makes sense to first test N for divisibility by
  * small primes using mp_sieve() before calling this function.
  *
- * Return 1 if N is composite, otherwise 0 if N is "probably" prime. */
-int
+ * Return true if N is composite, otherwise false if N is "probably" prime. */
+bool
 mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 {
-	unsigned r, k, j;
-	mp_digit *x, *q, *y, cy;
-	mp_size qsize, ysize, xsize;
-
 	nsize = mp_rsize(n, nsize);
-	if (nsize == 0)			/* Call 0 prime. */
-		return 0;
-	if ((n[0] & 1) == 0)	/* Even N. */
-		return 1;
+	if (!nsize)				/* Call 0 prime. */
+		return false;
+	if ((n[0] & 1) == 0) {	/* Even N. */
+		if (nsize == 1 && n[0] == 2)
+			return false;	/* Call 2 prime. */
+		return true;
+	}
 	if (rounds == 0)		/* Nuthin' doin' */
-		return 1;
+		return true;
 
 	/* Find K and Q such that N = (2^K) * Q + 1, Q odd.
 	 * Assumes that it is safe to modify N. */
-	q = (mp_digit *)n;
+	mp_digit *q = (mp_digit *)n;
 	--*q; /* Can't underflow: N odd. */
-	k = mp_odd_shift(n, nsize);
+	const unsigned k = mp_odd_shift(n, nsize);
 	++*q;
-	qsize = nsize - (j = k / MP_DIGIT_BITS);
+	unsigned j = k / MP_DIGIT_BITS;
+	const mp_size qsize = nsize - j;
 	MP_TMP_COPY(q, n + j, qsize);
 	if ((j = k % MP_DIGIT_BITS) != 0) {
-		cy = mp_rshifti(q, qsize, j);
+		mp_digit cy = mp_rshifti(q, qsize, j);
 		ASSERT(cy == 1);	/* This is the trailing odd bit. */
 	}
 
+	mp_digit *y;
 	MP_TMP_ALLOC(y, nsize * 3); /* x will store y^2 */
-	x = y + nsize;
-	for (r = 0; r < rounds; r++) {
+	mp_digit *x = y + nsize;
+	for (unsigned r = 0; r < rounds; r++) {
 		/* Generate X so 1 < X < N */
-		xsize = nsize - (rand() % nsize);
+		mp_digit xsize = nsize - (rand() % nsize);
 		mp_rand(x, xsize);
 		if (xsize == nsize && x[xsize - 1] >= n[xsize - 1])
 			xsize -= ((x[xsize - 1] -= n[xsize - 1]) == 0);
@@ -61,13 +62,13 @@ mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 	//	mp_modexp_pow2(x, xsize, q, qsize, n, nsize, y);
 		mp_mexp(x, xsize, q, qsize, n, nsize, y);
 
-		for (j = k; j != 0; j--) {
-			ysize = mp_rsize(y, nsize);
+		for (j = k; j; --j) {
+			mp_size ysize = mp_rsize(y, nsize);
 			/* If J = 0 and Y = 1, prime. */
 			if (j == 0 && ysize == 1 && y[0] == 1) {
 				MP_TMP_FREE(y);
 				MP_TMP_FREE(q);
-				return 0;
+				return false;
 			}
 
 			/* If Y = N - 1 (Y + 1 == N), prime. */
@@ -76,7 +77,7 @@ mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 			if (ysize == nsize && mp_cmp_n(y, n, ysize) == 0) {
 				MP_TMP_FREE(y);
 				MP_TMP_FREE(q);
-				return 0;
+				return false;
 			}
 			mp_dec(y, ysize);
 			ysize -= (y[ysize - 1] == 0);
@@ -91,5 +92,5 @@ mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 	MP_TMP_FREE(y);
 	MP_TMP_FREE(q);
 
-	return 1;
+	return true;
 }
