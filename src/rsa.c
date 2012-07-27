@@ -17,7 +17,7 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 	p->digits[0] |= 1;
 	while (mp_sieve(p->digits, p->size, 0) ||
 		   mp_composite(p->digits, p->size, 10)) {
-		mpi_add_ui(p, 2, p);
+		mpi_add_u32(p, 2, p);
 	}
 
 	/* Generate Q. */
@@ -26,7 +26,7 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 	q->digits[0] |= 1;
 	while (mp_sieve(q->digits, q->size, 0) ||
 		   mp_composite(q->digits, q->size, 10)) {
-		mpi_add_ui(q, 2, q);
+		mpi_add_u32(q, 2, q);
 	}
 
 	/* Set N = PQ */
@@ -44,13 +44,16 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
 	/* Choose an integer E such that 1<E<Phi and E coprime to Phi */
 	mpi_init(rsa->e);
 	for (;;) {
-		mpi_rand_ctx(rsa->e, bits, rand_ctx);
+	//	mpi_rand_ctx(rsa->e, bits, rand_ctx);
+		mpi_set_u32(rsa->e, 65537);
 		if (mpi_cmp(rsa->e, rsa->phi))
 			mpi_mod(rsa->e, rsa->phi, rsa->e);
 
 		mpi_gcd(rsa->e, rsa->phi, p);
 		if (mpi_is_one(p))
 			break;
+		else
+			fprintf(stderr, "65537 not corprime to Phi\n");
 	}
 
 	mpi_free_zero(p);
@@ -70,4 +73,24 @@ rsa_free(rsa_ctx *rsa)
 	mpi_free_zero(rsa->phi);
 	mpi_free_zero(rsa->e);
 	mpi_free_zero(rsa->d);
+}
+
+void rsa_encrypt(rsa_ctx *ctx, const void *input, unsigned input_size,
+				 void *output, unsigned *output_size) {
+	/* TODO: implement. */
+	(void)ctx;
+	(void)input;
+	(void)input_size;
+	(void)output;
+	(void)output_size;
+}
+
+void rsa_decrypt(rsa_ctx *ctx, const void *input,
+				 unsigned input_size, void *output, unsigned *output_size) {
+	/* TODO: implement. */
+	(void)ctx;
+	(void)input;
+	(void)input_size;
+	(void)output;
+	(void)output_size;
 }
