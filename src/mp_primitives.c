@@ -58,7 +58,7 @@ _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 			  mp_digit *q, mp_digit *r)
 {
 	ASSERT(d != 0);
-	ASSERT(n1 < d);	/* This must be true for the quotient to fit in a single digit. */
+	ASSERT(n1 < d);	/* This must be true for single-digit quotient. */
 
 	if (n1 == 0) {
 		/* Simple case. */
@@ -72,7 +72,7 @@ _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 		return;
 	}
 
-	unsigned sh = mp_msb_shift(d);
+	const unsigned sh = mp_digit_msb_shift(d);
 	if (sh != 0) {	/* Normalize divisor. */
 		d  <<= sh;
 		n1 = (n1 << sh) | (n0 >> (MP_DIGIT_BITS - sh));
