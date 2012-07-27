@@ -324,19 +324,15 @@ mp_digit_log2(mp_digit u)
 unsigned
 mp_odd_shift(const mp_digit *u, mp_size size)
 {
-	unsigned digits, bits;
-	mp_digit ui;
-
 	if (!mp_rsize(u, size))
 		return 0;
 
-	for (digits = 0; !u[digits]; ++digits)
-		/* void */;
-	ui = u[digits];
-	for (bits = 0; !(ui & 1); ++bits)
-		ui >>= 1;
-
-	return (MP_DIGIT_BITS * digits) + bits;
+	unsigned bits = 0;
+	while (*u == 0) {
+		++u;
+		bits += MP_DIGIT_BITS;
+	}
+	return bits + mp_lsb_shift(*u);
 }
 
 unsigned
