@@ -110,26 +110,6 @@ mp_xchg(mp_digit *u, mp_digit *v, mp_size size)
 }
 #endif
 
-#ifndef MP_COPY_ASM
-mp_digit *
-mp_copy(const mp_digit *u, mp_size size, mp_digit *v)
-{
-#if 0
-	mp_digit *vp = v;
-
-	if (size == 0 || u == v)
-		return v;
-
-	do {
-		*vp++ = *u++;
-	} while (--size);
-	return v;
-#else
-	return memcpy(v, u, size * sizeof(mp_digit));
-#endif
-}
-#endif /* !MP_COPY_ASM */
-
 #ifndef MP_CMP_N_ASM
 int
 mp_cmp_n(const mp_digit *u, const mp_digit *v, mp_size size)
@@ -249,7 +229,7 @@ mp_xornot(mp_digit *u, mp_size size, const mp_digit *v)
 }
 
 unsigned
-mp_msb_shift(mp_digit u)
+mp_digit_msb_shift(mp_digit u)
 {
 #if MP_DIGIT_BITS == 16
 	mp_digit high8 = 0xff00;
@@ -273,15 +253,14 @@ mp_msb_shift(mp_digit u)
 }
 
 unsigned
-mp_lsb_shift(mp_digit u)
+mp_digit_lsb_shift(mp_digit u)
 {
-	mp_digit low8 = 0xff;
-	unsigned steps = 0;
-
 	if (!u)
 		return -1;
 
+	unsigned steps = 0;
 #if MP_DIGIT_BITS != 8
+	const mp_digit low8 = 0xff;
 	while (!(u & low8))
 		steps += 8, u >>= 8;
 #endif
@@ -293,19 +272,15 @@ mp_lsb_shift(mp_digit u)
 unsigned
 mp_msb_normalize(mp_digit *u, mp_size size)
 {
-	unsigned sh;
-
 	ASSERT(size != 0);
 	ASSERT(u[size - 1] != 0);
 
-	sh = mp_msb_shift(u[size - 1]);
-	if (sh) {
-		mp_digit cy;
-
-		cy = mp_lshifti(u, size, sh);
+	const unsigned shift = mp_digit_msb_shift(u[size - 1]);
+	if (shift) {
+		mp_digit cy = mp_lshifti(u, size, shift);
 		ASSERT(!cy);
 	}
-	return sh;
+	return shift;
 }
 
 unsigned
@@ -332,7 +307,7 @@ mp_odd_shift(const mp_digit *u, mp_size size)
 		++u;
 		bits += MP_DIGIT_BITS;
 	}
-	return bits + mp_lsb_shift(*u);
+	return bits + mp_digit_lsb_shift(*u);
 }
 
 unsigned
