@@ -3,8 +3,7 @@
  *
  * Copyright (C) 2003-2010 Farooq Mela. All rights reserved.
  *
- * Legendre polynomials are orthogonal with respect to the L^2 inner product on [-1,1].
- * They are useful in many applications, including least squares minimization problems.
+ * Legendre polynomials are orthogonal w.r.t the L^2 inner product on [-1,1].
  */
 
 #include <stdio.h>
@@ -45,31 +44,27 @@ main(int argc, char **argv)
 
 void legendre(int N)
 {
-	mpq_poly *p;
-	mpq_poly_t tmp, tmp2;
-	int j, k;
-	mpq_t q, r;
-
-	p = MALLOC(sizeof(*p) * N);
-	for (j=0; j<N; j++)
+	mpq_poly *p = MALLOC(sizeof(*p) * N);
+	for (int j=0; j<N; j++)
 		mpq_poly_init(&p[j]);
+	mpq_poly_t tmp, tmp2;
 	mpq_poly_init(tmp);
 	mpq_poly_init(tmp2);
 
 	/* P0(x) = 1 */
-	mpq_init_u32(p[0].c[0], 1);
+	mpq_set_u32(p[0].c[0], 1);
 
 	/* P1(x) = x */
-	mpq_poly_deg(&p[1], 1);
-	mpq_init_u32(p[1].c[1], 1);
+	mpq_poly_set_degree(&p[1], 1);
+	mpq_set_u32(p[1].c[1], 1);
 
 	/* P(x) = (2k-1)        k-1
 	    k     ------xP(x) + ---P(x)
 	             k    k-1    k  k-2 */
+	mpq_t q;
 	mpq_init(q);
-	mpq_init(r);
 
-	for (k=2; k<N; k++) {
+	for (int k=2; k<N; k++) {
 		mpq_set_u32_u32(q, 2*k-1, k);
 		mpq_poly_mul(&p[1], &p[k-1], tmp);
 		mpq_poly_mulq(tmp, q);
@@ -79,33 +74,66 @@ void legendre(int N)
 		mpq_poly_add(tmp, tmp2, &p[k]);
 	}
 
-#if 1
-	for (k=0; k<N; k++) {
+	for (int k=0; k<N; k++) {
 		mpq_poly_print(&p[k], 'x', "P%d(x)=", k);
 		printf("\n");
 	}
-#endif
 
 	/* Check for orthogonality on [-1,1] */
-	for (j=0; j<N; j++) {
-		for (k=j; k<N; k++) {
+	mpq_t r, r1;
+	mpq_init(r);
+	mpq_init(r1);
+	for (int j=0; j<N; j++) {
+		for (int k=j; k<N; k++) {
 			mpq_poly_mul(&p[j], &p[k], tmp);
 			mpq_poly_int(tmp, tmp2);
 
-			mpq_poly_print(tmp2, 'x', "int(p%d * p%d) = ", j, k);
-			printf("\n");
-
-			mpq_set_u32(q, 0);
+			mpq_set_s32(q, -1);
 			mpq_poly_eval(tmp2, q, r);
-			printf("int(p%d*p%d)|x=0 =", j, k);
-			mpq_print_dec(r);
-			printf("\n");
 
 			mpq_set_u32(q, 1);
-			mpq_poly_eval(tmp2, q, r);
-			printf("int(p%d*p%d)|x=1 =", j, k);
-			mpq_print_dec(r);
+			mpq_poly_eval(tmp2, q, r1);
+
+			mpq_sub(r1, r, r1);
+
+#if 0
+			mpq_poly_print(tmp2, 'x', "∫p%d(x)p%d(x)dx) = ", j, k);
 			printf("\n");
+			printf("∫p%d(x)p%d(x)dx)|x=-1,1 = ", j, k);
+			mpq_print_dec(r1);
+			printf("\n");
+#endif
+
+			/* ∫p_j(x)p_k(x)dx = 2/(2k+1)d_jk where d_jk is Kronecker delta */
+			if (j == k && !(j == 0 && k == 0)) {
+				mpq_set_u32_u32(r, 2, 2*k + 1);
+				if (!mpq_cmp_eq(r1, r)) {
+					printf("Polynomials %d and %d not orthogonal!\n", j, k);
+					printf("Expected: ");
+					mpq_print_dec(r);
+					printf("\n");
+					printf("  Actual: ");
+					mpq_print_dec(r1);
+					printf("\n");
+				}
+			} else {
+				if (!mpq_is_zero(r1)) {
+					printf("Polynomials %d and %d not orthogonal!\n", j, k);
+					printf("Expected: 0\n");
+					printf("  Actual: ");
+					mpq_print_dec(r1);
+					printf("\n");
+				}
+			}
 		}
 	}
+
+	for (int j=0; j<N; j++)
+		mpq_poly_free(&p[j]);
+	FREE(p);
+	mpq_poly_free(tmp);
+	mpq_poly_free(tmp2);
+	mpq_free(q);
+	mpq_free(r);
+	mpq_free(r1);
 }
