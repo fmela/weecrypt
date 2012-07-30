@@ -28,10 +28,12 @@ void print_factorial(unsigned n)
 {
 	mpi_t f;
 	mpi_init_u32(f, n);
+	printf("%u! = ", n);
+	fflush(stdout);
 	for (unsigned m = 2; m < n; ++m) {
 		mpi_mul_u32(f, m, f);
 	}
-	printf("%u! = ", n), mpi_print_dec(f), printf("\n");
+	mpi_print_dec(f), printf("\n");
 	printf("As double: %g\n", mpi_get_d(f));
 	mpi_free(f);
 }
