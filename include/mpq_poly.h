@@ -12,7 +12,7 @@ void mpq_poly_init(mpq_poly_t p);
 void mpq_poly_free(mpq_poly_t p);
 void mpq_poly_set(const mpq_poly_t p, mpq_poly_t q);
 void mpq_poly_swap(mpq_poly_t p, mpq_poly_t q);
-void mpq_poly_deg(mpq_poly_t p, int deg);
+void mpq_poly_set_degree(mpq_poly_t p, int deg);
 void mpq_poly_zero(mpq_poly_t p);
 void mpq_poly_neg(mpq_poly_t p);
 void mpq_poly_normalize(mpq_poly_t p);

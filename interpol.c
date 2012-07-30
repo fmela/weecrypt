@@ -159,7 +159,7 @@ main(int argc, char **argv)
 	mpq_set_mpq(pp->c[0], ff[0][0]);
 
 	/* tp <- (x-?) */
-	mpq_poly_deg(tp, 1);
+	mpq_poly_set_degree(tp, 1);
 	mpq_set_u32(tp->c[1], 1);
 
 	/* pp0 <- 1 */
