@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+#include <math.h>
 #include <ctype.h>
 
 #include "weecrypt_memory.h"
@@ -277,46 +278,40 @@ mpi_set_s64(mpi *n, int64_t m)
 	return n;
 }
 
-int
+bool
 mpi_get_s32(const mpi *p, int32_t *q)
 {
-	unsigned i, bits;
-	signed int r;
-
-	bits = mp_significant_bits(p->digits, p->size);
+	const unsigned bits = mp_significant_bits(p->digits, p->size);
 	if (bits >= (sizeof(*q) * CHAR_BIT) - 1)
-		return 0;
+		return false;
 
 	/* TODO: rewrite this in a more clever way. */
-	r = 0;
-	for (i = 0; i < bits; i++)
+	int32_t r = 0;
+	for (unsigned i = 0; i < bits; i++)
 		if (p->digits[i / MP_DIGIT_BITS] & (1U << (i % MP_DIGIT_BITS)))
 			r |= (1U << i);
 	if (p->sign)
 		r = -r;
 	*q = r;
-	return 1;
+	return true;
 }
 
-int
+bool
 mpi_get_u32(const mpi *p, uint32_t *q)
 {
-	unsigned i, bits;
-	unsigned int r;
-
 	if (p->sign)
-		return -1;
-	bits = mp_significant_bits(p->digits, p->size);
+		return false;
+	const unsigned bits = mp_significant_bits(p->digits, p->size);
 	if (bits >= (sizeof(*q) * CHAR_BIT))
-		return 0;
+		return false;
 
 	/* TODO: rewrite this in a more clever way. */
-	r = 0;
-	for (i = 0; i < bits; i++)
+	uint32_t r = 0;
+	for (unsigned i = 0; i < bits; i++)
 		if (p->digits[i / MP_DIGIT_BITS] & (1U << (i % MP_DIGIT_BITS)))
 			r |= (1U << i);
 	*q = r;
-	return 1;
+	return true;
 }
 
 float
@@ -351,18 +346,14 @@ mpi_get_f(const mpi *p)
 double
 mpi_get_d(const mpi *p)
 {
-	mp_size j;
-	double base, q, delta;
-
 	if (p->size == 0)
 		return 0.0;
 
-	base = 1.0;
-	for (j = 0; j < MP_DIGIT_SIZE; j++)
-		base *= 256.0;
-	delta = (double)~(mp_digit)0;
+	double base = pow(256.0, MP_DIGIT_SIZE);
+	double delta = (double)~(mp_digit)0;
 
-	q = p->digits[j = p->size - 1];
+	mp_size j = p->size - 1;
+	double q = p->digits[j];
 	while (j) {
 		q *= base;
 		if (q == q + delta) {
@@ -699,7 +690,7 @@ mpi_mul_u32(const mpi *a, uint32_t b, mpi *p)
 			p->size = a->size;
 		}
 	} else {
-		const uint32_t msb = 1U << (CHAR_BIT * sizeof(uint32_t) - 1);
+		const uint32_t msb = ((uint32_t)1) << (CHAR_BIT * sizeof(uint32_t) - 1);
 		mp_size j = 0;
 		while ((b & msb) == 0) { b <<= 1; j++; }
 		b >>= j;
@@ -744,6 +735,87 @@ mpi_mul_s32(const mpi *a, int32_t b, mpi *p)
 			p->sign ^= 1;
 		} else {
 			mpi_mul_u32(a, b, p);
+		}
+	}
+}
+
+void
+mpi_mul_u64(const mpi *a, uint64_t b, mpi *p)
+{
+	if (mpi_is_zero(a) || b == 0) {
+		mpi_zero(p);
+		return;
+	}
+	if (b == 1) {
+		if (a != p)
+			mpi_set_mpi(p, a);
+		return;
+	}
+	if ((b & (b-1)) == 0) {	/* B is a power of 2 */
+		mp_size j = 0;
+		for (; !(b & 1); j++)
+			b >>= 1;
+		mpi_lshift(a, j, p);
+		return;
+	}
+
+	if (b == (mp_digit)b) {	/* B fits in an mp_digit */
+		if (a != p)
+			MPI_MIN_ALLOC(p, a->size);
+		mp_digit cy = mp_dmul(a->digits, a->size, (mp_digit)b, p->digits);
+		if (cy) {
+			MPI_MIN_ALLOC(p, a->size + 1);
+			p->digits[a->size] = cy;
+			p->size = a->size + 1;
+		} else {
+			p->size = a->size;
+		}
+	} else {
+		const uint64_t msb = ((uint64_t)1) << (CHAR_BIT * sizeof(uint64_t) - 1);
+		mp_size j = 0;
+		while ((b & msb) == 0) { b <<= 1; j++; }
+		b >>= j;
+		unsigned bits = CHAR_BIT * sizeof(uint64_t) - j;
+		mp_size size = (bits + MP_DIGIT_BITS - 1) / MP_DIGIT_BITS;
+		mp_digit *bp;
+		MP_TMP_ALLOC(bp, size);
+#if MP_DIGIT_BITS >= 64
+		bp[0] = b;
+#else
+		for (j=0; j<size; j++) {
+			bp[j] = (mp_digit)b;
+			b >>= MP_DIGIT_BITS;
+		}
+#endif
+		if (a == p) {
+			mp_digit *tmp;
+
+			MP_TMP_ALLOC(tmp, p->size + size);
+			mp_mul(p->digits, p->size, bp, size, tmp);
+			MPI_MIN_ALLOC(p, p->size + size);
+			mp_copy(tmp, p->size + size, p->digits);
+			p->size = mp_rsize(p->digits, p->size + size);
+			MP_TMP_FREE(tmp);
+		} else {
+			MPI_MIN_ALLOC(p, a->size + size);
+			mp_mul(a->digits, a->size, bp, size, p->digits);
+			p->size = mp_rsize(p->digits, a->size + size);
+		}
+		MP_TMP_FREE(bp);
+	}
+}
+
+void
+mpi_mul_s64(const mpi *a, int64_t b, mpi *p)
+{
+	if (a->size == 0 || b == 0)
+		mpi_zero(p);
+	else {
+		if (b < 0) {
+			mpi_mul_u64(a, -b, p);
+			p->sign ^= 1;
+		} else {
+			mpi_mul_u64(a, b, p);
 		}
 	}
 }
