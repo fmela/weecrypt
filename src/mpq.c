@@ -7,6 +7,7 @@
 
 #include "weecrypt_memory.h"
 #include "mpq.h"
+#include "mpi_defs.h"
 
 void
 mpq_normalize_nogcd(mpq *q)
@@ -278,13 +279,17 @@ mpq_set_f(mpq *p, float f)
 	/* sign = f_31
 	 *  exp = f_23...30, excess 127
 	 * frac = f_0...22 + 2^23 */
-	uint32_t ff = *(uint32_t *)&f;
-	int sign = ff >> 31;
-	int exp = (ff >> 23) & 0xff;
-	ff |= (1U << 23);
-	ff &= (1U << 24) - 1;
+	union {
+		float f;
+		uint32_t u32;
+	} ff;
+	ff.f = f;
+	int sign = ff.u32 >> 31;
+	int exp = (ff.u32 >> 23) & 0xff;
+	ff.u32 |= (1U << 23);
+	ff.u32 &= (1U << 24) - 1;
 
-	mpi_set_u64(p->num, ff);
+	mpi_set_u32(p->num, ff.u32);
 
 	p->num->sign = sign;
 	mpi_set_u32(p->den, 1);
@@ -378,7 +383,12 @@ mpq_get_f(const mpq *p)
 	q |= (uint32_t)exp << 23;
 	if (p->num->sign)
 		q |= (uint32_t)1 << 31;
-	return *(float *)&q;
+	union {
+		float f;
+		uint32_t u32;
+	} ff;
+	ff.u32 = q;
+	return ff.f;
 }
 
 void
@@ -393,23 +403,24 @@ mpq_set_d(mpq *p, double d)
 	/* sign = f_63
 	 *  exp = f_52..62, excess 1023
 	 * frac = f_0..51 + 2^52 */
-	uint64_t dd = *(uint64_t *)&d;
-	int sign = (dd & UINT64_C(0x8000000000000000)) ? 1 : 0;
-	int exp = (int)(dd >> 52);
+	union {
+		double d;
+		uint64_t u64;
+	} dd;
+	dd.d = d;
+	bool sign = (dd.u64 >> 63);
+	int exp = (int)(dd.u64 >> 52);
 	exp &= ((1U << 11) - 1);
-	dd &= (UINT64_C(1) << 53) - 1;
+	dd.u64 &= (UINT64_C(1) << 53) - 1;
+
 	mp_size digits = (53 + MP_DIGIT_BITS - 1) / MP_DIGIT_BITS;
-	if (p->num->alloc < digits) {
-		p->num->digits = mp_resize(p->num->digits, digits);
-		p->num->alloc = digits;
-	}
-	p->num->size = digits;
+	MPI_SIZE(p->num, digits);
 #if MP_DIGIT_SIZE == 8
-	p->num->digits[0] = dd;
+	p->num->digits[0] = dd.u64;
 #else
 	for (mp_size j = 0; j < digits; j++) {
-		p->num->digits[j] = (mp_digit)dd;
-		dd >>= MP_DIGIT_BITS;
+		p->num->digits[j] = (mp_digit)dd.u64;
+		dd.u64 >>= MP_DIGIT_BITS;
 	}
 #endif
 	p->num->digits[52 / MP_DIGIT_BITS] |= (mp_digit)1 << (52 % MP_DIGIT_BITS);
@@ -521,7 +532,12 @@ mpq_get_d(const mpq *p)
 	q |= (uint64_t)exp << 52;
 	if (p->num->sign)
 		q |= (uint64_t)1 << 63;
-	return *(double *)&q;
+	union {
+		double d;
+		uint64_t u64;
+	} dd;
+	dd.u64 = q;
+	return dd.d;
 }
 
 void
@@ -900,11 +916,10 @@ mpq_mul(const mpq *u, const mpq *v, mpq *w)
 		 *
 		 * where are all divisions by G1 or G2 are exact. */
 
-		mpi_t g1, t1;
-
+		mpi_t g1;
 		mpi_init_size(g1, MIN(u->num->size, v->den->size));
-		mpi_gcd(u->num, v->den, g1);
 
+		mpi_gcd(u->num, v->den, g1);
 		if (mpi_is_one(g1)) {
 			mpi_gcd(v->num, u->den, g1);
 			if (mpi_is_one(g1)) {	/* GCD(U,V') = 1 and GCD(U',V) = 1 */
@@ -913,6 +928,7 @@ mpq_mul(const mpq *u, const mpq *v, mpq *w)
 				mpi_mul(u->den, v->den, w->den);
 			} else {				/* GCD(U,V') = 1 and GCD(U',V) ≠ 1 */
 				/* Numerator is U*(V/G), denominator is (U'/G)*V' */
+				mpi_t t1;
 				mpi_init_size(t1, v->num->size - g1->size + 1);
 
 				mpi_divexact(v->num, g1, t1);	/* T1 = V/G */
@@ -924,8 +940,7 @@ mpq_mul(const mpq *u, const mpq *v, mpq *w)
 				mpi_free(t1);
 			}
 		} else {
-			mpi_t g2;
-
+			mpi_t g2, t1;
 			mpi_init_size(g2, MIN(v->num->size, u->den->size));
 
 			mpi_gcd(v->num, u->den, g2);
