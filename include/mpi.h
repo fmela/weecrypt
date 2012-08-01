@@ -40,10 +40,10 @@ mpi*	mpi_set_s32(mpi *p, int32_t q);
 mpi*	mpi_set_u64(mpi *p, uint64_t q);
 mpi*	mpi_set_s64(mpi *p, int64_t q);
 
-int		mpi_get_u32(const mpi *p, uint32_t *q);
-int		mpi_get_s32(const mpi *p, int32_t *q);
-int		mpi_get_u64(const mpi *p, int64_t *q);
-int		mpi_get_s64(const mpi *p, uint64_t *q);
+bool	mpi_get_u32(const mpi *p, uint32_t *q);
+bool	mpi_get_s32(const mpi *p, int32_t *q);
+bool	mpi_get_u64(const mpi *p, int64_t *q);
+bool	mpi_get_s64(const mpi *p, uint64_t *q);
 
 float	mpi_get_f(const mpi *p);
 double	mpi_get_d(const mpi *p);
@@ -104,6 +104,8 @@ void	mpi_sub_s32(const mpi *a, int32_t b, mpi *s);
 void	mpi_mul(const mpi *a, const mpi *b, mpi *p);
 void	mpi_mul_u32(const mpi *a, uint32_t b, mpi *p);
 void	mpi_mul_s32(const mpi *a, int32_t b, mpi *p);
+void	mpi_mul_u64(const mpi *a, uint64_t b, mpi *p);
+void	mpi_mul_s64(const mpi *a, int64_t b, mpi *p);
 /* B = A * A */
 void	mpi_sqr(const mpi *a, mpi *b);
 /* Q = A / B, R = A % B */
@@ -130,8 +132,13 @@ int		mpi_modinv(const mpi *m, const mpi *b, mpi *inv);
 /* Modular exponentiation: R = (A ^ P) mod M */
 void	mpi_modexp_u32(const mpi *a, uint32_t p, const mpi *m, mpi *r);
 void	mpi_modexp(const mpi *a, const mpi *p, const mpi *m, mpi *r);
-/* Compute fibonacci number. */
-void	mpi_fibonacci(unsigned n, mpi *fib);
+
+/* Compute Nth fibonacci number, where F_0 = 0 and F_1 = 1. */
+void	mpi_fibonacci(uint64_t n, mpi *fib);
+/* Compute factorial of N. */
+void	mpi_factorial(uint64_t n, mpi *fact);
+/* Compute binomial coefficient N choose K. */
+void	mpi_binomial(uint64_t n, uint64_t k, mpi *coeff);
 
 /* Chinese Remainder Theorem algorithm. */
 typedef struct {
