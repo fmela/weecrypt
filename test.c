@@ -8,7 +8,17 @@
 
 #include "weecrypt.h"
 
-uint64_t hrtimer();
+#if defined(__APPLE__)
+typedef uint64_t timer_val;
+# define TIMER_FMT		"%.03fms"
+# define TIMER_VAL(t)	((t) * 1e-6)
+#else
+typedef double timer_val;
+# define TIMER_FMT		"%.03fms"
+# define TIMER_VAL(t)	((t) * 1e3)
+#endif
+
+timer_val hrtimer();
 
 void time_gcd(void);
 void test_mpq_acc(void);
@@ -60,7 +70,6 @@ void time_invert(void);
 extern int detect_cpuid(void);
 extern int detect_mmx(void);
 extern int detect_sse(void);
-mp_digit *mp_copy_mmx(const mp_digit *u, mp_size size, mp_digit *v);
 void mp_and_mmx(mp_digit *u, mp_size size, const mp_digit *v);
 
 extern void _mp_mul_base(const mp_digit *, mp_size,
@@ -69,48 +78,6 @@ extern void _mp_mul_base(const mp_digit *, mp_size,
 int
 main(void)
 {
-#if 0
-#define A 4096
-	mp_digit a[A], b[A], c[A];
-	uint64_t s, e;
-	if (detect_cpuid()) {
-		printf("Processor supports CPUID.\n");
-		if (detect_sse())
-			printf("Processor supports SSE.\n");
-		if (detect_mmx()) {
-			printf("Processor supports MMX.\n");
-
-			mp_rand(a,A);
-			mp_zero(b,A);
-			mp_copy(a,A,b);
-			s = hrtimer();
-			mp_copy(a,A,b);
-			e = hrtimer();
-			printf("    copy = %llu cycles\n", e - s);
-			if (mp_cmp_n(a,b,A))
-				printf("copy failed!\n");
-
-			mp_zero(c,A);
-			mp_copy_mmx(a,A,c);
-			s = hrtimer();
-			mp_copy_mmx(a,A,c);
-			e = hrtimer();
-			printf("copy_mmx = %llu cycles\n", e - s);
-			if (mp_cmp_n(a,c,A))
-				printf("copy_mmx failed!\n");
-#undef A
-		}
-	}
-	return 0;
-#endif
-
-#if 0
-	char p[] = "   FFABC83482AD";
-	unsigned size;
-	size = mp_string_digits(p, 16);
-	printf("size = %u\n", size);
-#endif
-
 //	time_gcd();
 //	test_crt();
 //	test_invert_matrix();
@@ -232,26 +199,26 @@ time_modi(void)
 #define R	D
 #define TRIALS	100000
 	mp_digit n[N], b[N], d[D], r[R];
-	uint64_t modi_time = 0, mod_time = 0;
+	timer_val modi_time = 0, mod_time = 0;
 
 	mp_rand(n,N);
 	mp_rand(d,D);
 
 	for (int i=0; i<TRIALS; i++) {
 		mp_copy(n,N,b);
-		uint64_t start = hrtimer();
+		timer_val start = hrtimer();
 		mp_modi(b,N,d,D);
 		modi_time += hrtimer() - start;
 	}
 
 	for (int i=0; i<TRIALS; i++) {
-		uint64_t start = hrtimer();
+		timer_val start = hrtimer();
 		mp_mod(n,N,d,D,r);
 		mod_time += hrtimer() - start;
 	}
 
-	printf(" mod=%.3fms\n", mod_time * 1e-6);
-	printf("modi=%.3fms\n", modi_time * 1e-6);
+	printf(" mod=" TIMER_FMT "\n", TIMER_VAL(mod_time));
+	printf("modi=" TIMER_FMT "\n", TIMER_VAL(modi_time));
 #undef TRIALS
 #undef N
 #undef D
@@ -266,21 +233,21 @@ test_sqr(void)
 #define NTRIALS	2000
 #define NITER	20
 	mp_digit a[A], b[A * 2], c[A * 2];
-	uint64_t mt=0, st=0;
+	timer_val mul_time=0, sqr_time=0;
 	int fail = 0;
 
 	for (int i=0; i<NTRIALS; i++) {
 		mp_rand(a,A);
 
-		uint64_t start = hrtimer();
+		timer_val start = hrtimer();
 		for (int j = 0; j < NITER; ++j)
 			_mp_mul_base(a,A,a,A,b);
-		mt += hrtimer() - start;
+		mul_time += hrtimer() - start;
 
 		start = hrtimer();
 		for (int j = 0; j < NITER; ++j)
 			mp_sqr(a,A,c);
-		st += hrtimer() - start;
+		sqr_time += hrtimer() - start;
 
 		if (mp_cmp_ne(b,A*2,c,A*2)) {
 			debug_print('A',a,A);
@@ -290,9 +257,9 @@ test_sqr(void)
 		}
 	}
 	printf("%d passed, %d failed.\n", NTRIALS-fail, fail);
-	printf("multiplication: %.3fms\n", mt * 1e-6);
-	printf("      squaring: %.3fms (%.2f%%)\n", st * 1e-6,
-		   100. * (double)st / (double)mt);
+	printf("multiplication: " TIMER_FMT "\n", TIMER_VAL(mul_time));
+	printf("      squaring: " TIMER_FMT " (%.2f%%)\n", TIMER_VAL(sqr_time),
+		   100. * (double)sqr_time / (double)mul_time);
 #undef A
 #undef NTRIALS
 #undef NITER
@@ -334,12 +301,12 @@ test_barrett(void)
 #define NTRIALS	100
 	mp_digit a[A], m[M], p[P], c[M], d[M];
 	mp_barrett_ctx ctx = MP_BARRETT_CTX_INITIALIZER;
-	uint64_t barrett_time = 0, modexp_time = 0;
+	timer_val barrett_time = 0, modexp_time = 0;
 
 	twiddle();
 	for (int i=0; i<NTRIALS; i++) {
 		mp_rand(m,M);
-		uint64_t start = hrtimer();
+		timer_val start = hrtimer();
 		mp_barrett_ctx_init(&ctx, m, M);
 		barrett_time += hrtimer() - start;
 		for (int j=0; j<10; ++j) {
@@ -369,8 +336,8 @@ test_barrett(void)
 		if ((i&0xf)==0)
 			twiddle();
 	}
-	printf(" modexp=%.3fms\n", modexp_time * 1e-6);
-	printf("barrett=%.3fms\n", barrett_time * 1e-6);
+	printf(" modexp=" TIMER_FMT "\n", TIMER_VAL(modexp_time));
+	printf("barrett=" TIMER_FMT "\n", TIMER_VAL(barrett_time));
 #undef A
 #undef P
 #undef M
@@ -385,7 +352,7 @@ time_modexp(void)
 #define P	10
 #define C	B
 	mp_digit a[A], b[B], p[P], c[C], d[C];
-	uint64_t s,e;
+	timer_val s,e;
 	int i;
 	mp_barrett_ctx ctx = MP_BARRETT_CTX_INITIALIZER;
 
@@ -397,13 +364,13 @@ time_modexp(void)
 	for (i=0; i<100; i++)
 		mp_modexp(a,A,p,P,b,B,c);
 	e = hrtimer();
-	printf(" modexp time=%llu\n", e-s);
+	printf(" modexp time=" TIMER_FMT "\n", TIMER_VAL(e-s));
 
 	s = hrtimer();
 	for (i=0; i<100; i++)
 		mp_mexp(a,A,p,P,b,B,d);
 	e = hrtimer();
-	printf("   mexp time=%llu\n", e-s);
+	printf("   mexp time=" TIMER_FMT "\n", TIMER_VAL(e-s));
 
 	if (mp_cmp_n(c,d,C))
 		printf("modexp/mexp don't match!\n");
@@ -414,7 +381,7 @@ time_modexp(void)
 		mp_barrett(a,A,p,P,&ctx,d);
 	e = hrtimer();
 	mp_barrett_ctx_free(&ctx);
-	printf("barrett time=%llu\n", e-s);
+	printf("barrett time=" TIMER_FMT "\n", TIMER_VAL(e-s));
 
 	if (mp_cmp_n(c,d,C))
 		printf("modexp/barrett don't match!\n");
@@ -575,17 +542,16 @@ time_sqrt(void)
 #define A	50
 #define B	((A+1)/2)
 	mp_digit a[A], b[B];
-	uint64_t s,e,t=0;
+	timer_val total = 0;
 	int i;
 
 	for (i=0; i<10000; i++) {
 		mp_max(a,A);
-		s = hrtimer();
+		timer_val start = hrtimer();
 		mp_sqrt(a,A,b);
-		e = hrtimer();
-		t+=(e-s);
+		total += hrtimer() - start;
 	}
-	printf("%llu cycles\n", t);
+	printf("time: " TIMER_FMT "\n", TIMER_VAL(total));
 #undef B
 #undef A
 }
@@ -598,9 +564,9 @@ test_mul(void)
 #define NTRIALS	50000
 
 	mp_digit a[A], b[A], c[C], d[C];
-	unsigned i, j, fail=0;
+	unsigned fail=0;
 
-	for (i=0; i<NTRIALS; i++) {
+	for (int i=0; i<NTRIALS; ++i) {
 		mp_rand(a,A); mp_rand(b,A);
 		_mp_mul_base(a,A,b,A,c);
 		mp_mul_n(a,b,A,d);
@@ -611,7 +577,7 @@ test_mul(void)
 			printf("b="); mp_print_hex(b,A); printf("\n\n");
 			mp_print_hex(c,C); printf("\n\n");
 			mp_print_hex(d,C); printf("\n");
-			for (j=0; j<C; j++)
+			for (int j=0; j<C; ++j)
 				if (c[j]!=d[j])
 					printf("differ at position %u\n", j);
 		}
@@ -659,18 +625,16 @@ time_div(void)
 #define Q	(N-D+1)
 #define R	D
 	mp_digit n[N], d[D], q[Q], r[R];
-	int i;
-	uint64_t s,e,t=0;
+	timer_val total=0;
 
-	for (i=0; i<10000; i++) {
+	for (int i=0; i<10000; i++) {
 		mp_rand(n,N);
 		mp_rand(d,D);
-		s = hrtimer();
+		timer_val start = hrtimer();
 		mp_divrem(n,N,d,D,q,r);
-		e = hrtimer();
-		t+=(e-s);
+		total += hrtimer() - start;
 	}
-	printf("%llu cycles\n", t);
+	printf("total: " TIMER_FMT "\n", TIMER_VAL(total));
 #undef R
 #undef Q
 #undef D
@@ -684,18 +648,16 @@ time_mul(void)
 #define N	100000
 	mp_digit a[A], b[A], c[A*2];
 	unsigned i;
-	uint64_t s, e, t;
+	timer_val total = 0;
 
 	mp_rand(a,A);
 	mp_rand(b,A);
-	t = 0;
+	timer_val start = hrtimer();
 	for (i=0; i<N; i++) {
-		s = hrtimer();
 		mp_mul_n(a, b, A, c);
-		e = hrtimer();
-		t += e - s;
 	}
-	printf("%u digits %llu cycles / multiply\n", A, t/N);
+	total = hrtimer() - start;
+	printf("%u digits: " TIMER_FMT "/multiply\n", A, TIMER_VAL(total)/N);
 #undef A
 #undef N
 }
@@ -725,7 +687,6 @@ time_add(void)
 #define	N	1000000
 	unsigned i;
 	mp_digit a[A], b[A], c[A];
-	uint64_t s, e;
 
 	mp_rand(a,A);
 	mp_rand(b,A);
@@ -737,13 +698,13 @@ time_add(void)
 	s = hrtimer(); mp_addi_n(a,b,A); e = hrtimer();
 	printf("addi = %llu cycles\n", e - s);
 #else
-	s = hrtimer();
+	timer_val timer = hrtimer();
 	for (i=0; i<N; i++)
 	//	mp_add_n(a,b,A,c);
 		mp_addi_n(a,b,A);
 	//	mp_subi_n(a,b,A);
-	e = hrtimer();
-	printf("addi=%llu cycles\n", e-s);
+	timer = hrtimer() - timer;
+	printf("addi=" TIMER_FMT "\n", TIMER_VAL(timer));
 #endif
 
 #undef A
@@ -756,15 +717,14 @@ test_dmod(void)
 #define A	100
 #define B	2398283
 	mp_digit a[A], r;
-	uint64_t s, e;
 
 	mp_rand(a,A);
 	mp_print_dec(a,A); printf("\n");
-	s = hrtimer();
-	r=mp_dmod(a,A,B);
-	e = hrtimer();
+	timer_val timer = hrtimer();
+	r = mp_dmod(a,A,B);
+	timer = hrtimer() - timer;
 	printf("%u %% " MP_FORMAT "\n", B, r);
-	printf("%llu cycles\n", e-s);
+	printf("time: " TIMER_FMT "\n", TIMER_VAL(timer));
 #undef A
 #undef B
 }
@@ -827,17 +787,15 @@ time_dmul_add(void)
 {
 #define A	100
 	mp_digit a[A], b[A], c;
-	uint64_t s, e;
-	int i;
 
 	mp_rand(a,A);
 	mp_rand(b,A);
 	mp_rand(&c,1);
-	s = hrtimer();
-	for (i=0; i<1000; i++)
+	timer_val timer = hrtimer();
+	for (int i=0; i<1000; i++)
 		mp_dmul_sub(b, A, c, a);
-	e = hrtimer();
-	printf("%llu cycles\n", e-s);
+	timer = hrtimer() - timer;
+	printf("time: " TIMER_FMT "\n", TIMER_VAL(timer));
 #undef A
 }
 
@@ -849,7 +807,6 @@ gen_fraction(void)
 	mp_digit a[A + 1];
 	mp_digit b[B];
 	mp_digit r;
-	size_t i;
 
 #if 0
 	mp_zero(a, A);
@@ -872,7 +829,7 @@ gen_fraction(void)
 	putchar('\n');
 	putchar(b[B - 1] + '0');
 	putchar('.');
-	i = mp_string_size(B - 1, 10);
+	size_t i = mp_string_size(B - 1, 10);
 	while (i--) {
 		r = mp_dmuli(b, B - 1, 10);
 		putchar(r + '0');
@@ -950,14 +907,14 @@ time_divexact(void)
 #define D	(C-B+1)
 #define N	100000
 	mp_digit a[A],b[B],c[C],d[D];
-	uint64_t div_time = 0, divexact_time = 0;
+	timer_val div_time = 0, divexact_time = 0;
 
 	for (int i=0; i<N; i++) {
 		mp_rand(a,A);
 		mp_rand(b,B);
 		mp_mul(a,A,b,B,c);
 
-		uint64_t start = hrtimer();
+		timer_val start = hrtimer();
 		mp_divexact(c,C,b,B,d);
 		divexact_time += hrtimer() - start;
 
@@ -965,8 +922,8 @@ time_divexact(void)
 		mp_div(c,C,b,B,d);
 		div_time += hrtimer() - start;
 	}
-	printf("     div=%.03fms\n", div_time * 1e-6);
-	printf("divexact=%.03fms\n", divexact_time * 1e-6);
+	printf("     div=" TIMER_FMT "\n", TIMER_VAL(div_time));
+	printf("divexact=" TIMER_FMT "\n", TIMER_VAL(divexact_time));
 #undef A
 #undef B
 #undef C
@@ -979,22 +936,18 @@ time_flip(void)
 {
 #define A	20
 	mp_digit a[A];
-	uint64_t s,e;
-	int i;
 
-	s = hrtimer();
-	for (i=0; i<1000; i++)
+	timer_val timer = hrtimer();
+	for (int i=0; i<1000; i++)
 		mp_flip(a,A);
-	e = hrtimer();
-	printf("%llu cycles\n", e-s);
+	timer = hrtimer() - timer;
+	printf("time: " TIMER_FMT "\n", TIMER_VAL(timer));
 #undef A
 }
 
 void
 gcdext_int(int a, int b, int *u, int *v, int *g)
 {
-	int q, v1, v3, t1, t3;
-
 	if (a < b)
 		SWAP(a, b, int);
 
@@ -1006,13 +959,12 @@ gcdext_int(int a, int b, int *u, int *v, int *g)
 		return;
 	}
 
-	v1 = 0;
-	v3 = b;
-
+	int v1 = 0;
+	int v3 = b;
 	while (v3 != 0) {
-		q = *g / v3;
-		t3 = *g % v3;
-		t1 = *u - q * v1;
+		int q = *g / v3;
+		int t3 = *g % v3;
+		int t1 = *u - q * v1;
 		*u = v1;
 		*g = v3;
 		v1 = t1;
@@ -1027,7 +979,6 @@ test_gcdext(void)
 	printf("--> %s\n", __PRETTY_FUNCTION__);
 
 	mpi_t a, b, g, u, v, d;
-	int i,iter=100000;
 
 	mpi_init(a);
 	mpi_init(b);
@@ -1036,7 +987,7 @@ test_gcdext(void)
 	mpi_init(d);
 	mpi_init(g);
 
-	for (i=0; i<iter; i++) {
+	for (int i=0; i<100000; i++) {
 		mpi_rand(a, 100);
 		mpi_rand(b, 100);
 		mpi_gcd(a, b, g);
@@ -1128,13 +1079,13 @@ test_composite(void)
 #define A (1024/(MP_DIGIT_SIZE*CHAR_BIT))
 #define ROUNDS 8
 	mp_digit a[A];
-	int r, trials=0,sieved=0;
-	uint64_t s,e,stot=0,ctot=0;
 
 	mp_rand(a,A);
 	a[A-1]|=1UL<<31;
 	a[0]|=1;
 	printf("Searching for prime... ");
+	int trials = 0, sieved = 0;
+	timer_val sieve_time = 0, composite_time = 0;
 	for (;;) {
 		if (mp_daddi(a,A,2)) {
 			mp_rand(a,A);
@@ -1145,18 +1096,16 @@ test_composite(void)
 			twiddle();
 		trials++;
 
-		s = hrtimer();
-		r=mp_sieve(a,A,400);
-		e = hrtimer();
-		stot+=e-s;
+		timer_val start = hrtimer();
+		int r = mp_sieve(a,A,400);
+		sieve_time += hrtimer() - start;
 		if (r) {
 			sieved++;
 			continue;
 		}
-		s = hrtimer();
-		r=mp_composite(a,A,ROUNDS);
-		e = hrtimer();
-		ctot+=e-s;
+		start = hrtimer();
+		r = mp_composite(a,A,ROUNDS);
+		composite_time += hrtimer() - start;
 
 		if (!r)
 			break;
@@ -1166,51 +1115,42 @@ test_composite(void)
 	printf(" is prime with high probability\n");
 	printf("tested %d numbers (%d [%.03f%%] rejected by sieve).\n",
 		   trials, sieved, sieved / (float)trials * 100.0);
-	printf("          sieving took %llu cycles\n", stot);
-	printf("primality testing took %llu cycles\n", ctot);
+	printf("          sieving took " TIMER_FMT "\n", TIMER_VAL(sieve_time));
+	printf("primality testing took " TIMER_FMT "\n", TIMER_VAL(composite_time));
 #undef A
 #undef ROUNDS
 }
 
-#if 0
 void
 time_copy(void)
 {
 #define A 237
 	mp_digit a[A], b[A];
-	uint64_t s,e;
 
 	mp_rand(a,A);
-	s = hrtimer();
-	mp_copy(a,A,b);
-	e = hrtimer();
-	if (mp_cmp_n(a,b,A))
-		abort();
-	printf("%llu cycles\n", e-s);
 
-	s = hrtimer();
+	timer_val timer = hrtimer();
 	mp_copy(a,A,b);
-	e = hrtimer();
+	timer = hrtimer() - timer;
 	if (mp_cmp_n(a,b,A))
 		abort();
-	printf("%llu cycles\n", e-s);
+	printf("copy: " TIMER_FMT "\n", TIMER_VAL(timer));
 
-	s = hrtimer();
+	timer = hrtimer();
 	mp_copy(a,A,b);
-	e = hrtimer();
+	timer = hrtimer() - timer;
 	if (mp_cmp_n(a,b,A))
 		abort();
-	printf("%llu cycles\n", e-s);
+	printf("copy: " TIMER_FMT "\n", TIMER_VAL(timer));
 
-	s = hrtimer();
-	mp_copy_mmx(a,A,b);
-	e = hrtimer();
+	timer = hrtimer();
+	mp_copy(a,A,b);
+	timer = hrtimer() - timer;
 	if (mp_cmp_n(a,b,A))
 		abort();
-	printf("%llu mmx\n", e-s);
+	printf("copy: " TIMER_FMT "\n", TIMER_VAL(timer));
 #undef A
 }
-#endif
 
 void
 test_mul_mod_powb(void)
@@ -1250,7 +1190,7 @@ time_montgomery(void)
 #define M (16)
 #define NTRIALS 1000
 	mp_digit a[A], p[P], m[M], m0[M], m1[M];
-	uint64_t modexp_time = 0, modexp_pow2_time = 0, mexp_time = 0;
+	timer_val modexp_time = 0, modexp_pow2_time = 0, mexp_time = 0;
 
 	for (int i=0; i<NTRIALS; i++) {
 
@@ -1259,7 +1199,7 @@ time_montgomery(void)
 		mp_rand(m,M);
 		m[0]|=1;
 
-		uint64_t start = hrtimer();
+		timer_val start = hrtimer();
 		mp_modexp(a,A,p,P,m,M,m0);
 		modexp_time += hrtimer() - start;
 
@@ -1289,9 +1229,9 @@ time_montgomery(void)
 			printf("mexp="), mp_print_hex(m1,M), printf("\n");
 		}
 	}
-	printf(" modexp=%.03fms\n", modexp_time * 1e-6);
-	printf("modexp2=%.03fms\n", modexp_pow2_time * 1e-6);
-	printf("   mexp=%.03fms\n", mexp_time * 1e-6);
+	printf(" modexp=" TIMER_FMT "\n", TIMER_VAL(modexp_time));
+	printf("modexp2=" TIMER_FMT "\n", TIMER_VAL(modexp_pow2_time));
+	printf("   mexp=" TIMER_FMT "\n", TIMER_VAL(mexp_time));
 #undef A
 #undef P
 #undef M
@@ -1347,7 +1287,7 @@ test_from_str(void)
 void
 time_invert(void)
 {
-	uint64_t timer = hrtimer();
+	timer_val timer = hrtimer();
 	for (unsigned i = 0; i < 1000; i++) {
 		mp_digit p;
 		mp_rand(&p, 1);
@@ -1355,7 +1295,7 @@ time_invert(void)
 		(void)q;
 	}
 	timer = hrtimer() - timer;
-	printf("cycles=%.3fms\n", timer * 1e-6);
+	printf("time: " TIMER_FMT "\n", TIMER_VAL(timer));
 }
 
 uint32_t r() { return (rand()<<16)|rand(); }
@@ -1566,11 +1506,29 @@ test_crt(void)
 		if (mpi_crt_finish(&ctx, x)) { printf("failed at finish\n"); break; }
 		printf("OK, x="), mpi_print_dec(x), printf("\n");
 		mpi_mod(x, m_1, t);
-		if (!mpi_cmp_eq(t, a_1)) { printf("noteq at 1\n"); break; }
+		if (!mpi_cmp_eq(t, a_1)) {
+			printf("noteq at 1\n");
+			printf("  T: "), mpi_print_dec(t), printf("\n");
+			printf("M_1: "), mpi_print_dec(m_1), printf("\n");
+			printf("A_1: "), mpi_print_dec(a_1), printf("\n");
+			break;
+		}
 		mpi_mod(x, m_2, t);
-		if (!mpi_cmp_eq(t, a_2)) { printf("noteq at 2\n"); break; }
+		if (!mpi_cmp_eq(t, a_2)) {
+			printf("noteq at 2\n");
+			printf("  T: "), mpi_print_dec(t), printf("\n");
+			printf("M_2: "), mpi_print_dec(m_2), printf("\n");
+			printf("A_2: "), mpi_print_dec(a_2), printf("\n");
+			break;
+		}
 		mpi_mod(x, m_3, t);
-		if (!mpi_cmp_eq(t, a_3)) { printf("noteq at 3\n"); break; }
+		if (!mpi_cmp_eq(t, a_3)) {
+			printf("noteq at 3\n");
+			printf("  T: "), mpi_print_dec(t), printf("\n");
+			printf("M_3: "), mpi_print_dec(m_3), printf("\n");
+			printf("A_3: "), mpi_print_dec(a_3), printf("\n");
+			break;
+		}
 		printf("checked ok!\n");
 	} while (0);
 	mpi_free(a_1); mpi_free(m_1);
@@ -1583,17 +1541,15 @@ test_crt(void)
 void
 test_set_f(void)
 {
-	int j;
 	mpq_t t;
-	uint64_t s,e,tg,ts;
 #define N	100000
 
 	mpq_init(t);
 	srand((unsigned)time(0));
 
-	tg=ts=0;
-	for (j = 0; j < N; j++) {
-#if 0
+	timer_val get_time = 0, set_time = 0;
+	for (int j = 0; j < N; j++) {
+#if 1
 		double d, d2;
 		d = rand() / (double)RAND_MAX;
 	//	d *= RAND_MAX; d += rand();
@@ -1601,15 +1557,13 @@ test_set_f(void)
 	//	d *= RAND_MAX; d += rand();
 	//	d *= RAND_MAX; d += rand();
 
-		s = hrtimer();
+		timer_val start = hrtimer();
 		mpq_set_d(t, d);
-		e = hrtimer();
-		ts += e-s;
+		set_time += hrtimer() - start;
 
-		s = hrtimer();
+		start = hrtimer();
 		d2 = mpq_get_d(t);
-		e = hrtimer();
-		tg += e-s;
+		get_time += hrtimer() - start;
 		if (d!=d2)
 			printf("d=%.*f d2=%.*f diff=%.*f\n",
 				   DBL_DIG+3, d, DBL_DIG+3, d2, DBL_DIG+3, (d>d2)?d2-d:d-d2);
@@ -1628,15 +1582,13 @@ test_set_f(void)
 	//	f *= RAND_MAX; f += rand();
 	//	f *= RAND_MAX; f += rand();
 
-		s = hrtimer();
+		timer_val start = hrtimer();
 		mpq_set_f(t, f);
-		e = hrtimer();
-		ts += e-s;
+		set_time += hrtimer() - start;
 
-		s = hrtimer();
+		start = hrtimer();
 		f2 = mpq_get_f(t);
-		e = hrtimer();
-		tg += e-s;
+		get_time += hrtimer() - start;
 
 		if (f!=f2)
 			printf("f1=%.*f f2=%.*f\n|f/f2|=%.*g\n",
@@ -1650,8 +1602,8 @@ test_set_f(void)
 				   FLT_DIG+2, f, FLT_DIG+2, f2, FLT_DIG+2, (f/f2));
 #endif
 	}
-	printf("avg time for mpq_set: %llu\n", (ts + N - 1) / N);
-	printf("avg time for mpq_get: %llu\n", (tg + N - 1) / N);
+	printf("avg time for mpq_set: " TIMER_FMT "\n", TIMER_VAL(set_time) / N);
+	printf("avg time for mpq_get: " TIMER_FMT "\n", TIMER_VAL(get_time) / N);
 #undef N
 
 	mpq_free(t);
@@ -1687,23 +1639,19 @@ time_gcd()
 #define B 12
 #define C MIN(A,B)
 	mp_digit a[A], b[B], c[C], d[C];
-	uint64_t bs, be, bt, ss, se, st;
-	int i;
+	timer_val bt = 0, st = 0;
 
-	bt=st=0;
-	for (i=0; i<1000; i++) {
+	for (int i=0; i<1000; i++) {
 		mp_rand(a, A);
 		mp_rand(b, B);
 
-		bs = hrtimer();
+		timer_val start = hrtimer();
 		mp_gcd(a, A, b, B, c);
-		be = hrtimer();
-		bt += be - bs;
+		bt += hrtimer() - start;
 
-		ss = hrtimer();
+		start = hrtimer();
 		mp_gcd(a, A, b, B, d);
-		se = hrtimer();
-		st += se - ss;
+		st += hrtimer() - start;
 
 		if (mp_cmp_n(c, d, C)) {
 			printf("Different GCD's!\n");
@@ -1714,8 +1662,8 @@ time_gcd()
 		}
 	}
 
-	printf("Binary cycles: %llu\n", bt);
-	printf("Normal cycles: %llu\n", st);
+	printf("Binary time: " TIMER_FMT "\n", TIMER_VAL(bt));
+	printf("Normal time: " TIMER_FMT "\n", TIMER_VAL(st));
 #undef A
 #undef B
 #undef C
@@ -1727,6 +1675,17 @@ time_gcd()
 
 uint64_t hrtimer() {
 	return mach_absolute_time();
+}
+
+#else
+
+#include <sys/types.h>
+#include <sys/time.h>
+
+double hrtimer() {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec + tv.tv_usec * 1e-6;
 }
 
 #endif
