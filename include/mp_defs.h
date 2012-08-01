@@ -68,6 +68,9 @@
 
 #ifdef USE_ALLOCA
 # include <stdlib.h>
+# ifdef __linux__
+#  include <alloca.h>
+# endif
 # define MP_PTR_ALLOC(p,size)	(p) = alloca(size)
 # define MP_PTR_FREE(p)			(void)0
 # define MP_TMP_ALLOC(n,size)	(n) = alloca((size) * MP_DIGIT_SIZE)
