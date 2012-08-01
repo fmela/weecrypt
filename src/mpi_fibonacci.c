@@ -20,17 +20,20 @@
  * Exponentiation uses binary power algorithm from high bit to low bit.
  */
 void
-mpi_fibonacci(unsigned n, mpi *fib)
+mpi_fibonacci(uint64_t n, mpi *fib)
 {
 	ASSERT(fib != NULL);
 
 	if (n <= 2) {
-		mpi_one(fib);
+		if (n == 0)
+			mpi_zero(fib);
+		else
+			mpi_one(fib);
 		return;
 	}
 
 	/* Scan for highest set bit. TODO: change to binary search. */
-	unsigned k = 1U << 31;
+	uint64_t k = ((uint64_t)1) << 63;
 	while (!(k & n))
 		k >>= 1;
 
