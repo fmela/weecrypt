@@ -55,8 +55,7 @@ mp_divexact(const mp_digit *u, mp_size usize,
 	mp_digit *utmp = NULL;
 	if (ds) {
 		MP_TMP_ALLOC(utmp, usize);
-		mp_digit cy = mp_rshift(u, usize, ds, utmp);
-		ASSERT(cy == 0);
+		ASSERT(mp_rshift(u, usize, ds, utmp) == 0);
 	} else {
 		MP_TMP_COPY(utmp, u, usize);
 	}
@@ -64,8 +63,7 @@ mp_divexact(const mp_digit *u, mp_size usize,
 	mp_digit *dtmp = NULL;
 	if (ds) {
 		MP_TMP_ALLOC(dtmp, dsize);
-		mp_digit cy = mp_rshift(d, dsize, ds, dtmp);
-		ASSERT(cy == 0);
+		ASSERT(mp_rshift(d, dsize, ds, dtmp) == 0);
 		d = dtmp;
 	} else {
 		dtmp = NULL;
@@ -81,15 +79,9 @@ mp_divexact(const mp_digit *u, mp_size usize,
 		mp_digit cy = mp_dmul_sub(d, size, q[k], &utmp[k]);
 		if (cy) {
 			ASSERT(usize > k + size);
-			cy = mp_dsubi(&utmp[k + size], usize - (k + size), cy);
+			ASSERT(mp_dsubi(&utmp[k + size], usize - (k + size), cy) == 0);
 		}
 		ASSERT(utmp[k] == 0);
-		if (cy) {
-			printf("U: "); mp_print_dec(u, usize); printf("\n");
-			printf("D: "); mp_print_dec(d, dsize); printf("\n");
-			printf("Inexact division detected!\n");
-		}
-		ASSERT(cy == 0);
 	}
 	if (dtmp != NULL)
 		MP_TMP_FREE(dtmp);
