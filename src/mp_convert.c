@@ -269,7 +269,9 @@ mp_string_digits(const char *str, unsigned radix)
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
 
-	while (*str && (isspace(*str) || *str == '0'))
+	while (*str && isspace(*str))
+		str++;
+	while (*str && *str == '0')
 		str++;
 	if (*str == '\0')
 		return 0;
@@ -291,6 +293,13 @@ mp_from_str(const char *str, unsigned radix, mp_size *size)
 {
 	ASSERT(radix >= 2);
 	ASSERT(radix <= 36);
+
+	while (*str && isspace(*str))
+		str++;
+	while (*str && *str == '0')
+		str++;
+	if (*str == '\0')
+		return 0;
 
 	mp_size rsize = SIZE_INCREMENT;
 	mp_digit *r = mp_new0(rsize);
@@ -328,11 +337,11 @@ mp_fprint(const mp_digit *u, mp_size size, unsigned radix, FILE *fp)
 	MP_NORMALIZE(u, size);
 	const size_t string_size = mp_string_size(size, radix) + 1;
 	char *str;
-	MP_TMP_ALLOC(str, string_size);
+	MP_PTR_ALLOC(str, string_size);
 	char *p = mp_get_str(u, size, radix, str);
 	ASSERT(p != NULL);
 	fputs(p, fp);
-	MP_TMP_FREE(str);
+	MP_PTR_FREE(str);
 }
 
 char *
