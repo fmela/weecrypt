@@ -22,23 +22,23 @@ typedef struct {
 	unsigned	 sign : 1;		/* If mpi number is negative.			*/
 } mpi, mpi_t[1];
 
-mpi*	mpi_init(mpi *p);
-mpi*	mpi_init_mpi(mpi *p, const mpi *q);
-mpi*	mpi_init_size(mpi *p, mp_size size);
-mpi*	mpi_init_str(mpi *p, const char *str, unsigned base);
-mpi*	mpi_init_mp(mpi *p, mp_digit *n, mp_size size);
-mpi*	mpi_init_u32(mpi *p, uint32_t q);
-mpi*	mpi_init_s32(mpi *p, int32_t q);
-mpi*	mpi_init_u64(mpi *p, uint64_t q);
-mpi*	mpi_init_s64(mpi *p, int64_t q);
+void	mpi_init(mpi *p);
+void	mpi_init_mpi(mpi *p, const mpi *q);
+void	mpi_init_size(mpi *p, mp_size size);
+void	mpi_init_str(mpi *p, const char *str, unsigned base);
+void	mpi_init_mp(mpi *p, mp_digit *n, mp_size size);
+void	mpi_init_u32(mpi *p, uint32_t q);
+void	mpi_init_s32(mpi *p, int32_t q);
+void	mpi_init_u64(mpi *p, uint64_t q);
+void	mpi_init_s64(mpi *p, int64_t q);
 void	mpi_free(mpi *p);
 void	mpi_free_zero(mpi *p);
 
-mpi*	mpi_set_mpi(mpi *p, const mpi *q);
-mpi*	mpi_set_u32(mpi *p, uint32_t q);
-mpi*	mpi_set_s32(mpi *p, int32_t q);
-mpi*	mpi_set_u64(mpi *p, uint64_t q);
-mpi*	mpi_set_s64(mpi *p, int64_t q);
+void	mpi_set_mpi(mpi *p, const mpi *q);
+void	mpi_set_u32(mpi *p, uint32_t q);
+void	mpi_set_s32(mpi *p, int32_t q);
+void	mpi_set_u64(mpi *p, uint64_t q);
+void	mpi_set_s64(mpi *p, int64_t q);
 
 bool	mpi_get_u32(const mpi *p, uint32_t *q);
 bool	mpi_get_s32(const mpi *p, int32_t *q);
@@ -60,12 +60,12 @@ double	mpi_get_d(const mpi *p);
 #define mpi_significant_bits(n) \
 							mp_significant_bits((n)->digits, (n)->size)
 
-mpi*	mpi_zero(mpi *p);
-mpi*	mpi_one(mpi *p);
-mpi*	mpi_neg(mpi *p);
-mpi*	mpi_abs(mpi *n);
-mpi*	mpi_rand(mpi *n, unsigned bits);
-mpi*	mpi_rand_ctx(mpi *n, unsigned bits, mp_rand_ctx *ctx);
+void	mpi_zero(mpi *p);
+void	mpi_one(mpi *p);
+void	mpi_neg(mpi *p);
+void	mpi_abs(mpi *n);
+void	mpi_rand(mpi *n, unsigned bits);
+void	mpi_rand_ctx(mpi *n, unsigned bits, mp_rand_ctx *ctx);
 void	mpi_swap(mpi *a, mpi *b);
 
 int		mpi_cmp(const mpi *p, const mpi *q);
@@ -114,6 +114,8 @@ void	mpi_divrem_u32(const mpi *a, uint32_t b, mpi *q, mpi *r);
 void	mpi_divrem_s32(const mpi *a, int32_t b, mpi *q, mpi *r);
 /* Q = A / B */
 void	mpi_div(const mpi *a, const mpi *b, mpi *q);
+#define	mpi_div_u32(a, b, q)	mpi_divrem_u32((a), (b), (q), NULL)
+#define	mpi_div_s32(a, b, q)	mpi_divrem_s32((a), (b), (q), NULL)
 void	mpi_divexact(const mpi *a, const mpi *b, mpi *q);
 /* R = A % B */
 void	mpi_mod(const mpi *a, const mpi *b, mpi *r);
@@ -124,7 +126,7 @@ void	mpi_sqrt(const mpi *a, mpi *b);
 /* C = GCD(A, B) */
 void	mpi_gcd(const mpi *a, const mpi *b, mpi *c);
 /* Return 1 if A & B are coprime, 0 otherwise. */
-int		mpi_coprime(const mpi *a, const mpi *b);
+bool	mpi_coprime(const mpi *a, const mpi *b);
 /* Extended GCD */
 void	mpi_gcdext(const mpi *a, const mpi *b, mpi *u, mpi *v, mpi *d);
 /* Modular inverse */
