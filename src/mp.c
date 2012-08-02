@@ -318,7 +318,7 @@ mp_dmul_sub(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 
 /* Set v[size*exp] = u[size]^exp. */
 void
-mp_exp(const mp_digit *u, mp_size size, unsigned long exp, mp_digit *v)
+mp_exp(const mp_digit *u, mp_size size, uint64_t exp, mp_digit *v)
 {
 	/* Knuth's algorithm 4.6.3-A.
 	 * Perform binary powering, making use of the basic identity
