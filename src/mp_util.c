@@ -228,6 +228,7 @@ mp_xornot(mp_digit *u, mp_size size, const mp_digit *v)
 		*u++ ^= ~*v++;
 }
 
+#ifndef mp_digit_msb_shift
 unsigned
 mp_digit_msb_shift(mp_digit u)
 {
@@ -251,7 +252,9 @@ mp_digit_msb_shift(mp_digit u)
 		steps += 1, u <<= 1;
 	return steps;
 }
+#endif
 
+#ifndef mp_digit_lsb_shift
 unsigned
 mp_digit_lsb_shift(mp_digit u)
 {
@@ -268,6 +271,7 @@ mp_digit_lsb_shift(mp_digit u)
 		steps += 1, u >>= 1;
 	return steps;
 }
+#endif
 
 unsigned
 mp_msb_normalize(mp_digit *u, mp_size size)
@@ -277,23 +281,9 @@ mp_msb_normalize(mp_digit *u, mp_size size)
 
 	const unsigned shift = mp_digit_msb_shift(u[size - 1]);
 	if (shift) {
-		mp_digit cy = mp_lshifti(u, size, shift);
-		ASSERT(!cy);
+		ASSERT(mp_lshifti(u, size, shift) == 0);
 	}
 	return shift;
-}
-
-unsigned
-mp_digit_log2(mp_digit u)
-{
-	ASSERT(u != 0);
-
-	unsigned lg = 0;
-	while (u != 1) {
-		++lg;
-		u >>= 1;
-	}
-	return lg;
 }
 
 unsigned
