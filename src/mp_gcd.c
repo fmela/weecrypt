@@ -29,17 +29,8 @@ mp_digit_gcd(mp_digit u, mp_digit v)
 	return u << shift;
 }
 
-/* Binary GCD algorithm, as given by Knuth (4.5.2B, vol.2, 3rd ed. p.338)
- *
- * For natural numbers U and V:
- * B1. [Find power of 2] Set K = 0, and then repeatedly set K = K + 1,
- *     V = V / 2, U = U / 2 until either U or V (or both) are odd.
- * B2. [Initialize] If U is odd, set T = -V and goto B4. Otherwise, set T = U.
- * B3. [Halve T] T = T / 2.
- * B4. [T Even?] If T is even, goto B3.
- * B5. [Reset max(U,V)] If T > 0, set U = T, otherwise set V = -T.
- * B6. [Subtract] Set T = U - V. If T is non-zero, go back to B3. Otherwise,
- *     algorithm terminates with U * 2^K as answer.
+/* Adapted from the binary GCD algorithm 4.5.2B by Knuth in The Art of Computer
+ * Programming Vol.2 3rd ed. p.338.
  *
  * The advantage of this algorithm is that it operates entirely without
  * division; it uses only the elementary operations of parity testing, shifting
