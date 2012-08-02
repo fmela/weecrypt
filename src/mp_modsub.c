@@ -15,9 +15,6 @@ void
 mp_modsub(const mp_digit *u, const mp_digit *v,
 		  const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	int cmp;
-	mp_digit cy;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 	ASSERT(m != NULL);
@@ -28,15 +25,13 @@ mp_modsub(const mp_digit *u, const mp_digit *v,
 	ASSERT(mp_cmp_n(u, m, msize) < 0);
 	ASSERT(mp_cmp_n(v, m, msize) < 0);
 
-	cmp = mp_cmp_n(u, v, msize);
+	const int cmp = mp_cmp_n(u, v, msize);
 	if (cmp == 0) {
 		mp_zero(w, msize);
-		cy = 0;
 	} else if (cmp > 0) {
-		cy = mp_sub_n(u, v, msize, w);
+		ASSERT(mp_sub_n(u, v, msize, w) == 0);
 	} else /* cmp < 0 */ {
-		cy  = mp_sub_n(v, u, msize, w);	/* w <- v - u */
-		cy |= mp_sub_n(m, w, msize, w);	/* w <- m - w */
+		ASSERT(mp_sub_n(v, u, msize, w) == 0);	/* w <- v - u */
+		ASSERT(mp_sub_n(m, w, msize, w) == 0);	/* w <- m - w */
 	}
-	ASSERT(cy == 0);
 }
