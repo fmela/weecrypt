@@ -162,14 +162,12 @@ mp_digit
 mp_sub(const mp_digit *u, mp_size usize,
 	   const mp_digit *v, mp_size vsize, mp_digit *w)
 {
-	mp_digit cy;
-
 	ASSERT(usize >= vsize);
 
 	if (usize == vsize)
 		return mp_sub_n(u, v, usize, w);
 
-	cy = mp_sub_n(u, v, vsize, w);
+	mp_digit cy = mp_sub_n(u, v, vsize, w);
 	usize -= vsize;
 	w += vsize;
 	mp_copy(u + vsize, usize, w);
@@ -199,25 +197,20 @@ mp_subi_n(mp_digit *u, const mp_digit *v, mp_size size)
 mp_digit
 mp_subi(mp_digit *u, mp_size usize, const mp_digit *v, mp_size vsize)
 {
-	mp_digit cy;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 	ASSERT(usize >= vsize);
 
-	cy = mp_subi_n(u, v, vsize);
-	return cy ? mp_dec(u + vsize, usize - vsize) : 0;
+	return mp_subi_n(u, v, vsize) ? mp_dec(u + vsize, usize - vsize) : 0;
 }
 
 int
 mp_diff_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 {
-	int cmp;
-
 	if (size == 0)
 		return 0;
 
-	cmp = mp_cmp_n(u, v, size);
+	const int cmp = mp_cmp_n(u, v, size);
 	if (cmp > 0)
 		mp_sub_n(u, v, size, w);
 	else if (cmp < 0)
