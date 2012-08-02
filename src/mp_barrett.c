@@ -143,13 +143,12 @@ mp_barrett(const mp_digit *u, mp_size usize,
 }
 
 void
-mp_barrett_ul(const mp_digit *u, mp_size usize, unsigned long power,
-			  const mp_barrett_ctx *ctx, mp_digit *w)
+mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t power,
+			   const mp_barrett_ctx *ctx, mp_digit *w)
 {
 	const mp_digit *m;
 	mp_digit *t, *umod;
 	mp_size msize, tsize, umod_size;
-	unsigned long k;
 	unsigned i;
 
 	ASSERT(u != NULL);
@@ -207,7 +206,7 @@ mp_barrett_ul(const mp_digit *u, mp_size usize, unsigned long power,
 		umod = NULL;
 	}
 
-	k = power;
+	uint64_t k = power;
 	for (i = 0; k != 1; i++)
 		k >>= 1;
 	k <<= i;		/* power mask. */
