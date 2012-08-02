@@ -14,14 +14,11 @@ void
 _mp_mul_base(const mp_digit *u, mp_size usize,
 			 const mp_digit *v, mp_size vsize, mp_digit *w)
 {
-	mp_size ul, vl;
-	mp_digit vd, *wp;
-
 	ASSERT(usize >= vsize);
 
 	/* Find real sizes and zero any part of answer which will not be set. */
-	ul = mp_rsize(u, usize);
-	vl = mp_rsize(v, vsize);
+	mp_size ul = mp_rsize(u, usize);
+	mp_size vl = mp_rsize(v, vsize);
 	/* Zero digits which won't be set in multiply-and-add loop. */
 	if (ul + vl != usize + vsize)
 		mp_zero(w + (ul + vl), usize + vsize - (ul + vl));
@@ -33,11 +30,11 @@ _mp_mul_base(const mp_digit *u, mp_size usize,
 	/* Now multiply by forming partial products and adding them to the result
 	 * so far. Rather than zero the low ul digits of w before starting, we
 	 * store, rather than add, the first partial product. */
-	wp = w + ul;
+	mp_digit *wp = w + ul;
 	*wp = mp_dmul(u, ul, *v, w);
 	while (--vl) {
 #if 0
-		vd = *++v; ++w; ++wp;
+		mp_digit vd = *++v; ++w; ++wp;
 		if (vd == 0)
 			*wp = 0;
 		else if (vd == 1)
@@ -45,7 +42,7 @@ _mp_mul_base(const mp_digit *u, mp_size usize,
 		else
 			*wp = mp_dmul_add(u, ul, vd, w);
 #else
-		vd = *++v;
+		mp_digit vd = *++v;
 		*++wp = mp_dmul_add(u, ul, vd, ++w);
 #endif
 	}
@@ -74,11 +71,6 @@ mp_mul_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 {
 	/* TODO: Only allocate a temporary buffer which is large enough for all
 	 * following recursive calls, rather than allocating at each call. */
-	mp_size half_size, even_size;
-	mp_digit cy, *tmp, *w0, *w1, *u_tmp, *v_tmp;
-	const mp_digit *u0, *u1, *v0, *v1;
-	int neg, odd;
-
 	if (u == v) {
 		mp_sqr(u, size, w);
 		return;
@@ -89,12 +81,13 @@ mp_mul_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 		return;
 	}
 
-	even_size = size - (odd = size & 1);
-	half_size = even_size / 2;
+	const bool odd = size & 1;
+	const mp_size even_size = size - odd;
+	const mp_size half_size = even_size / 2;
 
-	u1 = (u0 = u) + half_size;
-	v1 = (v0 = v) + half_size;
-	w1 = (w0 = w) + even_size;
+	const mp_digit *u0 = u, *u1 = u + half_size;
+	const mp_digit *v0 = v, *v1 = v + half_size;
+	mp_digit *w0 = w, *w1 = w + even_size;
 
 	/* U0 * V0 => w[0..even_size-1]; */
 	/* U1 * V1 => w[even_size..2*even_size-1]. */
@@ -109,24 +102,27 @@ mp_mul_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 	/* Since we cannot add w[0..even_size-1] to w[half_size ...
 	 * half_size+even_size-1] in place, we have to make a copy of it now. This
 	 * later gets used to store U1-U0 and V0-V1. */
+	mp_digit *tmp;
 	MP_TMP_COPY(tmp, w0, even_size);
 
+	mp_digit cy;
 	/* w[half_size..half_size+even_size-1] += U1*V1. */
 	cy  = mp_addi_n(w + half_size,  w1, even_size);
 	/* w[half_size..half_size+even_size-1] += U0*V0. */
 	cy += mp_addi_n(w + half_size, tmp, even_size);
 
 	/* Get absolute value of U1-U0. */
-	u_tmp = tmp;
-	if ((neg = (mp_cmp_n(u1, u0, half_size) < 0)) != 0)
+	mp_digit *u_tmp = tmp;
+	bool prod_neg = mp_cmp_n(u1, u0, half_size) < 0;
+	if (prod_neg)
 		mp_sub_n(u0, u1, half_size, u_tmp);
 	else
 		mp_sub_n(u1, u0, half_size, u_tmp);
 
 	/* Get absolute value of V0-V1. */
-	v_tmp = tmp + half_size;
+	mp_digit *v_tmp = tmp + half_size;
 	if (mp_cmp_n(v0, v1, half_size) < 0)
-		mp_sub_n(v1, v0, half_size, v_tmp), neg ^= 1;
+		mp_sub_n(v1, v0, half_size, v_tmp), prod_neg ^= 1;
 	else
 		mp_sub_n(v0, v1, half_size, v_tmp);
 
@@ -140,23 +136,23 @@ mp_mul_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 	/* Now add / subtract (U1-U0)*(V0-V1) from
 	 * w[half_size..half_size+even_size-1] based on whether it is negative or
 	 * positive. */
-	if (neg)
+	if (prod_neg)
 		cy -= mp_subi_n(w + half_size, tmp, even_size);
 	else
 		cy += mp_addi_n(w + half_size, tmp, even_size);
 	MP_TMP_FREE(tmp);
 	/* Now if there was any carry from the middle digits (which is at most 2),
 	 * add that to w[even_size+half_size..2*even_size-1]. */
-	if (cy)
-		cy = mp_daddi(w + even_size + half_size, half_size, cy);
-	ASSERT(cy == 0);
+	if (cy) {
+		ASSERT(mp_daddi(w + even_size + half_size, half_size, cy) == 0);
+	}
 
 	if (odd) {
 		/* We have the product U[0..even_size-1] * V[0..even_size-1] in
 		 * W[0..2*even_size-1].  We need to add the following to it:
 		 * V[size-1] * U[0..size-2]
 		 * U[size-1] * V[0..size-1] */
-		w[even_size*2+0] = mp_dmul_add(u, even_size, v[even_size], &w[even_size]);
+		w[even_size*2] = mp_dmul_add(u, even_size, v[even_size], &w[even_size]);
 		w[even_size*2+1] = mp_dmul_add(v, size, u[even_size], &w[even_size]);
 	}
 }
@@ -165,15 +161,10 @@ void
 mp_mul(const mp_digit *u, mp_size usize,
 	   const mp_digit *v, mp_size vsize, mp_digit *w)
 {
-	mp_digit cy, *tmp = NULL;
-	mp_size wsize;
-
 	{
-		mp_size ul, vl;
-
-		ul = mp_rsize(u, usize);
-		vl = mp_rsize(v, vsize);
-		if (ul == 0 || vl == 0) {
+		mp_size ul = mp_rsize(u, usize);
+		mp_size vl = mp_rsize(v, vsize);
+		if (!ul || !vl) {
 			mp_zero(w, usize + vsize);
 			return;
 		}
@@ -181,16 +172,16 @@ mp_mul(const mp_digit *u, mp_size usize,
 		if (ul + vl != usize + vsize)
 			mp_zero(w + (ul + vl), (usize + vsize) - (ul + vl));
 
-		/* Wanted: ULEN >= VLEN. */
+		/* Wanted: USIZE >= VSIZE. */
 		if (ul < vl) {
-			const mp_digit *t;
-			t = u, u = v, v = t;
+			SWAP(u, v, const mp_digit *);
 			usize = vl; vsize = ul;
 		} else {
 			usize = ul; vsize = vl;
 		}
-		ASSERT(usize >= vsize);
 	}
+
+	ASSERT(usize >= vsize);
 
 	if (vsize < KARATSUBA_MUL_THRESHOLD) {
 		_mp_mul_base(u, usize, v, vsize, w);
@@ -205,44 +196,43 @@ mp_mul(const mp_digit *u, mp_size usize,
 	/* Recurse: set w[vsize:vsize+usize-1] = u[vsize:usize-1] * v[0:vsize-1] */
 	mp_mul(u + vsize, usize - vsize, v, vsize, w + vsize);
 	/* Allocate space for temporary product */
+	mp_digit *tmp = NULL;
 	MP_TMP_ALLOC(tmp, vsize * 2);
 	/* Set tmp = u[0:vsize-1] * v[0:vsize-1] */
 	mp_mul_n(u, v, vsize, tmp);
 	/* Set W[0:vsize-1] = tmp[0:vsize-1] */
 	mp_copy(tmp, vsize, w);
 	/* Add tmp[vsize:vsize*2-1] to w[vsize:usize+vsize-1] */
-	cy = mp_addi(w + vsize, usize, tmp + vsize, vsize);
-	ASSERT(cy == 0);
+	ASSERT(mp_addi(w + vsize, usize, tmp + vsize, vsize) == 0);
 	/* Free storage for tmp. */
 	MP_TMP_FREE(tmp);
 #else	/* This method is faster and uses less stack and temporary space. */
 	mp_mul_n(u, v, vsize, w);
 	if (usize == vsize)
 		return;
-	wsize = usize + vsize;
+	mp_size wsize = usize + vsize;
 	mp_zero(w + (vsize * 2), wsize - (vsize * 2));
 	w += vsize; wsize -= vsize;
 	u += vsize; usize -= vsize;
+	mp_digit *tmp = NULL;
 	if (usize >= vsize) {
 		MP_TMP_ALLOC(tmp, vsize * 2);
 		do {
 			mp_mul_n(u, v, vsize, tmp);
-			cy = mp_addi(w, wsize, tmp, vsize * 2);
-			ASSERT(cy == 0);
+			ASSERT(mp_addi(w, wsize, tmp, vsize * 2) == 0);
 			w += vsize; wsize -= vsize;
 			u += vsize; usize -= vsize;
 		} while (usize >= vsize);
 	}
 	if (usize) {	/* Size of U isn't a multiple of size of V. */
-		if (tmp == NULL)
+		if (!tmp)
 			MP_TMP_ALLOC(tmp, usize + vsize);
 		/* Now usize < vsize. Rearrange operands. */
 		if (usize < KARATSUBA_MUL_THRESHOLD)
 			_mp_mul_base(v, vsize, u, usize, tmp);
 		else
 			mp_mul(v, vsize, u, usize, tmp);
-		cy = mp_addi(w, wsize, tmp, usize + vsize);
-		ASSERT(cy == 0);
+		ASSERT(mp_addi(w, wsize, tmp, usize + vsize) == 0);
 	}
 	MP_TMP_FREE(tmp);
 #endif
