@@ -8,16 +8,11 @@
 #include "mp.h"
 #include "mp_defs.h"
 
-static mp_digit digit_sqrt(mp_digit n);
-
 /* Find the integer part of the square root of U and store it in V; V must be
  * at least as large as ceil(ULEN / 2). */
 void
 mp_sqrtrem(const mp_digit *u, mp_size usize, mp_digit *v, mp_digit *r)
 {
-	mp_digit *y, *x, cy;
-	mp_size vsize, xsize, y_len, ysize, x_len;
-
 	ASSERT(u != NULL);
 	ASSERT(v != NULL);
 
@@ -47,32 +42,32 @@ mp_sqrtrem(const mp_digit *u, mp_size usize, mp_digit *v, mp_digit *r)
 	if (!usize)
 		return;
 	if (usize == 1) {
-		cy = digit_sqrt(u[0]);
+		mp_digit root = mp_digit_sqrt(u[0]);
 		if (v != NULL)
-			v[0] = cy;
+			v[0] = root;
 		if (r != NULL)
-			r[0] = u[0] - (cy * cy);
+			r[0] = u[0] - root * root;
 		return;
 	}
-	vsize = (usize + 1) / 2;
+	mp_size vsize = (usize + 1) / 2;
 
 	/* FIXME: This is very "generous" in terms of amount of space allocated for
 	 * X and Y. Come up with something better? */
-	xsize = ysize = usize;
+	mp_digit *x, *y;
+	mp_size xsize = usize, ysize = usize;
 	MP_TMP_ALLOC0(x, xsize + ysize);
 	y = x + xsize;
 	mp_setbit(x, xsize, (mp_significant_bits(u, usize) / 2) + 1);
-	x_len = xsize;
+	mp_size x_len = xsize;
 
 	for (;;) {
 		/* Y = U / X */
 		MP_NORMALIZE(x, x_len);
-		y_len = usize - x_len + 1;
+		mp_size y_len = usize - x_len + 1;
 		mp_zero(y + y_len, ysize - y_len);
 		mp_div(u, usize, x, x_len, y);
 		/* Y += X */
-		cy = mp_addi(y, ysize, x, x_len);
-		ASSERT(cy == 0);
+		ASSERT(mp_addi(y, ysize, x, x_len) == 0);
 		y_len = mp_rsize(y, ysize);
 		/* Y /= 2 */
 		mp_rshifti(y, y_len, 1);
@@ -91,15 +86,13 @@ mp_sqrtrem(const mp_digit *u, mp_size usize, mp_digit *v, mp_digit *r)
 		mp_copy(x, x_len, v);
 	if (r != NULL) {
 		mp_sqr(v, vsize, x);
-		cy = mp_sub(u, usize, x, vsize * 2, r);
-		ASSERT(cy == 0);
+		ASSERT(mp_sub(u, usize, x, vsize * 2, r) == 0);
 	}
 	MP_TMP_FREE(x);
 }
 
-/* This is so much simpler it's not funny. */
-static mp_digit
-digit_sqrt(mp_digit n)
+mp_digit
+mp_digit_sqrt(mp_digit n)
 {
 	mp_digit x, y;
 
