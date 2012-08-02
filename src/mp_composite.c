@@ -43,9 +43,7 @@ mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 	const mp_size qsize = nsize - j;
 	MP_TMP_COPY(q, n + j, qsize);
 	if ((j = k % MP_DIGIT_BITS) != 0) {
-		mp_digit cy;
-		cy = mp_rshifti(q, qsize, j);
-		ASSERT(cy == 1);	/* This is the trailing odd bit. */
+		ASSERT(mp_rshifti(q, qsize, j) == 1); /* Trailing odd bit. */
 	}
 
 	mp_digit *y;
