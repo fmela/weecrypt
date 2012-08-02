@@ -32,10 +32,8 @@ mpi_fibonacci(uint64_t n, mpi *fib)
 		return;
 	}
 
-	/* Scan for highest set bit. TODO: change to binary search. */
-	uint64_t k = ((uint64_t)1) << 63;
-	while (!(k & n))
-		k >>= 1;
+	/* Set K to highest set bit. */
+	uint64_t k = ((uint64_t)1) << (63 - __builtin_clzll(n));
 
 	mpi *a1 = fib;					/* Use output param fib as a1 */
 
