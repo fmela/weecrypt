@@ -57,8 +57,8 @@
 #endif
 
 /* Define this if routines should use alloca() to allocate temporaries on the
- * stack instead of using malloc() and friends. Allocating using alloca() is
- * usually significantly faster than allocating through malloc(). */
+ * stack instead of using malloc() and friends. Allocating using alloca() may
+ * be faster than allocating using malloc(). */
 #define USE_ALLOCA
 
 #endif /* !_MP_CONFIG_H_ */
