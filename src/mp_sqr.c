@@ -161,12 +161,12 @@ mp_sqr(const mp_digit *u, mp_size size, mp_digit *v)
 		cy -= mp_subi_n(v + half_size, tmp2, even_size);
 	}
 	MP_TMP_FREE(tmp);
-	if (cy)
-		cy = mp_daddi(v + even_size + half_size, half_size, cy);
-	ASSERT(cy == 0);
+	if (cy) {
+		ASSERT(mp_daddi(v + even_size + half_size, half_size, cy) == 0);
+	}
 
 	if (odd) {
-		v[even_size*2+0] = mp_dmul_add(u, even_size, u[even_size], &v[even_size]);
+		v[even_size*2] = mp_dmul_add(u, even_size, u[even_size], &v[even_size]);
 		v[even_size*2+1] = mp_dmul_add(u, size, u[even_size], &v[even_size]);
 	}
 }
