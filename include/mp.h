@@ -25,19 +25,19 @@ typedef uint8_t				mp_digit;
 # define MP_DIGIT_LMASK		UINT8_C(0x0f)
 # define MP_DIGIT_LSB		UINT8_C(0x01)
 # define MP_DIGIT_MSB		UINT8_C(0x80)
-# define MP_DIGIT_BITS		8
-# define MP_DIGIT_HSHIFT	4
+# define MP_DIGIT_BITS		8U
+# define MP_DIGIT_HSHIFT	4U
 # define MP_DIGIT_MAX		UINT8_MAX
 # define MP_FORMAT			"%" PRIu8
 # define MP_HEX_FORMAT		"%#02" PRIX8
 #elif MP_DIGIT_SIZE == 2
-typedef uint64_t			mp_digit;
+typedef uint16_t			mp_digit;
 # define MP_DIGIT_HMASK		UINT16_C(0xff00)
 # define MP_DIGIT_LMASK		UINT16_C(0x00ff)
 # define MP_DIGIT_LSB		UINT16_C(0x0001)
 # define MP_DIGIT_MSB		UINT16_C(0x8000)
-# define MP_DIGIT_BITS		16
-# define MP_DIGIT_HSHIFT	8
+# define MP_DIGIT_BITS		16U
+# define MP_DIGIT_HSHIFT	8U
 # define MP_DIGIT_MAX		UINT16_MAX
 # define MP_FORMAT			"%" PRIu16
 # define MP_HEX_FORMAT		"%#04" PRIX16
@@ -47,8 +47,8 @@ typedef uint32_t			mp_digit;
 # define MP_DIGIT_LMASK		UINT32_C(0x0000ffff)
 # define MP_DIGIT_LSB		UINT32_C(0x00000001)
 # define MP_DIGIT_MSB		UINT32_C(0x80000000)
-# define MP_DIGIT_BITS		32
-# define MP_DIGIT_HSHIFT	16
+# define MP_DIGIT_BITS		32U
+# define MP_DIGIT_HSHIFT	16U
 # define MP_DIGIT_MAX		UINT32_MAX
 # define MP_FORMAT			"%" PRIu32
 # define MP_HEX_FORMAT		"%#08" PRIX32
@@ -58,8 +58,8 @@ typedef uint64_t			mp_digit;
 # define MP_DIGIT_LMASK		UINT64_C(0x00000000ffffffff)
 # define MP_DIGIT_LSB		UINT64_C(0x0000000000000001)
 # define MP_DIGIT_MSB		UINT64_C(0x8000000000000000)
-# define MP_DIGIT_BITS		64
-# define MP_DIGIT_HSHIFT	32
+# define MP_DIGIT_BITS		64U
+# define MP_DIGIT_HSHIFT	32U
 # define MP_DIGIT_MAX		UINT64_MAX
 # define MP_FORMAT			"%" PRIu64
 # define MP_HEX_FORMAT		"%#016" PRIX64
@@ -87,7 +87,7 @@ void		mp_max(mp_digit *u, mp_size size);
 /* Set all digits of u[size] to d. */
 mp_digit   *mp_fill(mp_digit *u, mp_size size, mp_digit d);
 /* Set u[size] to zero. */
-#define		mp_zero(u,size) mp_fill((u), (size), 0)
+#define		mp_zero(u, size) memset((u), 0, (size) * MP_DIGIT_SIZE)
 /* Flip the bits of all digits of u[size]. */
 void		mp_flip(mp_digit *u, mp_size size);
 /* Turn u[size] into it's 2's complement. */
@@ -141,17 +141,29 @@ void		mp_xornot(mp_digit *u, mp_size size, const mp_digit *v);
 
 /* Return the number of shift positions that U must be shifted left until its
  * most significant bit is set. Argument MUST be non-zero. */
+#if MP_DIGIT_SIZE == 4
+# define	mp_digit_msb_shift(u)	__builtin_clz(u)
+#elif MP_DIGIT_SIZE == 8
+# define	mp_digit_msb_shift(u)	__builtin_clzll(u)
+#else
 unsigned	mp_digit_msb_shift(mp_digit u);
+#endif
 /* Return the number of shift positions that U must be shifted right until its
  * least significant bit is set. Argument MUST be non-zero. */
+#if MP_DIGIT_SIZE == 4
+# define	mp_digit_lsb_shift(u)	__builtin_ctz(u)
+#elif MP_DIGIT_SIZE == 8
+# define	mp_digit_lsb_shift(u)	__builtin_ctzll(u)
+#else
 unsigned	mp_digit_lsb_shift(mp_digit u);
+#endif
 /* Shift U left until it's most significant digit is set, and return the number
  * of positions shifted (which may be zero). size and u[size - 1] may NOT be
  * zero. */
 unsigned	mp_msb_normalize(mp_digit *u, mp_size size);
 /* Return floor(lg(u)) where lg(x) = binary logarithm of x; argument must be
  * non-zero. */
-unsigned	mp_digit_log2(mp_digit u);
+#define		mp_digit_log2(u)	(MP_DIGIT_BITS - 1 - mp_digit_msb_shift(u))
 /* Return the number of bit positions u[size] needs to be shifted right until it
  * is odd; if u[size] is zero, 0 will be returned. */
 unsigned	mp_odd_shift(const mp_digit *u, mp_size size);
@@ -162,6 +174,10 @@ unsigned	mp_significant_bits(const mp_digit *u, mp_size size);
  * Since the radix we work in is always a power of 2, this is simply the
  * requirement that N is odd. */
 mp_digit	mp_digit_invert(mp_digit n);
+/* Compute the floor of the square root of a digit. */
+mp_digit	mp_digit_sqrt(mp_digit n);
+/* Compute the great common divisor of two digits. */
+mp_digit	mp_digit_gcd(mp_digit u, mp_digit v);
 
 /* Set u[size] = u[size] + 1, and return the carry. */
 mp_digit	mp_inc(mp_digit *u, mp_size size);
@@ -235,7 +251,7 @@ void		mp_mul_mod_powb(const mp_digit *u, mp_size usize,
 void		mp_sqr(const mp_digit *u, mp_size usize, mp_digit *v);
 /* Set v[usize*exp] = u[usize]^exp. */
 void		mp_exp(const mp_digit *u, mp_size usize,
-				   unsigned long exp, mp_digit *v);
+				   uint64_t exp, mp_digit *v);
 /* Square diagonal. */
 void		mp_sqr_diag(const mp_digit *u, mp_size size, mp_digit *v);
 
@@ -291,8 +307,8 @@ void		mp_modsqr(const mp_digit *u,
 					  const mp_digit *m, mp_size msize, mp_digit *w);
 /* Compute (U ^ P) mod M and put the result in W, which must be at least as
  * large as M. */
-void		mp_modexp_ul(const mp_digit *u, mp_size usize, unsigned long power,
-						 const mp_digit *m, mp_size msize, mp_digit *w);
+void		mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t power,
+						  const mp_digit *m, mp_size msize, mp_digit *w);
 void		mp_modexp(const mp_digit *u, mp_size usize,
 					  const mp_digit *p, mp_size psize,
 					  const mp_digit *m, mp_size msize, mp_digit *w);
@@ -313,8 +329,8 @@ void		mp_barrett_ctx_init(mp_barrett_ctx *ctx,
 void		mp_barrett_ctx_free(mp_barrett_ctx *ctx);
 
 /* w[0 .. ctx->k-1] = (u ** power) mod m */
-void		mp_barrett_ul(const mp_digit *u, mp_size usize, unsigned long power,
-						  const mp_barrett_ctx *ctx, mp_digit *w);
+void		mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t power,
+						   const mp_barrett_ctx *ctx, mp_digit *w);
 void		mp_barrett(const mp_digit *u, mp_size usize,
 					   const mp_digit *p, mp_size psize,
 					   const mp_barrett_ctx *ctx, mp_digit *w);
@@ -322,9 +338,8 @@ void		mp_barrett(const mp_digit *u, mp_size usize,
 void		mp_modexp_pow2(const mp_digit *u, mp_size usize,
 						   const mp_digit *p, mp_size psize,
 						   const mp_digit *m, mp_size msize, mp_digit *w);
-void		mp_modexp_pow2_ul(const mp_digit *u, mp_size usize,
-							  unsigned long power,
-							  const mp_digit *m, mp_size msize, mp_digit *w);
+void		mp_modexp_pow2_u64(const mp_digit *u, mp_size usize, uint64_t power,
+							   const mp_digit *m, mp_size msize, mp_digit *w);
 
 /* Compute the GCD of the natural numbers U and V, and store the result at W.
  * W must be at least as large as the smaller of U or V. This function does NOT
@@ -348,7 +363,7 @@ bool		mp_composite(const mp_digit *u, mp_size size, unsigned nrounds);
  * v[(size+1)/2], and remainder in r[size]. Either V or R may be NULL. */
 void		mp_sqrtrem(const mp_digit *u, mp_size size,
 					   mp_digit *v, mp_digit *r);
-#define		mp_sqrt(u,size,v)	mp_sqrtrem((u),(size),(v),NULL)
+#define		mp_sqrt(u, size, v)	mp_sqrtrem((u), (size), (v), NULL)
 /* Return true if u[usize] is a perfect square, false otherwise. */
 bool		mp_perfsqr(const mp_digit *u, mp_size usize);
 
