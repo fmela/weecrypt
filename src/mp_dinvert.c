@@ -33,12 +33,10 @@ static const uint8_t inv8[128] = {
 mp_digit
 mp_digit_invert(mp_digit v)
 {
-	mp_digit u;
-
 	if ((v & 1) == 0)	/* V must be odd. */
 		return 0;
 
-	u = inv8[(v & 0xff) >> 1];
+	mp_digit u = inv8[(v & 0xff) >> 1];
 #if MP_DIGIT_SIZE >= 2
 	u = ((2 - v * u) * u) & 0xFFFFU;
 #if MP_DIGIT_SIZE >= 4
