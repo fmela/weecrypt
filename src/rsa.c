@@ -3,7 +3,7 @@
 #include <string.h>
 
 void
-rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx)
+rsa_init(rsa_ctx *rsa, unsigned bits, mt64_context *rand_ctx)
 {
 	mpi_t p, q;
 
