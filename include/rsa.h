@@ -12,7 +12,7 @@ typedef struct {
 	mpi_t	d;		/* secret exponent 1 < d < phi s.t. ed=1 (mod phi) */
 } rsa_ctx;
 
-void rsa_init(rsa_ctx *rsa, unsigned bits, mp_rand_ctx *rand_ctx);
+void rsa_init(rsa_ctx *rsa, unsigned bits, mt64_context *rand_ctx);
 void rsa_free(rsa_ctx *rsa);
 
 /* Transform cleartext into encrypted data. */
