@@ -1,8 +1,5 @@
-/*
- * weecrypt.h
- *
- * Copyright (C) 2010 Farooq Mela
- */
+/* weecrypt.h
+ * Copyright (C) 2010-2012 Farooq Mela. All rights reserved. */
 
 #ifndef _WEECRYPT_H_
 #define _WEECRYPT_H_
@@ -20,5 +17,6 @@
 #include "md4.h"
 #include "md5.h"
 #include "rsa.h"
+#include "mt64.h"
 
 #endif /* !_WEECRYPT_H_ */
