@@ -11,8 +11,10 @@
 mp_digit
 mp_digit_gcd(mp_digit u, mp_digit v)
 {
-	if (!u || !v)
-		return 0;
+	if (u == 0)
+		return v;
+	if (v == 0)
+		return u;
 
 	const unsigned shift = mp_digit_lsb_shift(u | v);
 	u >>= mp_digit_lsb_shift(u);
@@ -39,13 +41,27 @@ void
 mp_gcd(const mp_digit *u, mp_size usize,
 	   const mp_digit *v, mp_size vsize, mp_digit *w)
 {
+	ASSERT(u);
+	ASSERT(usize > 0);
+	ASSERT(v);
+	ASSERT(vsize > 0);
+	ASSERT(u != w);
+	ASSERT(v != w);
+
 	const mp_size result_size = MIN(usize, vsize);
 	mp_zero(w, result_size);
 
 	MP_NORMALIZE(u, usize);
 	MP_NORMALIZE(v, vsize);
-	if (!usize || !vsize)
-		return; /* Return 0. */
+	if (usize == 0) {
+		/* Return V. */
+		mp_copy(v, vsize, w);
+		return;
+	} else if (vsize == 0) {
+		/* Return U. */
+		mp_copy(u, usize, w);
+		return;
+	}
 
 	if (usize == 1 || vsize == 1) {
 		if (usize == 1 && vsize == 1) {
