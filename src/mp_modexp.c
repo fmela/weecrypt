@@ -61,23 +61,18 @@ mp_modexp(const mp_digit *u, mp_size usize,
 	mp_digit *umod = tmp + (msize * 2);
 	mp_copy(w, umsize, umod);
 
-	mp_digit k = p[psize - 1];
-	unsigned i = 0;
-	for (; k != 1; i++)
-		k >>= 1;
-	k <<= i;
-	i = psize - 1;
+	unsigned p_digit = psize - 1;
+	mp_digit k = ((mp_digit)1) << mp_digit_log2(p[p_digit]);
 
 	for (;;) {
 		if ((k >>= 1) == 0) {
-			if (i == 0)
+			if (p_digit-- == 0)
 				break;
-			--i;
 			k = MP_DIGIT_MSB;
 		}
 		mp_sqr(w, msize, tmp);
 		mp_mod(tmp, msize * 2, m, msize, w);
-		if (p[i] & k) {
+		if (p[p_digit] & k) {
 			mp_mul(w, msize, umod, umsize, tmp);
 			mp_mod(tmp, msize + umsize, m, msize, w);
 		}
@@ -87,8 +82,8 @@ mp_modexp(const mp_digit *u, mp_size usize,
 }
 
 void
-mp_modexp_ul(const mp_digit *u, mp_size usize, unsigned long power,
-			 const mp_digit *m, mp_size msize, mp_digit *w)
+mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t power,
+			  const mp_digit *m, mp_size msize, mp_digit *w)
 {
 	ASSERT(u != NULL);
 	ASSERT(m != NULL);
@@ -140,7 +135,7 @@ mp_modexp_ul(const mp_digit *u, mp_size usize, unsigned long power,
 		umod = NULL;
 	}
 
-	unsigned long k = power;
+	uint64_t k = power;
 	unsigned i = 0;
 	for (; k != 1; i++)
 		k >>= 1;
@@ -155,5 +150,5 @@ mp_modexp_ul(const mp_digit *u, mp_size usize, unsigned long power,
 		}
 	}
 
-	MP_TMP_FREE(t);
+	MP_TMP_FREE(tmp);
 }
