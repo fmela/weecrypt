@@ -82,7 +82,7 @@ mp_modexp(const mp_digit *u, mp_size usize,
 }
 
 void
-mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t power,
+mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 			  const mp_digit *m, mp_size msize, mp_digit *w)
 {
 	ASSERT(u != NULL);
@@ -97,17 +97,17 @@ mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t power,
 		return;
 
 	MP_NORMALIZE(u, usize);
-	if (usize == 0 || power == 0) {
+	if (usize == 0 || exponent == 0) {
 		w[0] = (usize != 0);
 		return;
 	}
 
-	if (power == 1) {
+	if (exponent == 1) {
 		mp_mod(u, usize, m, msize, w);
 		return;
 	}
 
-	if (power == 2) {
+	if (exponent == 2) {
 		mp_digit *tmp;
 		MP_TMP_ALLOC(tmp, usize * 2);
 		mp_sqr(u, usize, tmp);
@@ -125,17 +125,17 @@ mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t power,
 	}
 
 	mp_digit *tmp, *umod;
-	if (power & (power - 1)) {
+	if (exponent & (exponent - 1)) {
 		MP_TMP_ALLOC(tmp, umsize + (msize * 2));
 		umod = tmp + (msize * 2);
 		mp_copy(w, umsize, umod);
 	} else {
-		/* With power of the form 2^K, we never have to multiply by U mod M. */
+		/* If exponent is a power of 2, we never have to multiply by U mod M. */
 		MP_TMP_ALLOC(tmp, msize * 2);
 		umod = NULL;
 	}
 
-	uint64_t k = power;
+	uint64_t k = exponent;
 	unsigned i = 0;
 	for (; k != 1; i++)
 		k >>= 1;
@@ -144,7 +144,7 @@ mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t power,
 	while (k >>= 1) {
 		mp_sqr(w, msize, tmp);
 		mp_mod(tmp, msize * 2, m, msize, w);
-		if (power & k) {
+		if (exponent & k) {
 			mp_mul(w, msize, umod, umsize, tmp);
 			mp_mod(tmp, msize + umsize, m, msize, w);
 		}
