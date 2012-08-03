@@ -34,11 +34,14 @@ mpi_binomial(uint64_t n, uint64_t k, mpi *coeff)
 		mpi_mul_u64(num, n - k + i, num);
 		mpi_mul_u64(den, i, den);
 		if ((i & 31) == 0) {
-			unsigned shift = mp_digit_lsb_shift(num->digits[0] |
-												den->digits[0]);
-			if (shift) {
-				mpi_rshift(num, shift, num);
-				mpi_rshift(den, shift, den);
+			unsigned digits = 0;
+			while ((num->digits[digits] | den->digits[digits]) == 0)
+				++digits;
+			unsigned shift = mp_digit_lsb_shift(num->digits[digits] |
+												den->digits[digits]);
+			if (digits || shift) {
+				mpi_rshift(num, digits * MP_DIGIT_BITS + shift, num);
+				mpi_rshift(den, digits * MP_DIGIT_BITS + shift, den);
 			}
 		}
 	}
