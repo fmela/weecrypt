@@ -8,14 +8,13 @@
 #include "mp.h"
 #include "mp_defs.h"
 
+/* Knuth's 4.3.1-D, vol.2, 3rd ed, pp.270-275 */
 void
 mp_norm_div(mp_digit *u, mp_size usize,
 			const mp_digit *v, mp_size vsize, mp_digit *q)
 {
-	/* Knuth's 4.3.1-D, vol.2, 3rd ed, pp.270-275 */
-
 	ASSERT(vsize >= 2);
-	mp_digit vd = v[vsize - 1];
+	const mp_digit vd = v[vsize - 1];
 	ASSERT((vd & MP_DIGIT_MSB) != 0);
 
 	/* D2: Initialize j. */
