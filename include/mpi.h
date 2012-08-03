@@ -65,7 +65,7 @@ void	mpi_one(mpi *p);
 void	mpi_neg(mpi *p);
 void	mpi_abs(mpi *n);
 void	mpi_rand(mpi *n, unsigned bits);
-void	mpi_rand_ctx(mpi *n, unsigned bits, mp_rand_ctx *ctx);
+void	mpi_rand_ctx(mpi *n, unsigned bits, mt64_context *ctx);
 void	mpi_swap(mpi *a, mpi *b);
 
 int		mpi_cmp(const mpi *p, const mpi *q);
