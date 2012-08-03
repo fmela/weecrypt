@@ -143,7 +143,7 @@ mp_barrett(const mp_digit *u, mp_size usize,
 }
 
 void
-mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t power,
+mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 			   const mp_barrett_ctx *ctx, mp_digit *w)
 {
 	const mp_digit *m;
@@ -168,17 +168,17 @@ mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t power,
 		return;
 
 	MP_NORMALIZE(u, usize);
-	if (usize == 0 || power == 0) {
+	if (usize == 0 || exponent == 0) {
 		w[0] = (usize != 0);
 		return;
 	}
 
-	if (power == 1) {
+	if (exponent == 1) {
 		mp_mod(u, usize, m, msize, w);
 		return;
 	}
 
-	if (power == 2) {
+	if (exponent == 2) {
 		tsize = usize * 2;
 		MP_TMP_ALLOC(t, tsize);
 		mp_sqr(u, usize, t);
@@ -195,9 +195,9 @@ mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t power,
 		return;
 	}
 
-	/* With power of the form 2^K, we never have to multiply by U mod M. */
+	/* With exponent of the form 2^K, we never have to multiply by U mod M. */
 	tsize = msize * 2;
-	if (power & (power - 1)) {
+	if (exponent & (exponent - 1)) {
 		MP_TMP_ALLOC(t, tsize + umod_size);
 		umod = t + tsize;
 		mp_copy(w, umod_size, umod);
@@ -206,15 +206,15 @@ mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t power,
 		umod = NULL;
 	}
 
-	uint64_t k = power;
+	uint64_t k = exponent;
 	for (i = 0; k != 1; i++)
 		k >>= 1;
-	k <<= i;		/* power mask. */
+	k <<= i;		/* exponent mask. */
 
 	while (k >>= 1) {
 		mp_sqr(w, msize, t);
 		barrett_reduce(t, ctx, w);
-		if (power & k) {
+		if (exponent & k) {
 			mp_mul(w, msize, umod, umod_size, t);
 			/* Barrett reduction requires T be twice as large as M, so clear
 			 * high digits if needed. */
