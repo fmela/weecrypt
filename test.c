@@ -20,6 +20,7 @@ typedef double timer_val;
 
 timer_val hrtimer();
 
+void time_binomial(void);
 void time_gcd(void);
 void test_mpq_acc(void);
 void test_set_f(void);
@@ -28,7 +29,7 @@ void test_invert_matrix(void);
 void test_mpq(void);
 void test_from_str(void);
 void test_lehmer(void);
-void time_montgomery(void);
+void test_mexp(void);
 void test_mul_mod_powb(void);
 void test_barrett(void);
 void test_composite(void);
@@ -45,10 +46,8 @@ void time_modi(void);
 void test_dmod(void);
 void test_sub(void);
 void test_sqr(void);
-void test_modexp_pow2(void);
-void test_modexp(void);
+void test_modexp_u64(void);
 void time_modexp(void);
-void test_mpi(void);
 void test_mul(void);
 void time_div(void);
 void time_mul(void);
@@ -64,7 +63,6 @@ void run_gcd_test(void);
 void print_fraction(mp_digit *u, mp_size size, unsigned base);
 void twiddle(void);
 void gen_fraction(void);
-void time_flip(void);
 void time_invert(void);
 
 extern int detect_cpuid(void);
@@ -78,7 +76,8 @@ extern void _mp_mul_base(const mp_digit *, mp_size,
 int
 main(void)
 {
-//	time_gcd();
+	time_gcd();
+	time_binomial();
 //	test_crt();
 //	test_invert_matrix();
 //	test_mpq_acc();
@@ -87,12 +86,11 @@ main(void)
 	test_modinv();
 	test_gcdext();
 //	test_from_str();
-	time_montgomery();
+	test_mexp();
 //	test_lehmer();
-//	test_composite();
+	test_composite();
 //	test_mul_mod_powb();
 //	time_copy();
-//	time_flip();
 	test_divexact();
 	time_divexact();
 //	test_invert();
@@ -101,17 +99,15 @@ main(void)
 //	time_dmul_add();
 //	time_div();
 //	tune_mul();
-//	test_mpi();
 	test_div();
 //	test_add();
 //	test_sub();
 	time_modi();
 	test_sqr();
 
-//	time_modexp();
-	test_barrett();
-//	test_modexp();
-//	test_modexp_pow2();
+	test_modexp_u64();
+	time_modexp();
+//	test_barrett();
 
 //	time_mul();
 //	test_mul();
@@ -266,28 +262,42 @@ test_sqr(void)
 }
 
 void
-test_modexp(void)
+test_modexp_u64(void)
 {
-#define A	20
-#define B	10
-#define C	B
-#define N	10000
-	mp_digit a[A], b[B], c[C];
-	unsigned p,n;
+	printf("--> %s\n", __PRETTY_FUNCTION__);
 
-	mp_rand(a,A);
-	mp_rand(b,B);
-	srand((unsigned)time(0));
-	p = rand() % 1000;
-//	printf("A="), mp_print_dec(a,A), printf("\n");
-//	printf("P=%u\n", p);
-//	printf("M="), mp_print_dec(b,B), printf("\n");
-	for (n=0; n<N; n++)
-		mp_modexp_ul(a,A,p,b,B,c);
-//	printf("C="), mp_print_dec(c,C), printf("\n");
+#define A	20
+#define M	10
+#define N	10000
+	mp_digit a[A], m[M], c[M], d[M];
+
+//	srand((unsigned)time(0));
+	timer_val modexp_time = 0, modexp_pow2_time = 0;
+	for (int n=0; n<N; n++) {
+		unsigned p = rand();
+		mp_rand(a,A);
+		mp_rand(m,M);
+
+		timer_val start = hrtimer();
+		mp_modexp_u64(a,A,p,m,M,c);
+		modexp_time += hrtimer() - start;
+
+		start = hrtimer();
+		mp_modexp_pow2_u64(a,A,p,m,M,d);
+		modexp_pow2_time += hrtimer() - start;
+		if (mp_cmp(c,M,d,M)) {
+			printf("Trial %d failed:\n", n);
+			printf("A="), mp_print_dec(a,A), printf("\n");
+			printf("P=%u\n", p);
+			printf("M="), mp_print_dec(m,M), printf("\n");
+			printf("C="), mp_print_dec(c,M), printf("\n");
+			printf("D="), mp_print_dec(d,M), printf("\n");
+		}
+	}
+	printf("     modexp_u64=" TIMER_FMT "\n", TIMER_VAL(modexp_time));
+	printf("modexp_pow2_u64=" TIMER_FMT "\n", TIMER_VAL(modexp_pow2_time));
 #undef A
-#undef B
-#undef C
+#undef M
 #undef N
 }
 
@@ -347,6 +357,7 @@ test_barrett(void)
 void
 time_modexp(void)
 {
+	printf("--> %s\n", __PRETTY_FUNCTION__);
 #define A	15
 #define B	10
 #define P	10
@@ -447,30 +458,30 @@ test_gcd(void)
 {
 	printf("--> %s\n", __PRETTY_FUNCTION__);
 
-#define A		10
+#define A		20
 #define B		10
-#define C		10
+#define G		10
 #define NTRIALS	100000
 	mp_digit a[A], ad[A];
 	mp_digit b[B], bd[A];
-	mp_digit c[C];
-	int j, c_size;
+	mp_digit g[G];
+	int j, g_size;
 
+	timer_val timer = hrtimer();
 	twiddle();
 	for (j=0;j<NTRIALS;j++) {
 		mp_rand(a,A);
 		mp_rand(b,B);
-		a[0]|=1;
-		a[0]=b[0]=0;
+		a[0] = b[0] = a[1] = b[1] = 0;
 		mp_lshifti(a,A,4);
 		mp_lshifti(b,B,4);
-		mp_gcd(a,A,b,B,c);
-		c_size=mp_rsize(c,C);
-		mp_divexact(a,A,c,c_size,ad);
-		mp_divexact(b,B,c,c_size,bd);
-		mp_zero(c,C);
-		mp_gcd(ad,A-c_size+1,bd,B-c_size+1,c);
-		if (!mp_is_one(c,C))
+		mp_gcd(a,A,b,B,g);
+		g_size=mp_rsize(g,G);
+		mp_divexact(a,A,g,g_size,ad);
+		mp_divexact(b,B,g,g_size,bd);
+		mp_zero(g,G);
+		mp_gcd(ad,A-g_size+1,bd,B-g_size+1,g);
+		if (!mp_is_one(g,G))
 			break;
 		if ((j&1023)==0)
 			twiddle();
@@ -478,13 +489,15 @@ test_gcd(void)
 	if (j<NTRIALS) {
 		debug_print('A',a,A);
 		debug_print('B',b,B);
-		debug_print('C',c,C);
+		debug_print('G',g,G);
 	} else {
-		printf("No GCD errors in %d trials!\n", NTRIALS);
+		timer = hrtimer() - timer;
+		printf("No GCD errors in %d trials (took " TIMER_FMT ")\n",
+			   NTRIALS, TIMER_VAL(timer));
 	}
 #undef A
 #undef B
-#undef C
+#undef G
 #undef NTRIALS
 }
 
@@ -512,10 +525,11 @@ test_sqrt(void)
 #define A	150
 #define B	(A*2)
 #define C	((B+1)/2)
+#define NTRIALS	10000
 	mp_digit a[A], b[B], c[C];
-	int i;
 
-	for (i=0; i<10000; i++) {
+	timer_val sqrt_time = 0;
+	for (int i=0; i<NTRIALS; i++) {
 		mp_rand(a,A);			// A <- random
 	//	mp_max(a,A);
 		mp_sqr(a,A,b);			// B <- A^2
@@ -523,7 +537,9 @@ test_sqrt(void)
 		mp_addi(b,B,a,A);		// B += A
 		mp_addi(b,B,a,A);		// B += A
 		mp_inc(b,B);			// B += 1
+		timer_val timer = hrtimer();
 		mp_sqrt(b,B,c);			// C = sqrt(B)
+		sqrt_time += hrtimer() - timer;
 		mp_dec(c,C);			// C = C - 1
 		if (mp_cmp(a,A,c,C) != 0) {
 			printf("a="), mp_print_dec(a,A), printf("\n");
@@ -531,9 +547,12 @@ test_sqrt(void)
 			printf("c="), mp_print_dec(c,C), printf("\n");
 		}
 	}
+	printf("Computed %u %u-digit square roots in " TIMER_FMT "\n",
+		   NTRIALS, A, TIMER_VAL(sqrt_time));
 #undef C
 #undef B
 #undef A
+#undef NTRIALS
 }
 
 void
@@ -714,8 +733,9 @@ time_add(void)
 void
 test_dmod(void)
 {
+#if MP_DIGIT_SIZE >= 4
 #define A	100
-#define B	2398283
+#define B	2398283U
 	mp_digit a[A], r;
 
 	mp_rand(a,A);
@@ -727,6 +747,7 @@ test_dmod(void)
 	printf("time: " TIMER_FMT "\n", TIMER_VAL(timer));
 #undef A
 #undef B
+#endif
 }
 
 void
@@ -932,20 +953,6 @@ time_divexact(void)
 }
 
 void
-time_flip(void)
-{
-#define A	20
-	mp_digit a[A];
-
-	timer_val timer = hrtimer();
-	for (int i=0; i<1000; i++)
-		mp_flip(a,A);
-	timer = hrtimer() - timer;
-	printf("time: " TIMER_FMT "\n", TIMER_VAL(timer));
-#undef A
-}
-
-void
 gcdext_int(int a, int b, int *u, int *v, int *g)
 {
 	if (a < b)
@@ -1005,10 +1012,9 @@ test_gcdext(void)
 			printf("V="), mpi_print_dec(v), printf("\n");
 			printf("D="), mpi_print_dec(d), printf("\n");
 		}
-		/*
 		if (a->size == 1) {
 			int iu, iv, ig;
-			gcdext_int(a->num[0], b->num[0], &iu, &iv, &ig);
+			gcdext_int(a->digits[0], b->digits[0], &iu, &iv, &ig);
 			printf("IU=%d IV=%d IG=%d\n", iu, iv, ig);
 			if (!mpi_cmp_s32(u, iu))
 				printf("IU does not match\n");
@@ -1017,7 +1023,6 @@ test_gcdext(void)
 			if (!mpi_cmp_s32(g, ig))
 				printf("IG does not match\n");
 		}
-		*/
 		mpi_mul(a, u, u);	/* u=a*u */
 		mpi_mul(b, v, v);	/* v=b*v */
 		mpi_add(u, v, g);	/* g=a*u+b*v */
@@ -1076,6 +1081,8 @@ test_modinv(void)
 void
 test_composite(void)
 {
+	printf("--> %s\n", __PRETTY_FUNCTION__);
+
 #define A (1024/(MP_DIGIT_SIZE*CHAR_BIT))
 #define ROUNDS 8
 	mp_digit a[A];
@@ -1112,7 +1119,8 @@ test_composite(void)
 	}
 	printf("\n");
 	mp_print_dec(a,A);
-	printf(" is prime with high probability\n");
+	printf(" (%u bits) is prime with high probability\n",
+		   mp_significant_bits(a,A));
 	printf("tested %d numbers (%d [%.03f%%] rejected by sieve).\n",
 		   trials, sieved, sieved / (float)trials * 100.0);
 	printf("          sieving took " TIMER_FMT "\n", TIMER_VAL(sieve_time));
@@ -1181,19 +1189,18 @@ test_mul_mod_powb(void)
 }
 
 void
-time_montgomery(void)
+test_mexp(void)
 {
 	printf("--> %s\n", __PRETTY_FUNCTION__);
 
-#define A (16*2)
-#define P (10*2)
-#define M (16)
+#define A 32
+#define P 20
+#define M 16
 #define NTRIALS 1000
 	mp_digit a[A], p[P], m[M], m0[M], m1[M];
 	timer_val modexp_time = 0, modexp_pow2_time = 0, mexp_time = 0;
 
 	for (int i=0; i<NTRIALS; i++) {
-
 		mp_rand(a,A);
 		mp_rand(p,P);
 		mp_rand(m,M);
@@ -1635,38 +1642,57 @@ test_mpq_acc(void)
 void
 time_gcd()
 {
-#define A 15
-#define B 12
+	printf("--> %s\n", __PRETTY_FUNCTION__);
+
+#define A 30
+#define B 30
 #define C MIN(A,B)
-	mp_digit a[A], b[B], c[C], d[C];
-	timer_val bt = 0, st = 0;
+#define NTRIALS	1000
+	mp_digit a[A], b[B], c[C];
 
-	for (int i=0; i<1000; i++) {
-		mp_rand(a, A);
-		mp_rand(b, B);
+	for (mp_size aa=A; aa<=A; aa+=3) {
+		for (mp_size bb=B; bb<=aa; bb+=3) {
+			timer_val total_time = 0;
+			for (int i=0; i<NTRIALS; i++) {
+				mp_rand(a, aa);
+				mp_rand(b, bb);
 
-		timer_val start = hrtimer();
-		mp_gcd(a, A, b, B, c);
-		bt += hrtimer() - start;
-
-		start = hrtimer();
-		mp_gcd(a, A, b, B, d);
-		st += hrtimer() - start;
-
-		if (mp_cmp_n(c, d, C)) {
-			printf("Different GCD's!\n");
-			printf("A="), mp_print_dec(a, A), printf("\n");
-			printf("B="), mp_print_dec(b, B), printf("\n");
-			printf("C="), mp_print_dec(c, C), printf("\n");
-			printf("D="), mp_print_dec(d, C), printf("\n");
+				timer_val start = hrtimer();
+				mp_gcd(a, aa, b, bb, c);
+				total_time += hrtimer() - start;
+			}
+			printf("Computed %u %u/%u-bit GCDs in " TIMER_FMT "\n",
+				   NTRIALS, aa*MP_DIGIT_BITS, bb*MP_DIGIT_BITS,
+				   TIMER_VAL(total_time));
 		}
 	}
 
-	printf("Binary time: " TIMER_FMT "\n", TIMER_VAL(bt));
-	printf("Normal time: " TIMER_FMT "\n", TIMER_VAL(st));
 #undef A
 #undef B
 #undef C
+#undef NTRIALS
+}
+
+void
+time_binomial()
+{
+	printf("--> %s\n", __PRETTY_FUNCTION__);
+
+#define N 500
+	mpi_t binomial;
+	mpi_init(binomial);
+
+	timer_val total_time = 0;
+	for (int n = 1; n <= N; ++n) {
+		for (int k = 0; k <= n; ++k) {
+			timer_val timer = hrtimer();
+			mpi_binomial(n, k, binomial);
+			total_time += hrtimer() - timer;
+		}
+	}
+	printf("%u Binomial time: " TIMER_FMT "\n", N, TIMER_VAL(total_time));
+	mpi_free(binomial);
+#undef N
 }
 
 #if defined(__APPLE__)
