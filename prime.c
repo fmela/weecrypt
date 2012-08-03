@@ -4,7 +4,7 @@
 
 #include "weecrypt.h"
 
-void factor(mp_digit *n, mp_size len);
+void factorize(mp_digit *n, mp_size len);
 
 int
 main(void)
@@ -22,13 +22,13 @@ main(void)
 			continue;
 		}
 
-		factor(n, len);
+		factorize(n, len);
 	}
 
 	return 0;
 }
 
-void factor(mp_digit *n, mp_size len) {
+void factorize(mp_digit *n, mp_size len) {
 	printf("Factors(");
 	mp_print_dec(n, len);
 	printf(") = ");
