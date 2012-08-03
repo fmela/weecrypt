@@ -396,7 +396,7 @@ mpi_dec(mpi *n)
 }
 
 void
-mpi_rand_ctx(mpi *n, unsigned bits, mp_rand_ctx *ctx)
+mpi_rand_ctx(mpi *n, unsigned bits, mt64_context *ctx)
 {
 	unsigned digits, hbits;
 
