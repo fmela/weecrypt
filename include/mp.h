@@ -307,7 +307,7 @@ void		mp_modsqr(const mp_digit *u,
 					  const mp_digit *m, mp_size msize, mp_digit *w);
 /* Compute (U ^ P) mod M and put the result in W, which must be at least as
  * large as M. */
-void		mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t power,
+void		mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 						  const mp_digit *m, mp_size msize, mp_digit *w);
 void		mp_modexp(const mp_digit *u, mp_size usize,
 					  const mp_digit *p, mp_size psize,
@@ -328,8 +328,8 @@ void		mp_barrett_ctx_init(mp_barrett_ctx *ctx,
 								const mp_digit *m, mp_size msize);
 void		mp_barrett_ctx_free(mp_barrett_ctx *ctx);
 
-/* w[0 .. ctx->k-1] = (u ** power) mod m */
-void		mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t power,
+/* w[0 .. ctx->k-1] = (u ** exponent) mod m */
+void		mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 						   const mp_barrett_ctx *ctx, mp_digit *w);
 void		mp_barrett(const mp_digit *u, mp_size usize,
 					   const mp_digit *p, mp_size psize,
@@ -338,7 +338,8 @@ void		mp_barrett(const mp_digit *u, mp_size usize,
 void		mp_modexp_pow2(const mp_digit *u, mp_size usize,
 						   const mp_digit *p, mp_size psize,
 						   const mp_digit *m, mp_size msize, mp_digit *w);
-void		mp_modexp_pow2_u64(const mp_digit *u, mp_size usize, uint64_t power,
+void		mp_modexp_pow2_u64(const mp_digit *u, mp_size usize,
+							   uint64_t exponent,
 							   const mp_digit *m, mp_size msize, mp_digit *w);
 
 /* Compute the GCD of the natural numbers U and V, and store the result at W.
