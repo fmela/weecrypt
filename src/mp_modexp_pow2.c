@@ -55,12 +55,9 @@ static const uint8_t oddtab[256] = {
  * multiplication. */
 
 void
-mp_modexp_pow2_ul(const mp_digit *u, mp_size usize, unsigned long power,
-				  const mp_digit *m, mp_size msize, mp_digit *w)
+mp_modexp_pow2_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
+				   const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	mp_digit *tmp, *up[MAX_NK];
-	unsigned a, j, t, f, k, nk;
-
 	ASSERT(u != NULL);
 	ASSERT(m != NULL);
 	ASSERT(w != NULL);
@@ -73,17 +70,18 @@ mp_modexp_pow2_ul(const mp_digit *u, mp_size usize, unsigned long power,
 		return;
 
 	MP_NORMALIZE(u, usize);
-	if (usize == 0 || power == 0) {
+	if (usize == 0 || exponent == 0) {
 		w[0] = (usize != 0);
 		return;
 	}
 
-	if (power == 1) {
+	if (exponent == 1) {
 		mp_mod(u, usize, m, msize, w);
 		return;
 	}
 
-	if (power == 2) {
+	if (exponent == 2) {
+		mp_digit *tmp;
 		MP_TMP_ALLOC(tmp, usize * 2);
 		mp_sqr(u, usize, tmp);
 		mp_modi(tmp, usize * 2, m, msize);
@@ -97,53 +95,55 @@ mp_modexp_pow2_ul(const mp_digit *u, mp_size usize, unsigned long power,
 	if (mp_rsize(w, msize) == 0)
 		return;
 
-	k = MAX_K;
-	nk = 1U << k;
+	unsigned k = MAX_K;
+	unsigned nk = 1U << k;
 
-	for (j = 0; j < nk; j++)
-		up[j] = NULL;
-
+	mp_digit *up[MAX_NK] = { 0 };
 	MP_TMP_COPY(up[1], w, msize);
 
+	mp_digit *tmp;
 	MP_TMP_ALLOC(tmp, msize * 2);
 	mp_sqr(up[1], msize, tmp);
 	mp_modi(tmp, msize * 2, m, msize);
 	MP_TMP_COPY(up[2], tmp, msize);
 
 	/* Precompute U^3 mod M, U^5 mod M, ... U^(2^K-1) mod M */
-	for (j = 3; j < nk; j += 2) {
+	for (unsigned j = 3; j < nk; j += 2) {
 		mp_mul_n(up[2], up[j-2], msize, tmp);
 		mp_modi(tmp, msize * 2, m, msize);
 		MP_TMP_COPY(up[j], tmp, msize);
 	}
 
-	a = power;
-	for (f = 0; a != 0; f++)
+	uint64_t a = exponent;
+	unsigned powers_of_k = 0;
+	while (a != 0) {
 		a >>= k;
-
-	a = (power >> ((f-1) * k)) & (nk - 1);
-	ASSERT(a != 0);
-	t = twotab[a];
-	a = oddtab[a];
-	mp_copy(up[a], msize, w);
-	for (j = t; j != 0; j--) {
-		mp_sqr(w, msize, tmp);
-		mp_modi(tmp, msize * 2, m, msize);
-		mp_copy(tmp, msize, w);
+		++powers_of_k;
 	}
 
-	while (--f != 0) {
-		a = (power >> ((f-1) * k)) & (nk - 1);
+	a = (exponent >> ((powers_of_k-1) * k)) & (nk - 1);
+	ASSERT(a != 0);
+	unsigned a_shift = twotab[a];
+	a = oddtab[a];
+	mp_copy(up[a], msize, w);
+	for (unsigned j = a_shift; j != 0; j--) {
+		mp_sqr(w, msize, tmp);				/* tmp <- w^2 */
+		mp_modi(tmp, msize * 2, m, msize);	/* tmp <- tmp % m */
+		mp_copy(tmp, msize, w);				/* w <- tmp */
+	}
+
+	while (--powers_of_k != 0) {
+		a = (exponent >> ((powers_of_k-1) * k)) & (nk - 1);
 		if (a == 0) {
-			for (j = k; j != 0; j--) {
+			for (unsigned j = k; j != 0; j--) {
 				mp_sqr(w, msize, tmp);
 				mp_modi(tmp, msize * 2, m, msize);
 				mp_copy(tmp, msize, w);
 			}
 		} else {
-			t = twotab[a];
+			a_shift = twotab[a];
 			a = oddtab[a];
-			for (j = k - t; j != 0; j--) {
+			for (unsigned j = k - a_shift; j != 0; j--) {
 				mp_sqr(w, msize, tmp);
 				mp_modi(tmp, msize * 2, m, msize);
 				mp_copy(tmp, msize, w);
@@ -151,7 +151,7 @@ mp_modexp_pow2_ul(const mp_digit *u, mp_size usize, unsigned long power,
 			mp_mul_n(w, up[a], msize, tmp);
 			mp_modi(tmp, msize * 2, m, msize);
 			mp_copy(tmp, msize, w);
-			for (j = t; j != 0; j--) {
+			for (unsigned j = a_shift; j != 0; j--) {
 				mp_sqr(w, msize, tmp);
 				mp_modi(tmp, msize * 2, m, msize);
 				mp_copy(tmp, msize, w);
@@ -159,9 +159,8 @@ mp_modexp_pow2_ul(const mp_digit *u, mp_size usize, unsigned long power,
 		}
 	}
 
-	MP_TMP_FREE(up[1]);
 	MP_TMP_FREE(up[2]);
-	for (j = 3; j < nk; j += 2)
+	for (unsigned j = 1; j < nk; j += 2)
 		if (up[j])
 			MP_TMP_FREE(up[j]);
 	MP_TMP_FREE(tmp);
@@ -174,9 +173,6 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 			   const mp_digit *p, mp_size psize,
 			   const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	mp_digit *tmp, *up[MAX_NK], mask;
-	unsigned a, j, t, k, nk, b;
-
 	ASSERT(u != NULL);
 	ASSERT(m != NULL);
 	ASSERT(w != NULL);
@@ -201,6 +197,7 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 			return;
 		}
 		if (p[0] == 2) {
+			mp_digit *tmp;
 			MP_TMP_ALLOC(tmp, usize * 2);
 			mp_sqr(u, usize, tmp);
 			mp_modi(tmp, usize * 2, m, msize);
@@ -216,25 +213,25 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 		return;
 
 	/* Choose suitable value of K */
-	b = mp_significant_bits(p, psize) - 1;
-	for (k = MAX_K; k >= 2; k--) {
+	unsigned b = mp_significant_bits(p, psize) - 1;
+	unsigned k = MAX_K;
+	for (; k >= 2; k--) {
 		if (((k - 1) * (k << ((k - 1) << 1)) / ((1 << k) - k - 1)) < b)
 			break;
 	}
-	nk = 1U << k;
+	unsigned nk = 1U << k;
 
-	for (j = 0; j < nk; j++)
-		up[j] = NULL;
-
+	mp_digit *up[MAX_NK] = { 0 };
 	MP_TMP_COPY(up[1], w, msize);
 
+	mp_digit *tmp;
 	MP_TMP_ALLOC(tmp, msize * 2);
 	mp_sqr(up[1], msize, tmp);
 	mp_modi(tmp, msize * 2, m, msize);
 	MP_TMP_COPY(up[2], tmp, msize);
 
 	/* Precompute U^3 mod M, U^5 mod M, ... U^(2^K-1) mod M */
-	for (j = 3; j < nk; j += 2) {
+	for (unsigned j = 3; j < nk; j += 2) {
 		mp_mul_n(up[2], up[j-2], msize, tmp);
 		MP_TMP_ALLOC(up[j], msize);
 		mp_mod(tmp, msize * 2, m, msize, up[j]);
@@ -245,9 +242,9 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 		b += k - (b % k);
 	ASSERT(b % k == 0);
 
-	a = 0;
-	mask = (mp_digit)1 << (b % MP_DIGIT_BITS);
-	for (j = k; j != 0; j--) {
+	unsigned a = 0;
+	mp_digit mask = (mp_digit)1 << (b % MP_DIGIT_BITS);
+	for (unsigned j = k; j != 0; --j) {
 		ASSERT(b != 0);
 		b -= 1;
 		if ((mask >>= 1) == 0)
@@ -259,10 +256,10 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 			a |= 1;
 	}
 	ASSERT(a != 0);
-	t = twotab[a];
+	unsigned a_shift = twotab[a];
 	a = oddtab[a];
 	mp_copy(up[a], msize, w);
-	for (j = 0; j < t; j++) {
+	for (unsigned j = 0; j < a_shift; ++j) {
 		mp_sqr(w, msize, tmp);
 		mp_modi(tmp, msize * 2, m, msize);
 		mp_copy(tmp, msize, w);
@@ -270,7 +267,7 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 
 	while (b != 0) {
 		a = 0;
-		for (j = k; j != 0; j--) {
+		for (unsigned j = k; j != 0; --j) {
 			ASSERT(b != 0);
 			b -= 1;
 			if ((mask >>= 1) == 0)
@@ -280,15 +277,15 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 				a |= 1;
 		}
 		if (a == 0) {
-			for (j = k; j != 0; j--) {
+			for (unsigned j = k; j != 0; --j) {
 				mp_sqr(w, msize, tmp);
 				mp_modi(tmp, msize * 2, m, msize);
 				mp_copy(tmp, msize, w);
 			}
 		} else {
-			t = twotab[a];
+			a_shift = twotab[a];
 			a = oddtab[a];
-			for (j = k - t; j != 0; j--) {
+			for (unsigned j = k - a_shift; j != 0; --j) {
 				mp_sqr(w, msize, tmp);
 				mp_modi(tmp, msize * 2, m, msize);
 				mp_copy(tmp, msize, w);
@@ -296,7 +293,7 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 			mp_mul_n(w, up[a], msize, tmp);
 			mp_modi(tmp, msize * 2, m, msize);
 			mp_copy(tmp, msize, w);
-			for (j = t; j != 0; j--) {
+			for (unsigned j = a_shift; j != 0; --j) {
 				mp_sqr(w, msize, tmp);
 				mp_modi(tmp, msize * 2, m, msize);
 				mp_copy(tmp, msize, w);
@@ -304,7 +301,8 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 		}
 	}
 
-	for (j = 0; j < nk; j++)
+	MP_TMP_FREE(up[2]);
+	for (unsigned j = 1; j < nk; j += 2)
 		if (up[j])
 			MP_TMP_FREE(up[j]);
 	MP_TMP_FREE(tmp);
