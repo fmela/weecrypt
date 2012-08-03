@@ -10,18 +10,18 @@
 
 #include "weecrypt.h"
 
-bool rsa_test(unsigned bits, mp_rand_ctx *rand_ctx);
+bool rsa_test(unsigned bits, mt64_context *rand_ctx);
 
 int
 main(void)
 {
-	const unsigned rsa_bits = 8;
-	const unsigned ntrials = 5;
+	const unsigned rsa_bits = 7;
+	const unsigned ntrials = 6;
+	mt64_context rand_ctx;
+
+	mt64_init_u64(&rand_ctx, 1234567890U);
+
 	unsigned i;
-	mp_rand_ctx rand_ctx;
-
-	mp_rand_ctx_init_seed(&rand_ctx, 1234567890U);
-
 	for (i=0; i<ntrials; i++) {
 		printf("Testing %u-bit RSA...\n", 1U<<(rsa_bits+i));
 		if (!rsa_test(1U<<(rsa_bits+i), &rand_ctx))
@@ -37,34 +37,34 @@ main(void)
 }
 
 bool
-rsa_test(unsigned bits, mp_rand_ctx *rand_ctx)
+rsa_test(unsigned bits, mt64_context *rand_ctx)
 {
-	rsa_ctx rsa[1];
+	rsa_ctx rsa;
 
-	mp_rand_ctx_init_seed(rand_ctx, 1234567890U);
+	mt64_init_u64(rand_ctx, 1234567890U);
 
-	rsa_init(rsa, bits, rand_ctx);
+	rsa_init(&rsa, bits, rand_ctx);
 
 	/* tmp = (rsa->e * rsa->e) % rsa->phi */
 	mpi_t tmp;
 	mpi_init(tmp);
-	mpi_mul(rsa->e, rsa->d, tmp);
-	mpi_mod(tmp, rsa->phi, tmp);
+	mpi_mul(rsa.e, rsa.d, tmp);
+	mpi_mod(tmp, rsa.phi, tmp);
 	bool ok = mpi_is_one(tmp);
 //	if (!ok) {
-		printf("  N="), mpi_print_dec(rsa->n),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa->n));
-		printf("Phi="), mpi_print_dec(rsa->phi),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa->phi));
-		printf("  E="), mpi_print_dec(rsa->e),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa->e));
-		printf("  D="), mpi_print_dec(rsa->d),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa->d));
+		printf("  N="), mpi_print_dec(rsa.n),
+			printf(" (%u bits)\n", mpi_significant_bits(rsa.n));
+		printf("Phi="), mpi_print_dec(rsa.phi),
+			printf(" (%u bits)\n", mpi_significant_bits(rsa.phi));
+		printf("  E="), mpi_print_dec(rsa.e),
+			printf(" (%u bits)\n", mpi_significant_bits(rsa.e));
+		printf("  D="), mpi_print_dec(rsa.d),
+			printf(" (%u bits)\n", mpi_significant_bits(rsa.d));
 		printf("ED mod Phi="), mpi_print_dec(tmp), printf("\n");
 //	}
 
 	mpi_free(tmp);
 
-	rsa_free(rsa);
+	rsa_free(&rsa);
 	return ok;
 }
