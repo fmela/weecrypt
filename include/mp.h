@@ -18,6 +18,7 @@
 #include <limits.h>
 
 #include "mp_config.h"
+#include "mt64.h"
 
 #if   MP_DIGIT_SIZE == 1
 typedef uint8_t				mp_digit;
@@ -377,16 +378,8 @@ mp_digit	mp_rshift(const mp_digit *u, mp_size size,
 mp_digit	mp_lshifti(mp_digit *u, mp_size size, unsigned shift);
 mp_digit	mp_rshifti(mp_digit *u, mp_size size, unsigned shift);
 
-typedef struct {	/* Mersenne twister context. */
-	int			mti;
-	uint32_t	mt[624];
-} mp_rand_ctx;
-
-void		mp_rand_ctx_init(mp_rand_ctx *ctx);
-void		mp_rand_ctx_init_seed(mp_rand_ctx *ctx, uint32_t seed);
-void		mp_rand_ctx_free(mp_rand_ctx *ctx);
 /* Store a random number in u[size]. */
-void		mp_rand_digits(mp_rand_ctx *ctx, mp_digit *u, mp_size size);
+void		mp_rand_digits(mt64_context *ctx, mp_digit *u, mp_size size);
 #define		mp_rand(u,size)	mp_rand_digits(NULL, (u), (size))
 
 /* Return the Hamming weight (bit population count) of u[size]. */
