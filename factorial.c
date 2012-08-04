@@ -32,6 +32,7 @@ void print_factorial(unsigned n)
 	mpi_init(f);
 	mpi_factorial(n, f);
 	mpi_print_dec(f), printf("\n");
+	printf(" As float: %g\n", mpi_get_f(f));
 	printf("As double: %g\n", mpi_get_d(f));
 	mpi_free(f);
 }

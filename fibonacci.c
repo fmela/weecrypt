@@ -19,6 +19,7 @@ main(void)
 
 		mpi_fibonacci(n, fib);
 		printf("F(%u)=", n), mpi_print_dec(fib), printf("\n");
+		printf(" As float: %g\n", mpi_get_f(fib));
 		printf("As double: %g\n", mpi_get_d(fib));
 	}
 
