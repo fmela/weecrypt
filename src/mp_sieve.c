@@ -697,12 +697,12 @@ mp_sieve(const mp_digit *u, mp_size size)
 	mp_digit next_prime = 1, prime_product = 1, primes[NP];
 	unsigned num_primes = 0;
 	for (unsigned i = 0; i < nprimes; i++) {
-		next_prime += (mp_digit)prime_offsets[i] * 2;
+		mp_digit offset = prime_offsets[i] * 2;
+		if ((next_prime += offset) < offset)
+			break;	/* Overflowed next_prime. */
 
-		mp_digit p1 = 0, p0 = 0;
-		if (num_primes == NP) {
-			p1 = 1;
-		} else {
+		mp_digit p1 = 1, p0 = 0;
+		if (num_primes < NP) {
 			digit_mul(prime_product, next_prime, p1, p0);
 		}
 		if (p1) {
