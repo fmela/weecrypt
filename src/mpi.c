@@ -398,8 +398,6 @@ mpi_dec(mpi *n)
 void
 mpi_rand_ctx(mpi *n, unsigned bits, mt64_context *ctx)
 {
-	unsigned digits, hbits;
-
 	ASSERT(n);
 
 	n->sign = 0; /* XXX */
@@ -408,14 +406,17 @@ mpi_rand_ctx(mpi *n, unsigned bits, mt64_context *ctx)
 		return;
 	}
 
-	hbits = bits % MP_DIGIT_BITS;
-	digits = (bits / MP_DIGIT_BITS) + (hbits != 0);
+	const unsigned hbits = bits % MP_DIGIT_BITS;
+	const unsigned digits = (bits / MP_DIGIT_BITS) + (hbits != 0);
 	MPI_SIZE(n, digits);
 	/* Let mp_rand_digits worry about whether ctx is NULL or not. */
 	mp_rand_digits(ctx, n->digits, digits);
-	if (hbits)
+	if (hbits != 0) {
 		n->digits[n->size - 1] &= (((mp_digit)1 << hbits) - 1);
-	n->digits[n->size - 1] |= ((mp_digit)1) << (hbits-1);
+		n->digits[n->size - 1] |= ((mp_digit)1) << (hbits-1);
+	} else {
+		n->digits[n->size - 1] |= MP_DIGIT_MSB;
+	}
 	ASSERT(mpi_significant_bits(n) == bits);
 }
 
