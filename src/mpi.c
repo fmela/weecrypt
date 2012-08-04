@@ -299,18 +299,13 @@ mpi_get_u32(const mpi *p, uint32_t *q)
 float
 mpi_get_f(const mpi *p)
 {
-	mp_size j;
-	float base, q, delta;
-
+	const float delta = MP_DIGIT_MAX;
+	const float base = delta + 1.f;
 	if (p->size == 0)
-		return 0.0;
+		return 0.f;
 
-	base = 1.0;
-	for (j = 0; j < MP_DIGIT_SIZE; j++)
-		base *= 256.0;
-	delta = (float)~(mp_digit)0;
-
-	q = (float)(p->digits[j = p->size - 1]);
+	mp_size j = p->size - 1;
+	float q = p->digits[j];
 	while (j) {
 		q *= base;
 		if (q == q + delta) {
@@ -329,10 +324,10 @@ double
 mpi_get_d(const mpi *p)
 {
 	if (p->size == 0)
-		return 0.0;
+		return 0.;
 
-	double base = pow(256.0, MP_DIGIT_SIZE);
-	double delta = (double)~(mp_digit)0;
+	const double delta = MP_DIGIT_MAX;
+	const double base = delta + 1.;
 
 	mp_size j = p->size - 1;
 	double q = p->digits[j];
