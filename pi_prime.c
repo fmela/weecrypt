@@ -166,7 +166,7 @@ main(void)
 			exit(1);
 		}
 
-		if (mp_sieve(n, len, 0) != 0)
+		if (mp_sieve(n, len) != 0)
 			continue;
 
 		if (len == 1 && n[0] <= 2) {

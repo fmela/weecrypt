@@ -653,85 +653,75 @@ static unsigned char prime_offsets[] = {
 
 #define NPRIMES	(sizeof(prime_offsets))	/* sizeof(char) guaranteed to be 1 */
 
-#if 1
-/* 32bit digit can at represent the product of at most 9 consecutive primes. */
-#define NP 9
 mp_digit
-mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
+mp_sieve(const mp_digit *u, mp_size size)
 {
 	MP_NORMALIZE(u, size);
 	if (!size)
 		return 0;
+	if (size == 1 && u[0] <= 3) {
+		return 0;
+	}
 	if ((u[0] & 1) == 0) {
-		if (size == 1 && u[0] == 2)
-			return 0;
-		else
-			return 2;
+		return 2;
 	}
 
-	if (nprimes == 0 || nprimes > NPRIMES)
-		nprimes = NPRIMES;
+	const unsigned nprimes = NPRIMES;
 
 	if (size == 1) {
 		mp_digit p = 1;
+		const mp_digit limit = mp_digit_sqrt(u[0]);
+
 		for (unsigned i = 0; i < nprimes; i++) {
 			p += (mp_digit)prime_offsets[i] * 2;
-			if (p >= u[0])
+			if (p > limit) {
 				break;
+			}
 			if (u[0] % p == 0)
 				return p;
 		}
 		return 0;
 	}
 
-	mp_digit p = 1, bp = 1, pa[NP];
-	unsigned pi = 0;
-	for (unsigned i = 0; i < nprimes; i++) {
-		p += (mp_digit)prime_offsets[i] * 2;
-
-		mp_digit p1, p0;
-		digit_mul(bp, p, p1, p0);
-		if (p1 != 0 || pi == NP) {
-			const mp_digit r = mp_dmod(u, size, bp);
-			for (unsigned j = 0; j < pi; j++)
-				if (r % pa[j] == 0)
-					return pa[j];
-			pa[0] = bp = p;
-			pi = 1;
-		} else {
-			bp = p0;
-			pa[pi++] = p;
-		}
-	}
-	if (pi) {
-		const mp_digit r = mp_dmod(u, size, bp);
-		for (unsigned j = 0; j < pi; j++)
-			if (r % pa[j] == 0)
-				return pa[j];
-	}
-	return 0;
-}
-#else
-mp_digit
-mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes)
-{
-	MP_NORMALIZE(u, size);
-	if (!size)
-		return 0;
-	if ((u[0] & 1) == 0)
-		return (u[0] == 2) ? 0 : 2;
-
-	if (nprimes == 0 || nprimes > NPRIMES)
-		nprimes = NPRIMES;
-
-	mp_digit p = 1;
-	for (unsigned i = 0; i < nprimes; i++) {
-		p += (mp_digit)prime_offsets[i] * 2;
-		if (size == 1 && u[0] <= p)
-			break;
-		if (mp_dmod(u, size, p) == 0)
-			return p;
-	}
-	return 0;
-}
+/* NP is the number of primes that can be multiplied together in an mp_digit */
+#if MP_DIGIT_SIZE == 1
+# define NP 3				/* 3*5*7 */
+#elif MP_DIGIT_SIZE == 2
+# define NP 5				/* 3*5*7*11*13 */
+#elif MP_DIGIT_SIZE == 4
+# define NP 9				/* 3*5*7*11*13*17*19*23*29 */
+#elif MP_DIGIT_SIZE == 8
+# define NP 15				/* 3*5*7*11*13*17*19*23*29*31*37*41*43*47*53 */
 #endif
+
+	mp_digit next_prime = 1, prime_product = 1, primes[NP];
+	unsigned num_primes = 0;
+	for (unsigned i = 0; i < nprimes; i++) {
+		next_prime += (mp_digit)prime_offsets[i] * 2;
+
+		mp_digit p1 = 0, p0 = 0;
+		if (num_primes == NP) {
+			p1 = 1;
+		} else {
+			digit_mul(prime_product, next_prime, p1, p0);
+		}
+		if (p1) {
+			const mp_digit r = mp_dmod(u, size, prime_product);
+			for (unsigned j = 0; j < num_primes; j++)
+				if (r % primes[j] == 0)
+					return primes[j];
+			num_primes = 0;
+			prime_product = next_prime;
+		} else {
+			prime_product = p0;
+		}
+		primes[num_primes++] = next_prime;
+	}
+	if (num_primes) {
+		const mp_digit r = mp_dmod(u, size, prime_product);
+		for (unsigned j = 0; j < num_primes; j++)
+			if (r % primes[j] == 0)
+				return primes[j];
+	}
+	return 0;
+}

@@ -34,7 +34,7 @@ void factorize(mp_digit *n, mp_size len) {
 	printf(") = ");
 	int nfactors = 0;
 	mp_digit factor;
-	while ((factor = mp_sieve(n, len, 0)) != 0) {
+	while ((factor = mp_sieve(n, len)) != 0) {
 		int npowers = 0;
 		do {
 			mp_digit remainder = mp_ddivi(n, len, factor);

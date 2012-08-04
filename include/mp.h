@@ -356,7 +356,7 @@ bool		mp_coprime(const mp_digit *u, mp_size usize,
 int			mp_jacobi(const mp_digit *a, mp_size asize,
 					  const mp_digit *p, mp_size psize);
 
-mp_digit	mp_sieve(const mp_digit *u, mp_size size, unsigned nprimes);
+mp_digit	mp_sieve(const mp_digit *u, mp_size size);
 /* Run NROUNDS rounds of the Miller-Rabin primality test on U. Return true if
  * composite, false if "probably" prime. */
 bool		mp_composite(const mp_digit *u, mp_size size, unsigned nrounds);

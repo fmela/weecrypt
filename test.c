@@ -1011,6 +1011,7 @@ test_gcdext(void)
 			printf("U="), mpi_print_dec(u), printf("\n");
 			printf("V="), mpi_print_dec(v), printf("\n");
 			printf("D="), mpi_print_dec(d), printf("\n");
+			break;
 		}
 		if (a->size == 1) {
 			int iu, iv, ig;
@@ -1104,7 +1105,7 @@ test_composite(void)
 		trials++;
 
 		timer_val start = hrtimer();
-		int r = mp_sieve(a,A,400);
+		int r = mp_sieve(a,A);
 		sieve_time += hrtimer() - start;
 		if (r) {
 			sieved++;
@@ -1281,7 +1282,7 @@ test_from_str(void)
 	while (fgets(buf, sizeof(buf), stdin)) {
 		p = mp_from_str_dec(buf, &psize);
 		mp_print_dec(p, psize);
-		if ((tf = mp_sieve(p, psize, 1000)) != 0)
+		if ((tf = mp_sieve(p, psize)) != 0)
 			printf(" has trivial factor " MP_FORMAT ".\n", tf);
 		else if (mp_composite(p, psize, 10))
 			printf(" is composite.\n");

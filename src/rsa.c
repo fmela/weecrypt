@@ -15,7 +15,7 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mt64_context *rand_ctx)
 	mpi_init(p);
 	mpi_rand_ctx(p, bits/2, rand_ctx);
 	p->digits[0] |= 1;
-	while (mp_sieve(p->digits, p->size, 0) ||
+	while (mp_sieve(p->digits, p->size) ||
 		   mp_composite(p->digits, p->size, 10)) {
 		mpi_add_u32(p, 2, p);
 	}
@@ -24,7 +24,7 @@ rsa_init(rsa_ctx *rsa, unsigned bits, mt64_context *rand_ctx)
 	mpi_init(q);
 	mpi_rand_ctx(q, bits-bits/2, rand_ctx);
 	q->digits[0] |= 1;
-	while (mp_sieve(q->digits, q->size, 0) ||
+	while (mp_sieve(q->digits, q->size) ||
 		   mp_composite(q->digits, q->size, 10)) {
 		mpi_add_u32(q, 2, q);
 	}

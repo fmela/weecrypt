@@ -178,8 +178,8 @@ static mp_digit digit_gcd(mp_digit u, mp_digit v)
 	if (u < v)
 		SWAP(u, v, mp_digit);
 	/* Now u >= v. */
-	if (u == 0)
-		return v;
+	if (v == 0)
+		return u;
 	for (;;) {
 		mp_digit r = u % v;
 		if (!r)
@@ -191,8 +191,8 @@ static mp_digit digit_gcd(mp_digit u, mp_digit v)
 
 void test_mp_digit_gcd()
 {
-	CU_ASSERT_EQUAL(mp_digit_gcd(1000, 0), 1000);
-	CU_ASSERT_EQUAL(mp_digit_gcd(0, 1000), 1000);
+	CU_ASSERT_EQUAL(mp_digit_gcd(100, 0), 100);
+	CU_ASSERT_EQUAL(mp_digit_gcd(0, 100), 100);
 	CU_ASSERT_EQUAL(mp_digit_gcd(0, 0), 0);
 	for (unsigned i = 0; i < 10000; ++i) {
 		mp_digit u[2];
@@ -462,25 +462,27 @@ void test_mp_rshift()
 {
 }
 
-static bool is_prime(mp_digit p) {
+static mp_digit smallest_factor(mp_digit p) {
 	if ((p & 1) == 0) {
-		return p == 2;
+		if (p == 2)
+			return 0;
+		return 2;
 	}
 	for (mp_digit factor = 3; ; factor += 2) {
 		if (factor * factor >= p) {
 			if (factor * factor == p)
-				return false;
-			return true;
+				return factor;
+			return 0;
 		}
 		if (p % factor == 0)
-			return false;
+			return factor;
 	}
 }
 
 void test_mp_sieve()
 {
 #if MP_DIGIT_SIZE == 1
-	const unsigned max_n = 255;
+	const unsigned max_n = 254;
 #elif MP_DIGIT_SIZE == 2
 	const unsigned max_n = 65000;
 #else
@@ -488,45 +490,50 @@ void test_mp_sieve()
 #endif
 	mp_digit u;
 
+	u = 0;
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
+	u = 1;
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
 	u = 2;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 0);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
 	u = 3;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 0);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
 	u = 5;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 0);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
 	u = 7;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 0);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
 	u = 11;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 0);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
 	u = 13;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 0);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 0);
 
 	u = 4;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 2);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 2);
 	u = 9;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 3);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 3);
 	u = 16;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 2);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 2);
 	u = 25;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 5);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 5);
 	u = 36;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 2);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 2);
 	u = 49;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 7);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 7);
 	u = 121;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 11);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 11);
 	u = 143;
-	CU_ASSERT_EQUAL(mp_sieve(&u, 1, 0), 11);
+	CU_ASSERT_EQUAL(mp_sieve(&u, 1), 11);
 
 	for (u = 2; u <= max_n; ++u) {
 		mp_digit v = u;
 		mp_digit factor;
-		while ((factor = mp_sieve(&v, 1, 0)) != 0) {
+		while ((factor = mp_sieve(&v, 1)) != 0) {
 			CU_ASSERT_TRUE(factor >= 2);
 			CU_ASSERT_TRUE(v % factor == 0);
+			CU_ASSERT_EQUAL(factor, smallest_factor(v));
 			v /= factor;
 		}
-		CU_ASSERT_TRUE(is_prime(v));
+		CU_ASSERT_TRUE(smallest_factor(v) == 0);
 	}
 }
 
