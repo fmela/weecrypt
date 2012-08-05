@@ -971,15 +971,12 @@ mpi_gcd(const mpi *a, const mpi *b, mpi *g)
 	}
 
 	if (a->size == 0) {				/* GCD(0,B) = B */
-		if (b->size == 0)
-			mpi_zero(g);
-		else
-			mpi_set_mpi(g, b);
+		mpi_set_mpi(g, b);
 	} else if (b->size == 0) {		/* GCD(A,0) = A */
 		mpi_set_mpi(g, a);
 	} else {
-		mp_size size = MIN(a->size, b->size);
-		MPI_SIZE(g, size);
+		const mp_size min_size = MIN(a->size, b->size);
+		MPI_SIZE(g, min_size);
 		mp_gcd(a->digits, a->size, b->digits, b->size, g->digits);
 		MPI_NORMALIZE(g);
 	}
