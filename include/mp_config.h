@@ -1,12 +1,11 @@
-/*
- * mp_config.h
- * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mp_config.h
+ * Copyright (C) 2001-2012 Farooq Mela. All rights reserved. */
 
 #ifndef _MP_CONFIG_H_
 #define _MP_CONFIG_H_
+
+/* To override the default, #define MP_DIGIT_SIZE here. */
+/* #define MP_DIGIT_SIZE 1 */
 
 #ifndef MP_DIGIT_SIZE
 # if defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
