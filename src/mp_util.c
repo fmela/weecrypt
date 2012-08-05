@@ -232,19 +232,17 @@ mp_xornot(mp_digit *u, mp_size size, const mp_digit *v)
 unsigned
 mp_digit_msb_shift(mp_digit u)
 {
-#if MP_DIGIT_BITS == 16
-	mp_digit high8 = UINT16_C(0xff00);
-#elif MP_DIGIT_BITS == 32
-	mp_digit high8 = UINT32_C(0xff000000);
-#elif MP_DIGIT_BITS == 64
-	mp_digit high8 = UINT64_C(0xff00000000000000);
-#endif
+	ASSERT(u);
+
 	unsigned steps = 0;
-
-	if (!u)
-		return -1;
-
 #if MP_DIGIT_BITS != 8
+#if MP_DIGIT_BITS == 16
+	const mp_digit high8 = UINT16_C(0xff00);
+#elif MP_DIGIT_BITS == 32
+	const mp_digit high8 = UINT32_C(0xff000000);
+#elif MP_DIGIT_BITS == 64
+	const mp_digit high8 = UINT64_C(0xff00000000000000);
+#endif
 	while (!(u & high8))
 		steps += 8, u <<= 8;
 #endif
@@ -258,8 +256,7 @@ mp_digit_msb_shift(mp_digit u)
 unsigned
 mp_digit_lsb_shift(mp_digit u)
 {
-	if (!u)
-		return -1;
+	ASSERT(u);
 
 	unsigned steps = 0;
 #if MP_DIGIT_BITS != 8
@@ -289,7 +286,8 @@ mp_msb_normalize(mp_digit *u, mp_size size)
 unsigned
 mp_odd_shift(const mp_digit *u, mp_size size)
 {
-	if (!mp_rsize(u, size))
+	MP_NORMALIZE(u, size);
+	if (!size)
 		return 0;
 
 	unsigned bits = 0;
