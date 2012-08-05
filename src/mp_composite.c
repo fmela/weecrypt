@@ -25,43 +25,46 @@ mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 	MP_NORMALIZE(n, nsize);
 	if (!nsize)				/* Call 0 prime. */
 		return false;
-	if ((n[0] & 1) == 0) {	/* Even N. */
-		if (nsize == 1 && n[0] == 2)
-			return false;	/* Call 2 prime. */
-		return true;
+	if (nsize == 1) {
+		if (n[0] <= 3)
+			return false;	/* Call 0, 1, 2, and 3 prime. */
+	}
+	if ((n[0] & 1) == 0) {
+		return true;		/* Call even numbers composite. */
 	}
 	if (rounds == 0)		/* Nuthin' doin' */
 		return true;
 
 	/* Find K and Q such that N = (2^K) * Q + 1, Q odd.
 	 * Assumes that it is safe to modify N. */
-	mp_digit *q = (mp_digit *)n;
-	--*q; /* Can't underflow: N odd. */
-	const unsigned k = mp_odd_shift(n, nsize);
-	++*q;
-	unsigned j = k / MP_DIGIT_BITS;
-	const mp_size qsize = nsize - j;
-	MP_TMP_COPY(q, n + j, qsize);
-	if ((j = k % MP_DIGIT_BITS) != 0) {
-		ASSERT(mp_rshifti(q, qsize, j) == 1); /* Trailing odd bit. */
+	--*(mp_digit *)n; /* Can't underflow: N odd. */
+	const unsigned odd_shift = mp_odd_shift(n, nsize);
+	const mp_size qsize = nsize - odd_shift / MP_DIGIT_BITS;
+	mp_digit *q;
+	MP_TMP_ALLOC(q, qsize);
+	if (odd_shift % MP_DIGIT_BITS) {
+		ASSERT(mp_rshift(n + odd_shift / MP_DIGIT_BITS, qsize,
+						 odd_shift % MP_DIGIT_BITS, q) == 0);
+	} else {
+		mp_copy(n + odd_shift / MP_DIGIT_BITS, qsize, q);
 	}
+	++*(mp_digit *)n;
 
 	mp_digit *y;
 	MP_TMP_ALLOC(y, nsize * 3); /* x will store y^2 */
 	mp_digit *x = y + nsize;
 	for (unsigned r = 0; r < rounds; r++) {
 		/* Generate X so 1 < X < N */
-		mp_digit xsize = nsize - (rand() % nsize);
+		unsigned xsize = nsize - (rand() % nsize);
+		ASSERT(xsize);
 		mp_rand(x, xsize);
 		if (xsize == nsize && x[xsize - 1] >= n[xsize - 1])
 			xsize -= ((x[xsize - 1] -= n[xsize - 1]) == 0);
 
 		/* Y = X^Q mod N */
-	//	mp_modexp(x, xsize, q, qsize, n, nsize, y);
-	//	mp_modexp_pow2(x, xsize, q, qsize, n, nsize, y);
 		mp_mexp(x, xsize, q, qsize, n, nsize, y);
 
-		for (j = k; j; --j) {
+		for (unsigned j = odd_shift; j; --j) {
 			mp_size ysize = mp_rsize(y, nsize);
 			/* If J = 0 and Y = 1, prime. */
 			if (j == 0 && ysize == 1 && y[0] == 1) {
