@@ -28,7 +28,6 @@ mp_rand_digits(mt64_context *ctx, mp_digit *u, mp_size size)
 		size -= 8;
 	}
 	if (size) {
-		ASSERT(size <= 7);
 		uint64_t r = mt64_gen_u64(ctx);
 		switch (size) {
 			case 7: *u++ = r; r >>= 8;
@@ -50,7 +49,6 @@ mp_rand_digits(mt64_context *ctx, mp_digit *u, mp_size size)
 		size -= 4;
 	}
 	if (size) {
-		ASSERT(size <= 3);
 		uint64_t r = mt64_gen_u64(ctx);
 		switch (size) {
 			case 3: *u++ = r; r >>= 16;
