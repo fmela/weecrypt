@@ -1,9 +1,5 @@
-/*
- * mp_gcd.c
- * Copyright (C) 2002-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mp_gcd.c
+ * Copyright (C) 2002-2010 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
 #include "mp_defs.h"
@@ -96,18 +92,13 @@ mp_gcd(const mp_digit *u, mp_size usize,
 		++u, --usize;
 	while (v[0] == 0)
 		++v, --vsize;
-	mp_digit *tmp = NULL, *utmp, *vtmp;
-	if (usize <= result_size) {
-		utmp = w;
-		MP_TMP_ALLOC(tmp, vsize);
-		vtmp = tmp;
-	} else {
-		ASSERT(vsize <= result_size);
-		vtmp = w;
-		MP_TMP_ALLOC(tmp, usize);
-		utmp = tmp;
-	}
 
+	mp_digit *tmp;
+	MP_TMP_ALLOC(tmp, usize + vsize);
+	mp_digit *utmp = tmp;
+	mp_digit *vtmp = tmp + usize;
+
+	ASSERT(u[0]);
 	unsigned shift = mp_digit_lsb_shift(u[0]);
 	if (shift) {
 		ASSERT(mp_rshift(u, usize, shift, utmp) == 0);
@@ -115,6 +106,7 @@ mp_gcd(const mp_digit *u, mp_size usize,
 	} else {
 		mp_copy(u, usize, utmp);
 	}
+	ASSERT(v[0]);
 	shift = mp_digit_lsb_shift(v[0]);
 	if (shift) {
 		ASSERT(mp_rshift(v, vsize, shift, vtmp) == 0);
@@ -130,6 +122,7 @@ mp_gcd(const mp_digit *u, mp_size usize,
 			MP_NORMALIZE(utmp, usize);
 			while (*utmp == 0)
 				++utmp, --usize;
+			ASSERT(utmp[0]);
 			shift = mp_digit_lsb_shift(utmp[0]);
 			if (shift) {
 				ASSERT(mp_rshifti(utmp, usize, shift) == 0);
@@ -140,6 +133,7 @@ mp_gcd(const mp_digit *u, mp_size usize,
 			MP_NORMALIZE(vtmp, vsize);
 			while (*vtmp == 0)
 				++vtmp, --vsize;
+			ASSERT(vtmp[0]);
 			shift = mp_digit_lsb_shift(vtmp[0]);
 			if (shift) {
 				ASSERT(mp_rshifti(vtmp, vsize, shift) == 0);
