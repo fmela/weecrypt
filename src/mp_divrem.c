@@ -64,7 +64,6 @@ mp_divrem(const mp_digit *u, mp_size usize,
 {
 	ASSERT(u);
 	ASSERT(usize > 0);
-	ASSERT(u[usize - 1] != 0);
 	ASSERT(v);
 	ASSERT(vsize > 0);
 	ASSERT(v[vsize - 1] != 0);
@@ -78,6 +77,7 @@ mp_divrem(const mp_digit *u, mp_size usize,
 		mp_zero(r, vsize);
 	if (q != NULL)
 		mp_zero(q, usize - vsize + 1);
+	MP_NORMALIZE(u, usize);
 
 	if (usize < vsize) {
 		ASSERT(q == NULL);
