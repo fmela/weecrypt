@@ -1,9 +1,5 @@
-/*
- * mp_divexact.c
- * Copyright (C) 2002-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mp_divexact.c
+ * Copyright (C) 2002-2010 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
 #include "mp_defs.h"
@@ -18,12 +14,9 @@ mp_divexact(const mp_digit *u, mp_size usize,
 {
 	ASSERT(u);
 	ASSERT(usize > 0);
-	ASSERT(u[usize - 1] != 0);
-
 	ASSERT(d);
 	ASSERT(dsize > 0);
 	ASSERT(d[dsize - 1] != 0);
-
 	ASSERT(q);
 
 	mp_zero(q, usize - dsize + 1);
@@ -52,36 +45,31 @@ mp_divexact(const mp_digit *u, mp_size usize,
 	u += dd, usize -= dd;
 	d += dd, dsize -= dd;
 
-	mp_digit *utmp = NULL;
+	mp_digit *utmp = NULL, *dtmp = NULL;
 	if (ds) {
 		MP_TMP_ALLOC(utmp, usize);
 		ASSERT(mp_rshift(u, usize, ds, utmp) == 0);
-	} else {
-		MP_TMP_COPY(utmp, u, usize);
-	}
-
-	mp_digit *dtmp = NULL;
-	if (ds) {
 		MP_TMP_ALLOC(dtmp, dsize);
 		ASSERT(mp_rshift(d, dsize, ds, dtmp) == 0);
 		d = dtmp;
 	} else {
-		dtmp = NULL;
+		MP_TMP_COPY(utmp, u, usize);
 	}
 
 	ASSERT((d[0] & 1) == 1);
 	const mp_digit d0_inv = mp_digit_invert(d[0]);
 
-	const mp_size K = usize - dsize + 1;
-	for (mp_size k = 0; k < K; k++) {
-		q[k] = d0_inv * utmp[k];
-		const mp_size size = MIN(dsize, K - k);
-		mp_digit cy = mp_dmul_sub(d, size, q[k], &utmp[k]);
+	const mp_size q_size = usize - dsize + 1;
+	for (mp_size q_i = 0; q_i < q_size; q_i++) {
+		q[q_i] = d0_inv * utmp[q_i];
+		const mp_size size = MIN(dsize, q_size - q_i);
+		mp_digit cy = mp_dmul_sub(d, size, q[q_i], &utmp[q_i]);
 		if (cy) {
-			ASSERT(usize > k + size);
-			ASSERT(mp_dsubi(&utmp[k + size], usize - (k + size), cy) == 0);
+			ASSERT(usize > q_i + size);
+			/* FIXME: this assert will fail if U is not a multiple of D. */
+			ASSERT(mp_dsubi(&utmp[q_i + size], usize - (q_i + size), cy) == 0);
 		}
-		ASSERT(utmp[k] == 0);
+		ASSERT(utmp[q_i] == 0);
 	}
 	if (dtmp != NULL)
 		MP_TMP_FREE(dtmp);
