@@ -149,8 +149,7 @@ test_div(void)
 		mp_max(n,N);
 	//	mp_max(n,N);
 		mp_rand(d,D);
-		if (d[D-1]==0)
-			d[D-1]=rand();
+		d[D-1] += !d[D-1];
 		mp_divrem(n,N,d,D,q,r);
 		mp_mul(q,Q,d,D,t);
 		if (t[N]) {
@@ -896,13 +895,15 @@ test_divexact(void)
 #define D (C-A+1)
 #define N 10000
 	mp_digit a[A], b[B], c[C], d[D];
-	int i;
 
-	for (i=0; i<N; i++) {
+	int nerrors=0;
+	for (int i=0; i<N; i++) {
 		mp_rand(a,A);
-		a[A-1]+=!a[A-1];
 		mp_rand(b,B);
+		a[A-1]+=!a[A-1];
+		ASSERT(a[A-1]);
 		mp_mul(a,A,b,B,c);
+		ASSERT(a[A-1]);
 		mp_divexact(c,C,a,A,d);
 		mp_div(c,C,a,A,d);
 		if (d[D-1] || mp_cmp_n(d,b,B) != 0) {
@@ -910,8 +911,10 @@ test_divexact(void)
 			pr_hex('b',b,B);
 			pr_hex('c',c,C);
 			pr_hex('d',d,D);
+			++nerrors;
 		}
 	}
+	printf("Tested %d exact divisions with %d errors.\n", N, nerrors);
 #undef N
 #undef D
 #undef C
@@ -922,6 +925,7 @@ test_divexact(void)
 void
 time_divexact(void)
 {
+	printf("--> %s\n", __PRETTY_FUNCTION__);
 #define A	30
 #define B	15
 #define C	(A+B)
@@ -933,6 +937,7 @@ time_divexact(void)
 	for (int i=0; i<N; i++) {
 		mp_rand(a,A);
 		mp_rand(b,B);
+		b[B-1]+=!b[B-1];
 		mp_mul(a,A,b,B,c);
 
 		timer_val start = hrtimer();
@@ -1004,7 +1009,7 @@ test_gcdext(void)
 		*/
 		mpi_gcdext(a, b, u, v, d);
 		if (!mpi_cmp_eq(g, d)) {
-			printf("[%d] warning: gcd/gcdext not equal.\n", i);
+			printf("Trial %d: gcd/gcdext not equal.\n", i);
 			printf("A="), mpi_print_dec(a), printf("\n");
 			printf("B="), mpi_print_dec(b), printf("\n");
 			printf("G="), mpi_print_dec(g), printf("\n");
@@ -1089,39 +1094,41 @@ test_composite(void)
 	mp_digit a[A];
 
 	mp_rand(a,A);
-	a[A-1]|=1UL<<31;
+	a[A-1]|=MP_DIGIT_MSB;
 	a[0]|=1;
 	printf("Searching for prime... ");
 	int trials = 0, sieved = 0;
 	timer_val sieve_time = 0, composite_time = 0;
-	for (;;) {
+	for (trials=0; trials<100000; ++trials) {
 		if (mp_daddi(a,A,2)) {
 			mp_rand(a,A);
-			a[A-1]|=1UL<<31;
+			a[A-1]|=MP_DIGIT_MSB;
 			a[0]|=1;
 		}
-		if ((trials&0x7)==0)
+		ASSERT(mp_significant_bits(a,A) == 1024);
+		if ((trials&7)==0)
 			twiddle();
-		trials++;
 
 		timer_val start = hrtimer();
 		int r = mp_sieve(a,A);
 		sieve_time += hrtimer() - start;
 		if (r) {
-			sieved++;
+			++sieved;
 			continue;
 		}
 		start = hrtimer();
 		r = mp_composite(a,A,ROUNDS);
 		composite_time += hrtimer() - start;
 
-		if (!r)
+		if (!r) {
+			printf("\n");
+			mp_print_dec(a,A);
+			printf(" (%u bits) is prime with high probability\n",
+				   mp_significant_bits(a,A));
 			break;
+		}
 	}
 	printf("\n");
-	mp_print_dec(a,A);
-	printf(" (%u bits) is prime with high probability\n",
-		   mp_significant_bits(a,A));
 	printf("tested %d numbers (%d [%.03f%%] rejected by sieve).\n",
 		   trials, sieved, sieved / (float)trials * 100.0);
 	printf("          sieving took " TIMER_FMT "\n", TIMER_VAL(sieve_time));
@@ -1169,7 +1176,6 @@ test_mul_mod_powb(void)
 #define C 8
 #define D (A+B)
 	mp_digit a[A], b[B], c[C], d[D];
-	int i;
 
 	mp_rand(a,A);
 	mp_rand(b,B);
@@ -1178,7 +1184,7 @@ test_mul_mod_powb(void)
 	mp_mul_mod_powb(a,A,b,B,c,C);
 	mp_mul(a,A,b,B,d);
 
-	for (i=0; i<C; i++)
+	for (int i=0; i<C; i++)
 		if (c[i] != d[i])
 			printf("wrong at %u\n", i);
 	printf("C="), mp_print_hex(c,C), printf("\n");
@@ -1684,13 +1690,13 @@ time_binomial()
 	mpi_init(binomial);
 
 	timer_val total_time = 0;
+	timer_val timer = hrtimer();
 	for (int n = 1; n <= N; ++n) {
 		for (int k = 0; k <= n; ++k) {
-			timer_val timer = hrtimer();
 			mpi_binomial(n, k, binomial);
-			total_time += hrtimer() - timer;
 		}
 	}
+	total_time += hrtimer() - timer;
 	printf("%u Binomial time: " TIMER_FMT "\n", N, TIMER_VAL(total_time));
 	mpi_free(binomial);
 #undef N
