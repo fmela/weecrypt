@@ -43,6 +43,7 @@ void test_mp_div();
 void test_mp_lshift();
 void test_mp_rshift();
 void test_mp_sieve();
+void test_mp_gcd_bug();
 
 CU_TestInfo mp_basic_tests[] = {
 	TEST_FUNC(test_mp_add_n),
@@ -53,6 +54,7 @@ CU_TestInfo mp_basic_tests[] = {
 	TEST_FUNC(test_mp_lshift),
 	TEST_FUNC(test_mp_rshift),
 	TEST_FUNC(test_mp_sieve),
+	TEST_FUNC(test_mp_gcd_bug),
 	CU_TEST_INFO_NULL
 };
 
@@ -973,6 +975,30 @@ void test_mpi_binomial()
 		"774912091734170718784350784");
 
 	mpi_free(u);
+}
+
+void test_mp_gcd_bug()
+{
+	mp_size usize;
+	mp_digit *u = mp_from_str("1212649829976295580876071451640", 10, &usize);
+	CU_ASSERT_PTR_NOT_NULL(u);
+	CU_ASSERT(usize > 0);
+
+	mp_size vsize;
+	mp_digit *v = mp_from_str( "739557989059675857117084097688", 10, &vsize);
+	CU_ASSERT_PTR_NOT_NULL(v);
+	CU_ASSERT(vsize > 0);
+
+	mp_size gsize = MIN(usize, vsize);
+	mp_digit *g = mp_new(gsize);
+	mp_gcd(u, usize, v, vsize, g);
+	MP_NORMALIZE(g, gsize);
+	CU_ASSERT_EQUAL(gsize, 1);
+	CU_ASSERT_EQUAL(g[0], 8);
+
+	mp_free(u);
+	mp_free(v);
+	mp_free(g);
 }
 
 void test_base64_encode()
