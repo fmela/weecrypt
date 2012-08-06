@@ -72,7 +72,7 @@ $(BUILDIR)/%.So: src/%.c
 	$(CC) $(CFLAGS) $(PIC) -c $(<) -o $(@)
 
 $(BUILDIR)/unit_tests: unit_tests.c $(ST_LIB)
-	$(CC) $(CFLAGS) -I/opt/local/include -L/opt/local/lib -lcunit -lncurses -o $(@) $(<) $(ST_LIB)
+	$(CC) $(CFLAGS) -I/opt/local/include -L/opt/local/lib -o $(@) $(<) $(ST_LIB) -lncurses -lcunit
 
 $(BUILDIR)/%: %.c $(ST_LIB)
 	$(CC) $(CFLAGS) -o $(@) $(<) $(ST_LIB)
