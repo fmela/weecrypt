@@ -10,11 +10,10 @@
 
 #include "mpi.h"
 
-typedef struct mpq {
+typedef struct {
 	mpi_t		num;	/* Numerator */
 	mpi_t		den;	/* Denominator */
-} mpq;
-typedef struct mpq mpq_t[1];
+} mpq, mpq_t[1];
 
 #define	mpq_num(q)	((q)->num)
 #define mpq_den(q)	((q)->den)
