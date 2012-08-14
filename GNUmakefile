@@ -28,9 +28,9 @@ CFLAGS=-Wall -Wextra -Werror -Wshadow -std=c99 $(COPTS) $(ARCH) -Iinclude
 PIC=-DPIC -fPIC
 PROF=-pg
 
-PREFIX?=/usr/local
-INCDIR=$(PREFIX)/include
-LIBDIR=$(PREFIX)/lib
+CUNIT_PREFIX=$(HOME)/homebrew
+
+INSTALL_PREFIX?=/usr/local
 INSTALL=install
 
 TEST_SRC=$(wildcard *.c)
@@ -39,10 +39,10 @@ TEST_BIN=$(TEST_SRC:%.c=$(BUILDIR)/%)
 all: $(ST_LIB) $(TEST_BIN)
 
 install: $(ST_LIB) $(SH_LIB)
-	$(INSTALL) -o 0 -g 0 -m 644 *.h $(INCDIR)
-	$(INSTALL) -o 0 -g 0 -m 755 $(ST_LIB) $(LIBDIR)
-	$(INSTALL) -o 0 -g 0 -m 755 $(SH_LIB) $(LIBDIR)
-	strip --strip-debug $(LIBDIR)/$(SH_LIB) $(LIBDIR)/$(ST_LIB)
+	$(INSTALL) -o 0 -g 0 -m 644 *.h $(INSTALL_PREFIX)/include
+	$(INSTALL) -o 0 -g 0 -m 755 $(ST_LIB) $(INSTALL_PREFIX)/lib
+	$(INSTALL) -o 0 -g 0 -m 755 $(SH_LIB) $(INSTALL_PREFIX)/lib
+	strip --strip-debug $(INSTALL_PREFIX)/lib/$(SH_LIB) $(INSTALL_PREFIX)/lib/$(ST_LIB)
 
 $(ST_LIB): $(ST_OBJ)
 	ar cru $(@) $(ST_OBJ)
@@ -72,7 +72,7 @@ $(BUILDIR)/%.So: src/%.c
 	$(CC) $(CFLAGS) $(PIC) -c $(<) -o $(@)
 
 $(BUILDIR)/unit_tests: unit_tests.c $(ST_LIB)
-	$(CC) $(CFLAGS) -I/opt/local/include -L/opt/local/lib -o $(@) $(<) $(ST_LIB) -lncurses -lcunit
+	$(CC) $(CFLAGS) -I$(CUNIT_PREFIX)/include -L$(CUNIT_PREFIX)/lib -o $(@) $(<) $(ST_LIB) -lncurses -lcunit
 
 $(BUILDIR)/%: %.c $(ST_LIB)
 	$(CC) $(CFLAGS) -o $(@) $(<) $(ST_LIB)
