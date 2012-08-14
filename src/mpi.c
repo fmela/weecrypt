@@ -643,15 +643,22 @@ mpi_mul_u32(const mpi *a, uint32_t b, mpi *p)
 		mpi_lshift(a, __builtin_ctz(b), p);
 		return;
 	} else if (b == (mp_digit)b) {	/* B fits in an mp_digit */
-		if (a != p)
-			MPI_MIN_ALLOC(p, a->size);
-		mp_digit cy = mp_dmul(a->digits, a->size, (mp_digit)b, p->digits);
-		if (cy) {
-			MPI_MIN_ALLOC(p, a->size + 1);
-			p->digits[a->size] = cy;
-			p->size = a->size + 1;
+		if (a == p) {
+			mp_digit cy = mp_dmuli(p->digits, p->size, (mp_digit)b);
+			if (cy) {
+				MPI_MIN_ALLOC(p, p->size + 1);
+				p->digits[p->size++] = cy;
+			}
 		} else {
-			p->size = a->size;
+			MPI_MIN_ALLOC(p, a->size);
+			mp_digit cy = mp_dmul(a->digits, a->size, (mp_digit)b, p->digits);
+			if (cy) {
+				MPI_MIN_ALLOC(p, a->size + 1);
+				p->digits[a->size] = cy;
+				p->size = a->size + 1;
+			} else {
+				p->size = a->size;
+			}
 		}
 	} else {
 		unsigned bits = CHAR_BIT * sizeof(uint32_t) - __builtin_clz(b);
@@ -710,15 +717,22 @@ mpi_mul_u64(const mpi *a, uint64_t b, mpi *p)
 		mpi_lshift(a, __builtin_ctzll(b), p);
 		return;
 	} else if (b == (mp_digit)b) {	/* B fits in an mp_digit */
-		if (a != p)
-			MPI_MIN_ALLOC(p, a->size);
-		mp_digit cy = mp_dmul(a->digits, a->size, (mp_digit)b, p->digits);
-		if (cy) {
-			MPI_MIN_ALLOC(p, a->size + 1);
-			p->digits[a->size] = cy;
-			p->size = a->size + 1;
+		if (a == p) {
+			mp_digit cy = mp_dmuli(p->digits, p->size, (mp_digit)b);
+			if (cy) {
+				MPI_MIN_ALLOC(p, p->size + 1);
+				p->digits[p->size++] = cy;
+			}
 		} else {
-			p->size = a->size;
+			MPI_MIN_ALLOC(p, a->size);
+			mp_digit cy = mp_dmul(a->digits, a->size, (mp_digit)b, p->digits);
+			if (cy) {
+				MPI_MIN_ALLOC(p, a->size + 1);
+				p->digits[a->size] = cy;
+				p->size = a->size + 1;
+			} else {
+				p->size = a->size;
+			}
 		}
 	} else {
 		unsigned bits = CHAR_BIT * sizeof(uint64_t) - __builtin_clzll(b);
