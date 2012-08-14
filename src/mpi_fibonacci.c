@@ -32,9 +32,6 @@ mpi_fibonacci(uint64_t n, mpi *fib)
 		return;
 	}
 
-	/* Set K to highest set bit. */
-	uint64_t k = ((uint64_t)1) << (63 - __builtin_clzll(n));
-
 	mpi *a1 = fib;					/* Use output param fib as a1 */
 
 	mpi_t a0, tmp, a;
@@ -43,7 +40,8 @@ mpi_fibonacci(uint64_t n, mpi *fib)
 	mpi_init(tmp);					/* tmp = 0 */
 	mpi_init(a);
 
-	while (k >>= 1) {
+	/* Start at second-highest bit set. */
+	for (uint64_t k = ((uint64_t)1) << (62 - __builtin_clzll(n)); k; k >>= 1) {
 #if 1
 		mpi_lshift(a0, 1, a);       /* a03 = a0 * 2 */
 		mpi_add(a, a1, a);          /*   ... + a1 */
