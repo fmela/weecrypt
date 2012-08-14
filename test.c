@@ -1687,7 +1687,7 @@ time_fibonacci()
 {
 	printf("--> %s\n", __PRETTY_FUNCTION__);
 
-#define N 20000
+#define N 40000
 	mpi_t fibonacci;
 	mpi_init(fibonacci);
 
