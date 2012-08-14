@@ -117,8 +117,7 @@ mp_divrem(const mp_digit *u, mp_size usize,
 	/* Find number of leading zero bits in most significant digit of V. */
 	unsigned scale = mp_digit_msb_shift(v[vsize - 1]);
 	/* Allocate space for U << SCALE. */
-	mp_digit *utmp;
-	MP_TMP_ALLOC(utmp, usize + 1);
+	mp_digit *utmp = MP_TMP_ALLOC(usize + 1);
 	mp_copy(u, usize, utmp);
 	if (scale == 0) {
 		/* Divisor already normalized. */

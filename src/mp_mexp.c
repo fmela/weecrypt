@@ -115,9 +115,8 @@ mon_exp_2k(const mp_digit *u, mp_size usize,
 
 	/* Compute u*r mod m */
 	const mp_size tmp_size = msize + MAX(usize, msize);
-	mp_digit *tmp, *tmp2;
-	MP_TMP_ALLOC(tmp, tmp_size);
-	tmp2 = tmp + msize;
+	mp_digit *tmp = MP_TMP_ALLOC(tmp_size);
+	mp_digit *tmp2 = tmp + msize;
 	mp_zero(tmp, msize);
 	mp_copy(u, usize, tmp2);
 	mp_modi(tmp, usize + msize, m, msize);
@@ -135,17 +134,17 @@ mon_exp_2k(const mp_digit *u, mp_size usize,
 	mp_digit m0_inv = -mp_digit_invert(m[0]);
 
 	mp_digit *up[MAX_NK] = { NULL };
-	MP_TMP_COPY(up[1], w, msize);
+	up[1] = MP_TMP_COPY(w, msize);
 
 	mp_sqr(up[1], msize, tmp);
 	redc(tmp, m, m0_inv, msize);
-	MP_TMP_COPY(up[2], tmp2, msize);
+	up[2] = MP_TMP_COPY(tmp2, msize);
 
 	/* Precompute U^3 mod M, U^5 mod M, ... U^(2^K-1) mod M */
 	for (unsigned j = 3; j < nk; j += 2) {
 		mp_mul_n(up[2], up[j-2], msize, tmp);
 		redc(tmp, m, m0_inv, msize);
-		MP_TMP_COPY(up[j], tmp2, msize);
+		up[j] = MP_TMP_COPY(tmp2, msize);
 	}
 
 	unsigned t = b % k;
@@ -233,9 +232,6 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 		   const mp_digit *p, mp_size psize,
 		   const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	mp_digit mask, *tmp, *up[MAX_NK] = { NULL };
-	unsigned a, j, t, k, nk, b;
-
 	ASSERT(usize != 0);
 	ASSERT(u[usize - 1] != 0);
 	ASSERT(psize != 0);
@@ -249,45 +245,47 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 		return;
 
 	/* Choose suitable value of K */
-	b = mp_significant_bits(p, psize) - 1;
-	for (k = MAX_K; k >= 2; k--) {
+	unsigned b = mp_significant_bits(p, psize) - 1;
+	unsigned k = MAX_K;
+	for (; k >= 2; k--) {
 		if (((k - 1) * (k << ((k - 1) << 1)) / ((1 << k) - k - 1)) < b)
 			break;
 	}
-	nk = 1U << k;
+	const unsigned nk = 1U << k;
 
-	MP_TMP_COPY(up[1], w, msize);
+	mp_digit *up[MAX_NK] = { NULL };
+	up[1] = MP_TMP_COPY(w, msize);
 
-	MP_TMP_ALLOC(tmp, msize * 2);
+	mp_digit *tmp = MP_TMP_ALLOC(msize * 2);
 	mp_sqr(up[1], msize, tmp);
 #ifdef MODI
 	mp_modi(tmp, msize * 2, m, msize);
-	MP_TMP_COPY(up[2], tmp, msize);
+	up[2] = MP_TMP_COPY(tmp, msize);
 #else
-	MP_TMP_ALLOC(up[2], msize);
+	up[2] = MP_TMP_ALLOC(msize);
 	mp_mod(tmp, msize * 2, m, msize, up[2]);
 #endif
 
 	/* Precompute U^3 mod M, U^5 mod M, ... U^(2^K-1) mod M */
-	for (j = 3; j < nk; j += 2) {
+	for (unsigned j = 3; j < nk; j += 2) {
 		mp_mul_n(up[2], up[j-2], msize, tmp);
 #ifdef MODI
 		mp_modi(tmp, msize * 2, m, msize);
-		MP_TMP_COPY(up[j], tmp, msize);
+		up[j] = MP_TMP_COPY(tmp, msize);
 #else
-		MP_TMP_ALLOC(up[j], msize);
+		up[j] = MP_TMP_ALLOC(msize);
 		mp_mod(tmp, msize * 2, m, msize, up[j]);
 #endif
 	}
 
 	b += 1;	/* still holds number of significant bits */
-	if ((t = b % k) != 0)
-		b += k - t;
+	if (b % k)
+		b += k - (b % k);
 	ASSERT(b % k == 0);
 
-	a = 0;
-	mask = (mp_digit)1 << (b % MP_DIGIT_BITS);
-	for (j = k; j != 0; j--) {
+	unsigned a = 0;
+	mp_digit mask = (mp_digit)1 << (b % MP_DIGIT_BITS);
+	for (unsigned j = k; j != 0; j--) {
 		ASSERT(b != 0);
 		b -= 1;
 		if ((mask >>= 1) == 0)
@@ -299,10 +297,10 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 			a |= 1;
 	}
 	ASSERT(a != 0);
-	t = pow2tab[a];
+	unsigned t = pow2tab[a];
 	a = odd_tab[a];
 	mp_copy(up[a], msize, w);
-	for (j = t; j != 0; j--) {
+	for (unsigned j = t; j != 0; j--) {
 		mp_sqr(w, msize, tmp);
 #ifdef MODI
 		mp_modi(tmp, msize * 2, m, msize);
@@ -314,7 +312,7 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 
 	while (b != 0) {
 		a = 0;
-		for (j = k; j != 0; j--) {
+		for (unsigned j = k; j != 0; j--) {
 			ASSERT(b != 0);
 			b -= 1;
 			if ((mask >>= 1) == 0)
@@ -324,7 +322,7 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 				a |= 1;
 		}
 		if (a == 0) {
-			for (j = k; j != 0; j--) {
+			for (unsigned j = k; j != 0; j--) {
 				mp_sqr(w, msize, tmp);
 #ifdef MODI
 				mp_modi(tmp, msize * 2, m, msize);
@@ -336,7 +334,7 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 		} else {
 			t = pow2tab[a];
 			a = odd_tab[a];
-			for (j = k - t; j != 0; j--) {
+			for (unsigned j = k - t; j != 0; j--) {
 				mp_sqr(w, msize, tmp);
 #ifdef MODI
 				mp_modi(tmp, msize * 2, m, msize);
@@ -352,7 +350,7 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 #else
 			mp_mod(tmp, msize * 2, m, msize, w);
 #endif
-			for (j = t; j != 0; j--) {
+			for (unsigned j = t; j != 0; j--) {
 				mp_sqr(w, msize, tmp);
 #ifdef MODI
 				mp_modi(tmp, msize * 2, m, msize);
@@ -366,7 +364,7 @@ mod_exp_2k(const mp_digit *u, mp_size usize,
 
 	MP_TMP_FREE(up[1]);
 	MP_TMP_FREE(up[2]);
-	for (j = 3; j < nk; j += 2)
+	for (unsigned j = 3; j < nk; j += 2)
 		MP_TMP_FREE(up[j]);
 	MP_TMP_FREE(tmp);
 }
@@ -402,9 +400,7 @@ mp_mexp(const mp_digit *u, mp_size usize,
 			return;
 		}
 		if (p[0] == 2) {
-			mp_digit *tmp;
-
-			MP_TMP_ALLOC(tmp, usize * 2);
+			mp_digit *tmp = MP_TMP_ALLOC(usize * 2);
 			mp_sqr(u, usize, tmp);
 			mp_mod(tmp, usize * 2, m, msize, w);
 			MP_TMP_FREE(tmp);
@@ -416,7 +412,7 @@ mp_mexp(const mp_digit *u, mp_size usize,
 	mp_digit m0_inv;
 	if (m[0] & 1) {
 		const mp_size tmp_size = msize + MAX(usize, msize);
-		MP_TMP_ALLOC(tmp, tmp_size);
+		tmp = MP_TMP_ALLOC(tmp_size);
 		tmp2 = tmp + msize;
 
 		mp_zero(tmp, msize);
@@ -425,7 +421,7 @@ mp_mexp(const mp_digit *u, mp_size usize,
 
 		m0_inv = -mp_digit_invert(m[0]);
 	} else {
-		MP_TMP_ALLOC(tmp, msize * 2);
+		tmp = MP_TMP_ALLOC(msize * 2);
 		tmp2 = tmp;
 
 		mp_mod(u, usize, m, msize, w);
@@ -443,7 +439,7 @@ mp_mexp(const mp_digit *u, mp_size usize,
 	unsigned nk = 1U << k;
 
 	mp_digit *up[MAX_NK] = { NULL };
-	MP_TMP_COPY(up[1], w, msize);
+	up[1] = MP_TMP_COPY(w, msize);
 
 #define REDUCE(t) \
 	do { \
@@ -455,12 +451,12 @@ mp_mexp(const mp_digit *u, mp_size usize,
 
 	mp_sqr(up[1], msize, tmp);
 	REDUCE(tmp);
-	MP_TMP_COPY(up[2], tmp2, msize);
+	up[2] = MP_TMP_COPY(tmp2, msize);
 
 	for (unsigned j = 3; j < nk; j += 2) {
 		mp_mul_n(up[2], up[j-2], msize, tmp);
 		REDUCE(tmp);
-		MP_TMP_COPY(up[j], tmp2, msize);
+		up[j] = MP_TMP_COPY(tmp2, msize);
 	}
 
 	unsigned t = b % k;

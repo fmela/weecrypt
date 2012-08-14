@@ -40,8 +40,7 @@ mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 	--*(mp_digit *)n; /* Can't underflow: N odd. */
 	const unsigned odd_shift = mp_odd_shift(n, nsize);
 	const mp_size qsize = nsize - odd_shift / MP_DIGIT_BITS;
-	mp_digit *q;
-	MP_TMP_ALLOC(q, qsize);
+	mp_digit *q = MP_TMP_ALLOC(qsize);
 	if (odd_shift % MP_DIGIT_BITS) {
 		ASSERT(mp_rshift(n + odd_shift / MP_DIGIT_BITS, qsize,
 						 odd_shift % MP_DIGIT_BITS, q) == 0);
@@ -50,8 +49,7 @@ mp_composite(const mp_digit *n, mp_size nsize, unsigned rounds)
 	}
 	++*(mp_digit *)n;
 
-	mp_digit *y;
-	MP_TMP_ALLOC(y, nsize * 3); /* x will store y^2 */
+	mp_digit *y = MP_TMP_ALLOC(nsize * 3); /* x will store y^2 */
 	mp_digit *x = y + nsize;
 	for (unsigned r = 0; r < rounds; r++) {
 		/* Generate X so 1 < X < N */

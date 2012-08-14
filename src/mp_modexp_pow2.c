@@ -81,8 +81,7 @@ mp_modexp_pow2_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 	}
 
 	if (exponent == 2) {
-		mp_digit *tmp;
-		MP_TMP_ALLOC(tmp, usize * 2);
+		mp_digit *tmp = MP_TMP_ALLOC(usize * 2);
 		mp_sqr(u, usize, tmp);
 		mp_modi(tmp, usize * 2, m, msize);
 		mp_copy(tmp, msize, w);
@@ -99,19 +98,18 @@ mp_modexp_pow2_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 	unsigned nk = 1U << k;
 
 	mp_digit *up[MAX_NK] = { 0 };
-	MP_TMP_COPY(up[1], w, msize);
+	up[1] = MP_TMP_COPY(w, msize);
 
-	mp_digit *tmp;
-	MP_TMP_ALLOC(tmp, msize * 2);
+	mp_digit *tmp = MP_TMP_ALLOC(msize * 2);
 	mp_sqr(up[1], msize, tmp);
 	mp_modi(tmp, msize * 2, m, msize);
-	MP_TMP_COPY(up[2], tmp, msize);
+	up[2] = MP_TMP_COPY(tmp, msize);
 
 	/* Precompute U^3 mod M, U^5 mod M, ... U^(2^K-1) mod M */
 	for (unsigned j = 3; j < nk; j += 2) {
 		mp_mul_n(up[2], up[j-2], msize, tmp);
 		mp_modi(tmp, msize * 2, m, msize);
-		MP_TMP_COPY(up[j], tmp, msize);
+		up[j] = MP_TMP_COPY(tmp, msize);
 	}
 
 	uint64_t a = exponent;
@@ -197,8 +195,7 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 			return;
 		}
 		if (p[0] == 2) {
-			mp_digit *tmp;
-			MP_TMP_ALLOC(tmp, usize * 2);
+			mp_digit *tmp = MP_TMP_ALLOC(usize * 2);
 			mp_sqr(u, usize, tmp);
 			mp_modi(tmp, usize * 2, m, msize);
 			mp_copy(tmp, msize, w);
@@ -222,18 +219,17 @@ mp_modexp_pow2(const mp_digit *u, mp_size usize,
 	unsigned nk = 1U << k;
 
 	mp_digit *up[MAX_NK] = { 0 };
-	MP_TMP_COPY(up[1], w, msize);
+	up[1] = MP_TMP_COPY(w, msize);
 
-	mp_digit *tmp;
-	MP_TMP_ALLOC(tmp, msize * 2);
+	mp_digit *tmp = MP_TMP_ALLOC(msize * 2);
 	mp_sqr(up[1], msize, tmp);
 	mp_modi(tmp, msize * 2, m, msize);
-	MP_TMP_COPY(up[2], tmp, msize);
+	up[2] = MP_TMP_COPY(tmp, msize);
 
 	/* Precompute U^3 mod M, U^5 mod M, ... U^(2^K-1) mod M */
 	for (unsigned j = 3; j < nk; j += 2) {
 		mp_mul_n(up[2], up[j-2], msize, tmp);
-		MP_TMP_ALLOC(up[j], msize);
+		up[j] = MP_TMP_ALLOC(msize);
 		mp_mod(tmp, msize * 2, m, msize, up[j]);
 	}
 

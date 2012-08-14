@@ -93,8 +93,7 @@ mp_gcd(const mp_digit *u, mp_size usize,
 	while (v[0] == 0)
 		++v, --vsize;
 
-	mp_digit *tmp;
-	MP_TMP_ALLOC(tmp, usize + vsize);
+	mp_digit *tmp = MP_TMP_ALLOC(usize + vsize);
 	mp_digit *utmp = tmp;
 	mp_digit *vtmp = tmp + usize;
 
@@ -171,8 +170,7 @@ mp_coprime(const mp_digit *u, mp_size usize,
 		return false;
 
 	mp_size tsize = MIN(usize, vsize);
-	mp_digit *tmp;
-	MP_TMP_ALLOC(tmp, tsize);
+	mp_digit *tmp = MP_TMP_ALLOC(tsize);
 	mp_gcd(u, usize, v, vsize, tmp);
 	bool gcd_is_one = mp_is_one(tmp, tsize);
 	MP_TMP_FREE(tmp);

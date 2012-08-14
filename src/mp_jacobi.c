@@ -34,9 +34,9 @@ mp_jacobi(const mp_digit *a, mp_size asize,
 		return 0;
 
 	/* Allocate temporaries. */
-	MP_TMP_COPY(atmp, a, asize);
-	MP_TMP_COPY(ptmp, p, psize);
-	MP_TMP_ALLOC(mtmp, asize);
+	atmp = MP_TMP_COPY(a, asize);
+	ptmp = MP_TMP_COPY(p, psize);
+	mtmp = MP_TMP_ALLOC(asize);
 
 	a = NULL; p = NULL;
 

@@ -34,12 +34,12 @@ mp_lehmer(const mp_digit *u, mp_size usize,
 		SWAP(usize, vsize, mp_size);
 	}
 
-	MP_TMP_ALLOC(utmp, usize + 1);
+	utmp = MP_TMP_ALLOC(usize + 1);
 	mp_copy(u, usize, utmp);
 	utmp[usize] = 0;
 	u = NULL;
 
-	MP_TMP_ALLOC(vtmp, vsize + 1);
+	vtmp = MP_TMP_ALLOC(vsize + 1);
 	mp_copy(v, vsize, vtmp);
 	vtmp[vsize] = 0;
 	v = NULL;
@@ -164,7 +164,7 @@ mp_lehmer(const mp_digit *u, mp_size usize,
 			printf("Doing multiprecision step #2\n");
 
 			if (t == NULL)
-				MP_TMP_ALLOC(t, usize + 1);
+				t = MP_TMP_ALLOC(usize + 1);
 			t[usize] = mp_dmul(utmp, usize, A, t);
 			cy = mp_dmul_add(vtmp, vsize, B, t);
 			if (cy)
@@ -172,7 +172,7 @@ mp_lehmer(const mp_digit *u, mp_size usize,
 			ASSERT(cy == 0);
 
 			if (w == NULL)
-				MP_TMP_ALLOC(w, usize + 1);
+				w = MP_TMP_ALLOC(usize + 1);
 			w[usize] = mp_dmul(utmp, usize, C, w);
 			cy = mp_dmul_add(vtmp, vsize, D, w);
 			if (cy)

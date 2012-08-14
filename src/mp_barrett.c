@@ -15,8 +15,6 @@ static void barrett_reduce(const mp_digit *x,
 void
 mp_barrett_ctx_init(mp_barrett_ctx *ctx, const mp_digit *m, mp_size msize)
 {
-	mp_digit *s;
-
 	ASSERT(ctx != NULL);
 	ASSERT(ctx->m == NULL);
 	ASSERT(ctx->mu == NULL);
@@ -25,7 +23,7 @@ mp_barrett_ctx_init(mp_barrett_ctx *ctx, const mp_digit *m, mp_size msize)
 	MP_NORMALIZE(m, msize);
 	ASSERT(msize != 0);
 
-	MP_TMP_ALLOC0(s, msize * 2 + 1);
+	mp_digit *s = MP_TMP_ALLOC0(msize * 2 + 1);
 	s[msize * 2] = 1;
 
 	ctx->m = m;
@@ -93,7 +91,7 @@ mp_barrett(const mp_digit *u, mp_size usize,
 		}
 		if (p[0] == 2) {
 			tsize = usize * 2;
-			MP_TMP_ALLOC(t, tsize);
+			t = MP_TMP_ALLOC(tsize);
 			mp_sqr(u, usize, t);
 			mp_mod(t, tsize, m, msize, w);
 			MP_TMP_FREE(t);
@@ -110,7 +108,7 @@ mp_barrett(const mp_digit *u, mp_size usize,
 	}
 
 	tsize = msize * 2;
-	MP_TMP_ALLOC(t, tsize + umod_size);
+	t = MP_TMP_ALLOC(tsize + umod_size);
 	umod = t + tsize;
 	mp_copy(w, umod_size, umod);
 
@@ -180,7 +178,7 @@ mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 
 	if (exponent == 2) {
 		tsize = usize * 2;
-		MP_TMP_ALLOC(t, tsize);
+		t = MP_TMP_ALLOC(tsize);
 		mp_sqr(u, usize, t);
 		mp_mod(t, tsize, m, msize, w);
 		MP_TMP_FREE(t);
@@ -198,11 +196,11 @@ mp_barrett_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 	/* With exponent of the form 2^K, we never have to multiply by U mod M. */
 	tsize = msize * 2;
 	if (exponent & (exponent - 1)) {
-		MP_TMP_ALLOC(t, tsize + umod_size);
+		t = MP_TMP_ALLOC(tsize + umod_size);
 		umod = t + tsize;
 		mp_copy(w, umod_size, umod);
 	} else {
-		MP_TMP_ALLOC(t, tsize);
+		t = MP_TMP_ALLOC(tsize);
 		umod = NULL;
 	}
 
@@ -243,8 +241,7 @@ barrett_reduce(const mp_digit *x, const mp_barrett_ctx *ctx, mp_digit *r)
 	/* q1 = x / b^(k-1); k + 1 digits */
 	const mp_digit *q1 = &x[k - 1];
 	/* q2 = q1 * mu */
-	mp_digit *q2;
-	MP_TMP_ALLOC(q2, 2 * (k + 1));
+	mp_digit *q2 = MP_TMP_ALLOC(2 * (k + 1));
 	mp_mul_n(q1, ctx->mu, k + 1, q2);
 	/* q3 = q2 / b^(k+1); k + 1 digits */
 	mp_digit *q3 = &q2[k + 1];

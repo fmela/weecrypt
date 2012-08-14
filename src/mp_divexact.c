@@ -47,13 +47,13 @@ mp_divexact(const mp_digit *u, mp_size usize,
 
 	mp_digit *utmp = NULL, *dtmp = NULL;
 	if (ds) {
-		MP_TMP_ALLOC(utmp, usize);
+		utmp = MP_TMP_ALLOC(usize);
 		ASSERT(mp_rshift(u, usize, ds, utmp) == 0);
-		MP_TMP_ALLOC(dtmp, dsize);
+		dtmp = MP_TMP_ALLOC(dsize);
 		ASSERT(mp_rshift(d, dsize, ds, dtmp) == 0);
 		d = dtmp;
 	} else {
-		MP_TMP_COPY(utmp, u, usize);
+		utmp = MP_TMP_COPY(u, usize);
 	}
 
 	ASSERT((d[0] & 1) == 1);

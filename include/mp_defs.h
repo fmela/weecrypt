@@ -92,29 +92,22 @@
 # ifdef __linux__
 #  include <alloca.h>
 # endif
-# define MP_PTR_ALLOC(p,size)	(p) = alloca(size)
-# define MP_PTR_FREE(p)			(void)0
-# define MP_TMP_ALLOC(n,size)	(n) = alloca((size) * MP_DIGIT_SIZE)
-# define MP_TMP_FREE(tmp)		(void)0
+# define MP_PTR_ALLOC(size)		alloca(size)
+# define MP_PTR_FREE(ptr)		(void)(ptr)
+# define MP_TMP_ALLOC(size)		alloca((size) * MP_DIGIT_SIZE)
+# define MP_TMP_FREE(num)		(void)(num)
 #else
 # include "weecrypt_memory.h"
-# define MP_PTR_ALLOC(p,size)	(p) = weecrypt_xmalloc(size)
+# define MP_PTR_ALLOC(size)		weecrypt_xmalloc(size)
 # define MP_PTR_FREE(p)			weecrypt_xfree(p)
-# define MP_TMP_ALLOC(n,size)	(n) = mp_new(size)
-# define MP_TMP_FREE(n)			mp_free(n)
+# define MP_TMP_ALLOC(size)		mp_new(size)
+# define MP_TMP_FREE(num)		mp_free(num)
 #endif
 
-#define MP_TMP_ALLOC0(n,size) \
-	do { \
-		MP_TMP_ALLOC((n), (size)); \
-		mp_zero((n), (size)); \
-	} while (0)
-
-#define MP_TMP_COPY(n,m,size) \
-	do { \
-		MP_TMP_ALLOC((n), (size)); \
-		mp_copy((m), (size), (n)); \
-	} while (0)
+#define MP_TMP_ALLOC0(size)		memset(MP_TMP_ALLOC(size), 0, \
+									   (size) * MP_DIGIT_SIZE)
+#define MP_TMP_COPY(num,size)	memcpy(MP_TMP_ALLOC(size), (num), \
+									   (size) * MP_DIGIT_SIZE)
 
 void _mp_digit_mul(mp_digit u, mp_digit v, mp_digit *hi, mp_digit *lo);
 void _mp_digit_sqr(mp_digit u, mp_digit *hi, mp_digit *lo);

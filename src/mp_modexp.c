@@ -38,8 +38,7 @@ mp_modexp(const mp_digit *u, mp_size usize,
 			return;
 		}
 		if (p[0] == 2) {
-			mp_digit *tmp;
-			MP_TMP_ALLOC(tmp, usize * 2);
+			mp_digit *tmp = MP_TMP_ALLOC(usize * 2);
 			mp_sqr(u, usize, tmp);
 			mp_mod(tmp, usize * 2, m, msize, w);
 			MP_TMP_FREE(tmp);
@@ -56,8 +55,7 @@ mp_modexp(const mp_digit *u, mp_size usize,
 		return;
 	}
 
-	mp_digit *tmp;
-	MP_TMP_ALLOC(tmp, umsize + (msize * 2));
+	mp_digit *tmp = MP_TMP_ALLOC(umsize + (msize * 2));
 	mp_digit *umod = tmp + (msize * 2);
 	mp_copy(w, umsize, umod);
 
@@ -108,8 +106,7 @@ mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 	}
 
 	if (exponent == 2) {
-		mp_digit *tmp;
-		MP_TMP_ALLOC(tmp, usize * 2);
+		mp_digit *tmp = MP_TMP_ALLOC(usize * 2);
 		mp_sqr(u, usize, tmp);
 		mp_mod(tmp, usize * 2, m, msize, w);
 		MP_TMP_FREE(tmp);
@@ -126,12 +123,12 @@ mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
 
 	mp_digit *tmp, *umod;
 	if (exponent & (exponent - 1)) {
-		MP_TMP_ALLOC(tmp, umsize + (msize * 2));
+		tmp = MP_TMP_ALLOC(umsize + (msize * 2));
 		umod = tmp + (msize * 2);
 		mp_copy(w, umsize, umod);
 	} else {
 		/* If exponent is a power of 2, we never have to multiply by U mod M. */
-		MP_TMP_ALLOC(tmp, msize * 2);
+		tmp = MP_TMP_ALLOC(msize * 2);
 		umod = NULL;
 	}
 

@@ -613,8 +613,7 @@ mpi_mul(const mpi *a, const mpi *b, mpi *c)
 
 	mp_size csize = a->size + b->size;
 	if (a == c || b == c) {
-		mp_digit *prod;
-		MP_TMP_ALLOC(prod, csize);
+		mp_digit *prod = MP_TMP_ALLOC(csize);
 		mp_mul(a->digits, a->size, b->digits, b->size, prod);
 		csize -= (prod[csize - 1] == 0);
 		MPI_SIZE(c, csize);
@@ -657,8 +656,7 @@ mpi_mul_u32(const mpi *a, uint32_t b, mpi *p)
 	} else {
 		unsigned bits = CHAR_BIT * sizeof(uint32_t) - __builtin_clz(b);
 		mp_size size = (bits + MP_DIGIT_BITS - 1) / MP_DIGIT_BITS;
-		mp_digit *bp;
-		MP_TMP_ALLOC(bp, size);
+		mp_digit *bp = MP_TMP_ALLOC(size);
 #if MP_DIGIT_BITS >= 32
 		bp[0] = b;
 #else
@@ -668,9 +666,7 @@ mpi_mul_u32(const mpi *a, uint32_t b, mpi *p)
 		}
 #endif
 		if (a == p) {
-			mp_digit *tmp;
-
-			MP_TMP_ALLOC(tmp, p->size + size);
+			mp_digit *tmp = MP_TMP_ALLOC(p->size + size);
 			mp_mul(p->digits, p->size, bp, size, tmp);
 			MPI_MIN_ALLOC(p, p->size + size);
 			mp_copy(tmp, p->size + size, p->digits);
@@ -727,8 +723,7 @@ mpi_mul_u64(const mpi *a, uint64_t b, mpi *p)
 	} else {
 		unsigned bits = CHAR_BIT * sizeof(uint64_t) - __builtin_clzll(b);
 		mp_size size = (bits + MP_DIGIT_BITS - 1) / MP_DIGIT_BITS;
-		mp_digit *bp;
-		MP_TMP_ALLOC(bp, size);
+		mp_digit *bp = MP_TMP_ALLOC(size);
 #if MP_DIGIT_BITS >= 64
 		bp[0] = b;
 #else
@@ -738,9 +733,7 @@ mpi_mul_u64(const mpi *a, uint64_t b, mpi *p)
 		}
 #endif
 		if (a == p) {
-			mp_digit *tmp;
-
-			MP_TMP_ALLOC(tmp, p->size + size);
+			mp_digit *tmp = MP_TMP_ALLOC(p->size + size);
 			mp_mul(p->digits, p->size, bp, size, tmp);
 			MPI_MIN_ALLOC(p, p->size + size);
 			mp_copy(tmp, p->size + size, p->digits);
@@ -773,17 +766,14 @@ mpi_mul_s64(const mpi *a, int64_t b, mpi *p)
 void
 mpi_sqr(const mpi *a, mpi *b)
 {
-	mp_size bsize;
-	mp_digit *prod;
-
 	if (a->size == 0) {
 		mpi_zero(b);
 		return;
 	}
 
-	bsize = a->size * 2;
+	mp_size bsize = a->size * 2;
 	if (a == b) {
-		MP_TMP_ALLOC(prod, bsize);
+		mp_digit *prod = MP_TMP_ALLOC(bsize);
 		mp_sqr(a->digits, a->size, prod);
 		bsize -= (prod[bsize - 1] == 0);
 		MPI_SIZE(b, bsize);
@@ -852,9 +842,7 @@ mpi_div(const mpi *a, const mpi *b, mpi *q)
 
 	qsize = a->size - b->size + 1;
 	if (a == q || b == q) {
-		mp_digit *quot;
-
-		MP_TMP_ALLOC(quot, qsize);
+		mp_digit *quot = MP_TMP_ALLOC(qsize);
 		mp_div(a->digits, a->size,
 			   b->digits, b->size, quot);
 		qsize -= (quot[qsize - 1] == 0);
@@ -888,9 +876,7 @@ mpi_divexact(const mpi *a, const mpi *b, mpi *q)
 
 	mp_size qsize = a->size - b->size + 1;
 	if (a == q || b == q) {
-		mp_digit *quot;
-
-		MP_TMP_ALLOC(quot, qsize);
+		mp_digit *quot = MP_TMP_ALLOC(qsize);
 		mp_divexact(a->digits, a->size,
 					b->digits, b->size, quot);
 		MP_NORMALIZE(quot, qsize);

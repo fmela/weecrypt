@@ -336,8 +336,7 @@ mp_fprint(const mp_digit *u, mp_size size, unsigned radix, FILE *fp)
 
 	MP_NORMALIZE(u, size);
 	const size_t string_size = mp_string_size(size, radix) + 1;
-	char *str;
-	MP_PTR_ALLOC(str, string_size);
+	char *str = MP_PTR_ALLOC(string_size);
 	char *p = mp_get_str(u, size, radix, str);
 	ASSERT(p != NULL);
 	fputs(p, fp);
@@ -389,8 +388,7 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 
 			ASSERT(shift < MP_DIGIT_BITS);
 
-			mp_digit *tmp;
-			MP_TMP_COPY(tmp, u, size);
+			mp_digit *tmp = MP_TMP_COPY(u, size);
 			mp_size tsize = size;
 
 			do {
@@ -406,8 +404,7 @@ mp_get_str(const mp_digit *u, mp_size size, unsigned radix, char *out)
 			MP_TMP_FREE(tmp);
 		}
 	} else {
-		mp_digit *tmp;
-		MP_TMP_COPY(tmp, u, size);
+		mp_digit *tmp = MP_TMP_COPY(u, size);
 		mp_size tsize = size;
 
 		do {

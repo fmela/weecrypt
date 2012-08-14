@@ -335,13 +335,11 @@ mp_exp(const mp_digit *u, mp_size size, uint64_t exp, mp_digit *v)
 	}
 
 	/* A1. */
-	mp_digit *y;
-	MP_TMP_ALLOC(y, size * exp);
+	mp_digit *y = MP_TMP_ALLOC(size * exp);
 	y[0] = 1;
 	mp_size ysize = 1;
 
-	mp_digit *z;
-	MP_TMP_ALLOC0(z, size * exp);
+	mp_digit *z = MP_TMP_ALLOC0(size * exp);
 	mp_copy(u, size, z);
 	mp_size zsize = size;
 
