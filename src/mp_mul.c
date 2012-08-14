@@ -102,8 +102,7 @@ mp_mul_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 	/* Since we cannot add w[0..even_size-1] to w[half_size ...
 	 * half_size+even_size-1] in place, we have to make a copy of it now. This
 	 * later gets used to store U1-U0 and V0-V1. */
-	mp_digit *tmp;
-	MP_TMP_COPY(tmp, w0, even_size);
+	mp_digit *tmp = MP_TMP_COPY(w0, even_size);
 
 	mp_digit cy;
 	/* w[half_size..half_size+even_size-1] += U1*V1. */
@@ -127,7 +126,7 @@ mp_mul_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 		mp_sub_n(v0, v1, half_size, v_tmp);
 
 	/* tmp = (U1-U0)*(V0-V1). */
-	MP_TMP_ALLOC(tmp, even_size);
+	tmp = MP_TMP_ALLOC(even_size);
 	if (half_size >= KARATSUBA_MUL_THRESHOLD)
 		mp_mul_n(u_tmp, v_tmp, half_size, tmp);
 	else
@@ -196,8 +195,7 @@ mp_mul(const mp_digit *u, mp_size usize,
 	/* Recurse: set w[vsize:vsize+usize-1] = u[vsize:usize-1] * v[0:vsize-1] */
 	mp_mul(u + vsize, usize - vsize, v, vsize, w + vsize);
 	/* Allocate space for temporary product */
-	mp_digit *tmp = NULL;
-	MP_TMP_ALLOC(tmp, vsize * 2);
+	mp_digit *tmp = MP_TMP_ALLOC(tmp, vsize * 2);
 	/* Set tmp = u[0:vsize-1] * v[0:vsize-1] */
 	mp_mul_n(u, v, vsize, tmp);
 	/* Set W[0:vsize-1] = tmp[0:vsize-1] */
@@ -216,7 +214,7 @@ mp_mul(const mp_digit *u, mp_size usize,
 	u += vsize; usize -= vsize;
 	mp_digit *tmp = NULL;
 	if (usize >= vsize) {
-		MP_TMP_ALLOC(tmp, vsize * 2);
+		tmp = MP_TMP_ALLOC(vsize * 2);
 		do {
 			mp_mul_n(u, v, vsize, tmp);
 			ASSERT(mp_addi(w, wsize, tmp, vsize * 2) == 0);
@@ -226,7 +224,7 @@ mp_mul(const mp_digit *u, mp_size usize,
 	}
 	if (usize) {	/* Size of U isn't a multiple of size of V. */
 		if (!tmp)
-			MP_TMP_ALLOC(tmp, usize + vsize);
+			tmp = MP_TMP_ALLOC(usize + vsize);
 		/* Now usize < vsize. Rearrange operands. */
 		if (usize < KARATSUBA_MUL_THRESHOLD)
 			_mp_mul_base(v, vsize, u, usize, tmp);

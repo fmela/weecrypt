@@ -69,8 +69,7 @@ mpq_normalize(mpq *q)
 
 	mp_size gcd_size = MIN(q->num->size, q->den->size);
 	ASSERT(gcd_size > 0);
-	mp_digit *gcd;
-	MP_TMP_ALLOC(gcd, gcd_size);
+	mp_digit *gcd = MP_TMP_ALLOC(gcd_size);
 	mp_gcd(q->num->digits, q->num->size,
 		   q->den->digits, q->den->size, gcd);
 	MP_NORMALIZE(gcd, gcd_size);
@@ -110,7 +109,7 @@ mpq_normalize(mpq *q)
 			q->num->digits[0] = 1;
 		} else {
 			tmp2_size = MAX(q->num->size, q->den->size) - gcd_size + 1;
-			MP_TMP_ALLOC(tmp2, tmp2_size);
+			tmp2 = MP_TMP_ALLOC(tmp2_size);
 
 			mp_divexact(q->num->digits, q->num->size, gcd, gcd_size, tmp2);
 			q->num->size = mp_rsize(tmp2, q->num->size - gcd_size + 1);
@@ -123,7 +122,7 @@ mpq_normalize(mpq *q)
 		} else {
 			if (tmp2 == NULL) {
 				tmp2_size = q->den->size - gcd_size + 1;
-				MP_TMP_ALLOC(tmp2, tmp2_size);
+				tmp2 = MP_TMP_ALLOC(tmp2_size);
 			}
 
 			mp_divexact(q->den->digits, q->den->size, gcd, gcd_size, tmp2);
@@ -327,21 +326,20 @@ mpq_get_f(const mpq *p)
 	mp_digit *frac = NULL;
 	mp_size fsize;
 	if (N-M < 24) {	/* K>0 */
-		mp_digit *tmp = NULL;
 		mp_size tsize = p->num->size + 1 + sd;
-		MP_TMP_ALLOC(tmp, tsize);
+		mp_digit *tmp = MP_TMP_ALLOC(tsize);
 		if (sd != 0)
 			mp_zero(tmp, sd);
 		tmp[tsize - 1] = mp_lshift(p->num->digits, p->num->size, sb, tmp + sd);
 		tsize -= (tmp[tsize - 1] == 0);
 		/* Now we have U*2^(M-N+24). Divide it by V */
 		fsize = tsize - p->den->size + 1;
-		MP_TMP_ALLOC(frac, fsize);
+		frac = MP_TMP_ALLOC(fsize);
 		mp_div(tmp, tsize, p->den->digits, p->den->size, frac);
 		MP_TMP_FREE(tmp);
 	} else { /* N-M ≥ 24, K ≤ 0 */
 		fsize = p->num->size - sd - p->den->size + 1;
-		MP_TMP_ALLOC(frac, fsize);
+		frac = MP_TMP_ALLOC(fsize);
 		mp_div(p->num->digits - sd, p->num->size + sd,
 			   p->den->digits, p->den->size, frac);
 		if (sb != 0)
@@ -468,19 +466,19 @@ mpq_get_d(const mpq *p)
 		mp_size tsize;
 
 		tsize = p->num->size + 1 + sd;
-		MP_TMP_ALLOC(tmp, tsize);
+		tmp = MP_TMP_ALLOC(tsize);
 		if (sd != 0)
 			mp_zero(tmp, sd);
 		tmp[tsize - 1] = mp_lshift(p->num->digits, p->num->size, sb, tmp + sd);
 		tsize -= (tmp[tsize - 1] == 0);
 		/* Now we have U*2^(M-N+53). Divide it by V */
 		fsize = tsize - p->den->size + 1;
-		MP_TMP_ALLOC(frac, fsize);
+		frac = MP_TMP_ALLOC(fsize);
 		mp_div(tmp, tsize, p->den->digits, p->den->size, frac);
 		MP_TMP_FREE(tmp);
 	} else { /* N-M ≥ 53, K ≤ 0 */
 		fsize = p->num->size - sd - p->den->size + 1;
-		MP_TMP_ALLOC(frac, fsize);
+		frac = MP_TMP_ALLOC(fsize);
 		mp_div(p->num->digits + sd, p->num->size - sd,
 			   p->den->digits, p->den->size, frac);
 		if (sb != 0)
@@ -744,8 +742,7 @@ mpq_add(const mpq *u, const mpq *v, mpq *w)
 			 * Let U = u/u' and V = v/v'
 			 * Let d_1 = gcd(u', v') */
 			mp_size d_size = MIN(u->den->size, v->den->size);
-			mp_digit *d;
-			MP_TMP_ALLOC(d, d_size);
+			mp_digit *d = MP_TMP_ALLOC(d_size);
 			mp_gcd(u->den->digits, u->den->size,
 				   v->den->digits, v->den->size, d);
 			MP_NORMALIZE(d, d_size);
@@ -834,8 +831,7 @@ mpq_sub(const mpq *u, const mpq *v, mpq *w)
 			 * Let U = u/u' and V = v/v'
 			 * Let d_1 = gcd(u',v') */
 			mp_size d_size = MIN(u->den->size, v->den->size);
-			mp_digit *d;
-			MP_TMP_ALLOC(d, d_size);
+			mp_digit *d = MP_TMP_ALLOC(d_size);
 			mp_gcd(u->den->digits, u->den->size,
 				   v->den->digits, v->den->size, d);
 			MP_NORMALIZE(d, d_size);
@@ -1112,9 +1108,6 @@ mpq_invert(mpq *q)
 int
 mpq_cmp(const mpq *p, const mpq *q)
 {
-	mp_digit *t1, *t2;
-	mp_size t1size, t2size;
-
 	if (p->num->sign != q->num->sign)
 		return p->num->sign ? -1 : +1;
 
@@ -1129,10 +1122,10 @@ mpq_cmp(const mpq *p, const mpq *q)
 
 	/* Ok so we can't tell just by looking at size of numbers.
 	 * We want to compare A/B to C/D, so compute A*D and B*C and compare. */
-	t1size = p->num->size + q->den->size;
-	t2size = p->den->size + q->num->size;
-	MP_TMP_ALLOC(t1, t1size + t2size);
-	t2 = t1 + t1size;
+	const mp_size t1size = p->num->size + q->den->size;
+	const mp_size t2size = p->den->size + q->num->size;
+	mp_digit *t1 = MP_TMP_ALLOC(t1size + t2size);
+	mp_digit *t2 = t1 + t1size;
 	mp_mul(p->num->digits, p->num->size, q->den->digits, q->den->size, t1);
 	mp_mul(p->den->digits, p->den->size, q->num->digits, q->num->size, t2);
 	int cmp = mp_cmp(t1, t1size, t2, t2size);

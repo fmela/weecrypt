@@ -74,8 +74,7 @@ mp_perfsqr(const mp_digit *u, mp_size usize)
 	/* Previous fast tests filter out 709/715 = ~99.16% of numbers.  If that
 	 * didn't work, calculate square root and remainder. U is perfect square
 	 * iff remainder is zero. */
-	mp_digit *rem;
-	MP_TMP_ALLOC(rem, usize);
+	mp_digit *rem = MP_TMP_ALLOC(usize);
 	mp_sqrtrem(u, usize, NULL, rem);
 	bool is_perfect_square = (mp_rsize(rem, usize) == 0);
 	MP_TMP_FREE(rem);

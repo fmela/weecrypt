@@ -53,10 +53,9 @@ mp_sqrtrem(const mp_digit *u, mp_size usize, mp_digit *v, mp_digit *r)
 
 	/* FIXME: This is very "generous" in terms of amount of space allocated for
 	 * X and Y. Come up with something better? */
-	mp_digit *x, *y;
 	mp_size xsize = usize, ysize = usize;
-	MP_TMP_ALLOC0(x, xsize + ysize);
-	y = x + xsize;
+	mp_digit *x = MP_TMP_ALLOC0(xsize + ysize);
+	mp_digit *y = x + xsize;
 	mp_setbit(x, xsize, (mp_significant_bits(u, usize) / 2) + 1);
 	mp_size x_len = xsize;
 

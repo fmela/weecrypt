@@ -141,9 +141,8 @@ mp_sqr(const mp_digit *u, mp_size size, mp_digit *v)
 	sqr_fn(u0, half_size, v0);	/* U0^2 => V0 */
 	sqr_fn(u1, half_size, v1);	/* U1^2 => V1 */
 
-	mp_digit *tmp, *tmp2;
-	MP_TMP_ALLOC(tmp, even_size * 2);
-	tmp2 = tmp + even_size;
+	mp_digit *tmp = MP_TMP_ALLOC(even_size * 2);
+	mp_digit *tmp2 = tmp + even_size;
 	/* tmp = w[0..even_size-1] */
 	mp_copy(v0, even_size, tmp);
 	/* v += U1^2 * 2^N */

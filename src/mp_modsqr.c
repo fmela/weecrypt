@@ -12,15 +12,13 @@
 void
 mp_modsqr(const mp_digit *u, const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	mp_digit *tmp;
-
 	ASSERT(u != NULL);
 	ASSERT(m != NULL);
 	ASSERT(msize != 0);
 	ASSERT(m[msize - 1] != 0);
 	ASSERT(w != NULL);
 
-	MP_TMP_ALLOC(tmp, msize * 2);
+	mp_digit *tmp = MP_TMP_ALLOC(msize * 2);
 	mp_sqr(u, msize, tmp);
 	mp_modi(tmp, msize * 2, m, msize);
 	mp_copy(tmp, msize, w);
