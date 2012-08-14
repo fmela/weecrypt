@@ -38,12 +38,12 @@ mpi_fibonacci(uint64_t n, mpi *fib)
 	mpi *a1 = fib;					/* Use output param fib as a1 */
 
 	mpi_t a0, tmp, a03;
-	mpi_init_u32(a0, 1);			/*  a0 = 1 */
-	mpi_set_u32(a1, 0);				/*  a1 = 0 */
+	mpi_init_u32(a0, 0);			/*  a0 = 0 */
+	mpi_set_u32(a1, 1);				/*  a1 = 1 */
 	mpi_init(tmp);					/* tmp = 0 */
 	mpi_init(a03);					/* a03 = 0 */
 
-	do {
+	while (k >>= 1) {
 		mpi_lshift(a0, 1, a03);		/* a03 = a0 * 2 */
 		mpi_add(a03, a1, a03);		/*   ... + a1 */
 		mpi_sqr(a1, tmp);			/* tmp = a1^2 */
@@ -54,7 +54,7 @@ mpi_fibonacci(uint64_t n, mpi *fib)
 			mpi_swap(a1, a0);		/*  a1 <-> a0 */
 			mpi_add(a0, a1, a1);	/*  a1 += a0 */
 		}
-	} while (k >>= 1);
+	}
 
 	/* Now a1 (alias of output parameter fib) = F[n] */
 
