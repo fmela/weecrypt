@@ -20,6 +20,7 @@ typedef double timer_val;
 
 timer_val hrtimer();
 
+void time_fibonacci(void);
 void time_binomial(void);
 void time_gcd(void);
 void test_mpq_acc(void);
@@ -76,6 +77,7 @@ extern void _mp_mul_base(const mp_digit *, mp_size,
 int
 main(void)
 {
+	time_fibonacci();
 	time_gcd();
 	time_binomial();
 //	test_crt();
@@ -1678,6 +1680,26 @@ time_gcd()
 #undef B
 #undef C
 #undef NTRIALS
+}
+
+void
+time_fibonacci()
+{
+	printf("--> %s\n", __PRETTY_FUNCTION__);
+
+#define N 20000
+	mpi_t fibonacci;
+	mpi_init(fibonacci);
+
+	timer_val total_time = 0;
+	timer_val timer = hrtimer();
+	for (uint64_t n = 1; n <= N; ++n) {
+		mpi_fibonacci(n, fibonacci);
+	}
+	total_time += hrtimer() - timer;
+	printf("%u Fibonacci time: " TIMER_FMT "\n", N, TIMER_VAL(total_time));
+	mpi_free(fibonacci);
+#undef N
 }
 
 void
