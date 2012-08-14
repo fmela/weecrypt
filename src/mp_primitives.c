@@ -15,15 +15,13 @@
 void
 _mp_digit_mul(mp_digit u, mp_digit v, mp_digit *h, mp_digit *l)
 {
-	mp_digit u0, u1;
-	mp_digit v0, v1;
-	mp_digit hi, lo;
+	mp_digit u1 = HIHALF(u);
+	mp_digit u0 = LOHALF(u);
+	mp_digit v1 = HIHALF(v);
+	mp_digit v0 = LOHALF(v);
 
-	u1 = HIHALF(u); u0 = LOHALF(u);
-	v1 = HIHALF(v); v0 = LOHALF(v);
-
-	lo = u0 * v0;
-	hi = u1 * v1;
+	mp_digit lo = u0 * v0;
+	mp_digit hi = u1 * v1;
 
 	u1 *= v0; v0 = u1 << MP_DIGIT_HSHIFT; u1 >>= MP_DIGIT_HSHIFT;
 	hi += u1 + ((lo += v0) < v0);
@@ -38,13 +36,11 @@ _mp_digit_mul(mp_digit u, mp_digit v, mp_digit *h, mp_digit *l)
 void
 _mp_digit_sqr(mp_digit u, mp_digit *h, mp_digit *l)
 {
-	mp_digit u0, u1;
-	mp_digit hi, lo;
+	mp_digit u1 = HIHALF(u);
+	mp_digit u0 = LOHALF(u);
 
-	u1 = HIHALF(u); u0 = LOHALF(u);
-
-	lo = u0 * u0;
-	hi = u1 * u1;
+	mp_digit lo = u0 * u0;
+	mp_digit hi = u1 * u1;
 
 	u1 *= u0; u0 = u1 << (MP_DIGIT_HSHIFT + 1); u1 >>= (MP_DIGIT_HSHIFT - 1);
 	hi += u1 + ((lo += u0) < u0);
