@@ -1,9 +1,5 @@
-/*
- * mpi_fibonacci.c
- * Copyright (C) 2003-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mpi_fibonacci.c
+ * Copyright (C) 2003-2010 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
 #include "mpi_defs.h"
@@ -42,6 +38,7 @@ mpi_fibonacci(uint64_t n, mpi *fib)
 
 	/* Start at second-highest bit set. */
 	for (uint64_t k = ((uint64_t)1) << (62 - __builtin_clzll(n)); k; k >>= 1) {
+		/* Both ways use two squares, two adds, one multipy and one shift. */
 #if 1
 		mpi_lshift(a0, 1, a);       /* a03 = a0 * 2 */
 		mpi_add(a, a1, a);          /*   ... + a1 */
