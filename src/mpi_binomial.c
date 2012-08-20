@@ -1,7 +1,5 @@
-/*
- * mpi_binomial.c
- * Copyright (C) 2012 Farooq Mela. All rights reserved.
- */
+/* mpi_binomial.c
+ * Copyright (C) 2012 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
 #include "mpi_defs.h"
