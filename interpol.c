@@ -51,19 +51,6 @@ main(int argc, char **argv)
 	mpq_t *f = MALLOC(sizeof(*f) * n);
 
 	for (int j = 0; j < n; j++) {
-		/*
-
-		double d = strtod(argv[j+1], &p);
-		if (*p != ':') {
-			fprintf(stderr, "interpol: bad input format\n");
-			exit(1);
-		}
-		mpq_init_d(x[j], d);
-		double td = mpq_get_d(x[j]);
-		if (td != d) {
-			printf("interpol: Warning! Non-exact representation of X=%g: %g\n",
-				   d, td);
-		*/
 		mpq_init(x[j]);
 		char *p = strtompq(argv[j+1], x[j]);
 		if (*p != ':') {
@@ -77,44 +64,17 @@ main(int argc, char **argv)
 				fprintf(stderr, "x[%d]=", j); mpq_print_dec(x[j]); fprintf(stderr, "\n");
 				exit(1);
 			}
-		/*
-		d = strtod(p+1, &p);
-		mpq_init_d(f[j], d);
-		if (*p != '\0') {
-			fprintf(stderr, "interpol: bad input format\n");
-			exit(1);
-		}
-		if ((td = mpq_get_d(f[j])) != d)
-			printf("interpol: Warning! Non-exact representation of F(X)=%g: %g\n",
-				   d, td);
-		*/
 		mpq_init(f[j]);
 		p = strtompq(p+1, f[j]);
 		if (*p != '\0') {
 			fprintf(stderr, "interpol: bad input format\n");
 			exit(1);
 		}
-		/*
-		printf("f[%d]=", j);
-		mpq_print(f[j], 10);
-		printf("\n");
-		*/
+
 		printf("f[");
-
-		if (mpi_is_zero(x[j]->num))
-			printf("0");
-		else if (mpi_is_one(x[j]->den))
-			mpi_print_dec(x[j]->num);
-		else
-			mpq_print_dec(x[j]);
+		mpq_print_dec(x[j]);
 		printf("]=");
-
-		if (mpi_is_zero(f[j]->num))
-			printf("0");
-		else if (mpi_is_one(f[j]->den))
-			mpi_print_dec(f[j]->num);
-		else
-			mpq_print_dec(f[j]);
+		mpq_print_dec(f[j]);
 		printf("\n");
 	}
 
