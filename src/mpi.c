@@ -1,9 +1,5 @@
-/*
- * mpi.c
- * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mpi.c
+ * Copyright (C) 2001-2010 Farooq Mela. All rights reserved. */
 
 #include <stdlib.h>
 #include <math.h>
