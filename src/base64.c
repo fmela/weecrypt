@@ -1,5 +1,5 @@
 /* base64.c
- * Copyright (C) 2000-2010 Farooq Mela. All rights reserved.
+ * Copyright (C) 2000-2012 Farooq Mela. All rights reserved.
  *
  * Routines for base64 encoding and decoding.
  *
@@ -13,8 +13,6 @@
  * appended, then two padding characters are added. If there are two extra
  * bytes, they are encoded and appended, followed by single padding character.
  * The padding character is '='.
- *
- * $Id$
  */
 
 #include "base64.h"
