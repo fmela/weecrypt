@@ -1,9 +1,5 @@
-/*
- * mp_jacobi.c
- * Copyright (C) 2002-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mp_jacobi.c
+ * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
 #include "mp_defs.h"
