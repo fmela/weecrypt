@@ -1,8 +1,5 @@
 /* md2.h
- * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+ * Copyright (C) 2001-2012 Farooq Mela. All rights reserved. */
 
 #ifndef _MD2_H_
 #define _MD2_H_
