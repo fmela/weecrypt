@@ -1,8 +1,5 @@
 /* md2.c
- * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+ * Copyright (C) 2001-2012 Farooq Mela. All rights reserved. */
 
 #include "md2.h"
 
@@ -11,9 +8,9 @@
 #include "mp.h"
 #include "mp_defs.h"
 
-static void md2_step(unsigned char *md2, unsigned char *cksum, const unsigned char *data);
+static void md2_step(uint8_t *md2, uint8_t *cksum, const uint8_t *data);
 
-static const unsigned char pi_table[256] = {
+static const uint8_t pi_table[256] = {
 	0x29, 0x2e, 0x43, 0xc9, 0xa2, 0xd8, 0x7c, 0x01,
 	0x3d, 0x36, 0x54, 0xa1, 0xec, 0xf0, 0x06, 0x13,
 	0x62, 0xa7, 0x05, 0xf3, 0xc0, 0xc7, 0x73, 0x8c,
@@ -81,25 +78,22 @@ md2_init(md2_context *ctx)
 void
 md2_update(md2_context *ctx, const void *input, unsigned len)
 {
-	unsigned		i, idx, plen;
-	const unsigned char	*data = (const unsigned char *)input;
-
 	ASSERT(ctx != NULL);
 	ASSERT(input != NULL);
 	ASSERT(len > 0);
 
-	idx = ctx->len;
+	unsigned idx = ctx->len;
 	ctx->len = (idx + len) & 0xf;
 
-	plen = 16 - idx;
+	const uint8_t *data = input;
+	unsigned plen = 16 - idx;
+	unsigned i = 0;
 	if (len >= plen) {
 		memcpy(&ctx->buf[idx], data, plen);
 		md2_step(ctx->md2, ctx->cksum, ctx->buf);
 		for (i = plen; i + 15 < len; i += 16)
 			md2_step(ctx->md2, ctx->cksum, &data[i]);
 		idx = 0;
-	} else {
-		i = 0;
 	}
 
 	memcpy(&ctx->buf[idx], &data[i], len - i);
@@ -108,13 +102,11 @@ md2_update(md2_context *ctx, const void *input, unsigned len)
 void
 md2_final(md2_context *ctx, void *digest)
 {
-	unsigned	idx, plen;
-
 	ASSERT(ctx != NULL);
 	ASSERT(digest != NULL);
 
-	idx = ctx->len;
-	plen = 16 - idx;
+	unsigned idx = ctx->len;
+	unsigned plen = 16 - idx;
 	md2_update(ctx, MD2_Padding[plen], plen);
 	md2_update(ctx, ctx->cksum, 16);
 	memcpy(digest, ctx->md2, 16);
@@ -124,21 +116,19 @@ md2_final(md2_context *ctx, void *digest)
 static void
 md2_step(unsigned char *md2, unsigned char *cksum, const unsigned char *data)
 {
-	unsigned int	i, j, t;
-	unsigned char	x[48];
-
 	ASSERT(md2 != NULL);
 	ASSERT(cksum != NULL);
 	ASSERT(data != NULL);
 
+	uint8_t x[48];
 	memcpy(x, md2, 16);
 	memcpy(x + 16, data, 16);
-	for (i = 0; i < 16; i++)
+	for (unsigned i = 0; i < 16; ++i)
 		x[i | 32] = md2[i] ^ data[i];
 
-	t = 0;
-	for (i = 0; i < 18; i++) {
-		for (j = 0; j < 48; j++)
+	unsigned t = 0;
+	for (unsigned i = 0; i < 18; ++i) {
+		for (unsigned j = 0; j < 48; ++j)
 			t = x[j] ^= pi_table[t];
 		t += i;
 		t &= 0xff;
@@ -146,7 +136,7 @@ md2_step(unsigned char *md2, unsigned char *cksum, const unsigned char *data)
 
 	memcpy(md2, x, 16);
 	t = cksum[15];
-	for (i = 0; i < 16; i++)
+	for (unsigned i = 0; i < 16; ++i)
 		t = cksum[i] ^= pi_table[data[i] ^ t];
 
 	memset(x, 0, sizeof(x));
@@ -155,12 +145,11 @@ md2_step(unsigned char *md2, unsigned char *cksum, const unsigned char *data)
 void
 md2_hash(const void *input, unsigned len, void *digest)
 {
-	md2_context ctx;
-
 	ASSERT(input != NULL);
 	ASSERT(len > 0);
 	ASSERT(digest != NULL);
 
+	md2_context ctx;
 	md2_init(&ctx);
 	md2_update(&ctx, input, len);
 	md2_final(&ctx, digest);
