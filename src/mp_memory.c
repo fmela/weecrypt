@@ -1,9 +1,5 @@
-/*
- * weecrypt_memory.c
- * Copyright (C) 2002-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* weecrypt_memory.c
+ * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include <stdio.h>
 #include <stdlib.h>
