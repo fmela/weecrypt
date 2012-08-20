@@ -1,11 +1,7 @@
 /* md5.c
- * Copyright (C) 2000-2010 Farooq Mela. All rights reserved.
+ * Copyright (C) 2000-2012 Farooq Mela. All rights reserved.
  *
- * An implementation of the Message Digest 5 algorithm. See RFC1321 for
- * algorithm details.
- *
- * $Id$
- */
+ * An implementation of Message Digest 5, as described RFC1321. */
 
 #include "md5.h"
 
@@ -14,18 +10,18 @@
 #include "mp.h"
 #include "mp_defs.h"
 
-static void md5_step(unsigned int *md5, const unsigned char *block);
-static void md5_encode(unsigned char *output, const unsigned int *input, unsigned len);
-static void md5_decode(unsigned int *output, const unsigned char *input, unsigned len);
+static void md5_step(uint32_t *md5, const uint8_t *block);
+static void md5_encode(uint8_t *output, const uint32_t *input, unsigned len);
+static void md5_decode(uint32_t *output, const uint8_t *input, unsigned len);
 
-static const unsigned char padding[64] = {
+static const uint8_t padding[64] = {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static const unsigned int T[64] = {
+static const uint32_t T[64] = {
 	0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
 	0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
 	0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -44,10 +40,10 @@ static const unsigned int T[64] = {
 	0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-static const unsigned int A[4] = { 7, 12, 17, 22 };
-static const unsigned int B[4] = { 5,  9, 14, 20 };
-static const unsigned int C[4] = { 4, 11, 16, 23 };
-static const unsigned int D[4] = { 6, 10, 15, 21 };
+static const uint32_t A[4] = { 7, 12, 17, 22 };
+static const uint32_t B[4] = { 5,  9, 14, 20 };
+static const uint32_t C[4] = { 4, 11, 16, 23 };
+static const uint32_t D[4] = { 6, 10, 15, 21 };
 
 #define MD5_MAGIC0		0x67452301
 #define MD5_MAGIC1		0xefcdab89
@@ -98,24 +94,20 @@ md5_init(md5_context *ctx)
 void
 md5_update(md5_context *ctx, const void *data, unsigned len)
 {
-	const unsigned char *input;
-	unsigned i, idx, plen;
-
 	ASSERT(ctx != NULL);
 	ASSERT(data != NULL);
 	ASSERT(len > 0);
 
-	input = (const unsigned char *)data;
+	const uint8_t *input = data;
 
 	/* # of bytes, % 64 */
-	idx = (ctx->len[0] >> 3) & 0x3F;
+	unsigned idx = (ctx->len[0] >> 3) & 0x3F;
 
 	/* number of bits */
-	ctx->len[0] += (unsigned int)len << 3;
-	if (ctx->len[0] < ((unsigned int)len << 3)) /* overflow */
-		ctx->len[1]++;
-	ctx->len[1] += (unsigned int)len >> 29; /* 29 b/c want bits not bytes */
-	plen = 64 - idx;
+	ctx->len[1] += ((ctx->len[0] += len << 3) < (len << 3));
+	ctx->len[1] += len >> 29;
+	unsigned plen = 64 - idx;
+	unsigned i = 0;
 	if (len >= plen) {
 		// Do the calculation, 64 bytes at a time.
 		memcpy(&ctx->buf[idx], input, plen);
@@ -123,8 +115,6 @@ md5_update(md5_context *ctx, const void *data, unsigned len)
 		for (i = plen; i + 63 < len; i += 64)
 			md5_step(ctx->md5, &input[i]);
 		idx = 0;
-	} else {
-		i = 0;
 	}
 
 	/* buffer rest */
@@ -134,37 +124,35 @@ md5_update(md5_context *ctx, const void *data, unsigned len)
 void
 md5_final(md5_context *ctx, void *digest)
 {
-	unsigned char bits[8];
-	unsigned idx, plen;
-
 	ASSERT(ctx != NULL);
 	ASSERT(digest != NULL);
 
 	/* # of bits */
+	uint8_t bits[8];
 	md5_encode(bits, ctx->len, 8);
 
 	/*
 	 * Pad out to 56 mod 64.
 	 * Shr by 3 to get back to bytes.
 	 */
-	idx = (unsigned)((ctx->len[0] >> 3) & 0x3f);
-	plen = (idx < 56) ? (56 - idx) : (120 - idx);
+	unsigned idx = (ctx->len[0] >> 3) & 0x3f;
+	unsigned plen = (idx < 56) ? (56 - idx) : (120 - idx);
 	md5_update(ctx, padding, plen);
 
 	/* add length */
 	md5_update(ctx, bits, 8);
 
 	/* md5 */
-	md5_encode((unsigned char *)digest, ctx->md5, 16);
+	md5_encode((uint8_t *)digest, ctx->md5, 16);
 
 	/* zero possibly sensitive data */
 	memset(ctx, 0, sizeof(md5_context));
 }
 
 static void
-md5_step(unsigned int *md5, const unsigned char *block)
+md5_step(uint32_t *md5, const uint8_t *block)
 {
-	unsigned int a, b, c, d, x[16];
+	uint32_t a, b, c, d, x[16];
 
 	ASSERT(md5 != NULL);
 	ASSERT(block != NULL);
@@ -258,7 +246,7 @@ md5_step(unsigned int *md5, const unsigned char *block)
 }
 
 static void
-md5_encode(unsigned char *output, const unsigned int *input, unsigned len)
+md5_encode(uint8_t *output, const uint32_t *input, unsigned len)
 {
 	unsigned i, j;
 
@@ -267,15 +255,15 @@ md5_encode(unsigned char *output, const unsigned int *input, unsigned len)
 	ASSERT(len > 0);
 
 	for (i = 0, j = 0; j < len; i++, j += 4) {
-		output[j + 0] = (unsigned char)((input[i] >>  0) & 0xff);
-		output[j + 1] = (unsigned char)((input[i] >>  8) & 0xff);
-		output[j + 2] = (unsigned char)((input[i] >> 16) & 0xff);
-		output[j + 3] = (unsigned char)((input[i] >> 24) & 0xff);
+		output[j + 0] = (uint8_t)((input[i] >>  0) & 0xff);
+		output[j + 1] = (uint8_t)((input[i] >>  8) & 0xff);
+		output[j + 2] = (uint8_t)((input[i] >> 16) & 0xff);
+		output[j + 3] = (uint8_t)((input[i] >> 24) & 0xff);
 	}
 }
 
 static void
-md5_decode(unsigned int *output, const unsigned char *input, unsigned len)
+md5_decode(uint32_t *output, const uint8_t *input, unsigned len)
 {
 	unsigned i, j;
 
@@ -285,10 +273,10 @@ md5_decode(unsigned int *output, const unsigned char *input, unsigned len)
 
 	for (i = 0, j = 0; j < len; i++, j += 4)
 		output[i] =
-			(((unsigned int)input[j + 0]) <<  0) |
-			(((unsigned int)input[j + 1]) <<  8) |
-			(((unsigned int)input[j + 2]) << 16) |
-			(((unsigned int)input[j + 3]) << 24);
+			(((uint32_t)input[j + 0]) <<  0) |
+			(((uint32_t)input[j + 1]) <<  8) |
+			(((uint32_t)input[j + 2]) << 16) |
+			(((uint32_t)input[j + 3]) << 24);
 }
 
 void
