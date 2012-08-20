@@ -1,9 +1,5 @@
-/*
- * mpi_gcdext.c
- * Copyright (C) 2003-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mpi_gcdext.c
+ * Copyright (C) 2003-2010 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
 #include "mpi_defs.h"
