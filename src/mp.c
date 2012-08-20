@@ -1,9 +1,5 @@
-/*
- * mp.c
- * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
- *
- * $Id: mp.c,v 1.13 2001/12/30 09:23:23 farooq Exp farooq $
- */
+/* mp.c
+ * Copyright (C) 2001-2012 Farooq Mela. All rights reserved. */
 
 #include <stdlib.h>
 #include <string.h>
