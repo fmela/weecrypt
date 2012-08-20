@@ -1,3 +1,6 @@
+/* unit_tests.c
+ * Copyright (C) 2012 Farooq Mela. All rights reserved. */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1106,7 +1109,7 @@ void test_base64_encode_decode()
 void test_mt64_init_u64()
 {
 	mt64_context ctx;
-    mt64_init_u64(&ctx, UINT64_C(5489));
+	mt64_init_u64(&ctx, UINT64_C(5489));
 	for (int i = 0; i < 950; ++i)
 		mt64_gen_u64(&ctx);
 	CU_ASSERT_EQUAL(mt64_gen_u64(&ctx), UINT64_C(12518650711486048524));
@@ -1164,7 +1167,7 @@ void test_mt64_init_u64()
 void test_mt64_init_u64_array()
 {
 	mt64_context ctx;
-    const uint64_t init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL};
+	const uint64_t init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL};
 	mt64_init_u64_array(&ctx, init, 4);
 	for (int i = 0; i < 950; ++i)
 		mt64_gen_u64(&ctx);
