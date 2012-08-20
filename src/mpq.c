@@ -1,9 +1,5 @@
-/*
- * mpq.c
- * Copyright (C) 2003-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mpq.c
+ * Copyright (C) 2003-2010 Farooq Mela. All rights reserved. */
 
 #include "weecrypt_memory.h"
 #include "mpq.h"
@@ -1188,6 +1184,8 @@ mpq_fprint(const mpq *p, unsigned base, FILE *fp)
 	if (fp == 0)
 		fp = stdout;
 	mpi_fprint(p->num, base, fp);
-	fputc('/', fp);
-	mpi_fprint(p->den, base, fp);
+        if (!mpi_is_one(p->den)) {
+		fputc('/', fp);
+		mpi_fprint(p->den, base, fp);
+        }
 }
