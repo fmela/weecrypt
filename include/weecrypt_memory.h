@@ -1,10 +1,5 @@
-/*
- * weecrypt_memory.h
- *
- * Memory allocators.
- *
- * $Id$
- */
+/* weecrypt_memory.h
+ * Copyright (C) 2010-2012 Farooq Mela. All rights reserved. */
 
 #ifndef _WEECRYPT_MEMORY_H_
 #define _WEECRYPT_MEMORY_H_

@@ -1,9 +1,5 @@
-/*
- * mpi_defs.h
- * Copyright (C) 2002-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mpi_defs.h
+ * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #ifndef _MPI_DEFS_H_
 #define _MPI_DEFS_H_

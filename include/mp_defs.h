@@ -1,9 +1,5 @@
-/*
- * mp_defs.h
- * Copyright (C) 2002-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mp_defs.h
+ * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #ifndef _MP_DEFS_H_
 #define _MP_DEFS_H_

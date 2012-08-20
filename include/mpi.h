@@ -1,11 +1,7 @@
-/*
- * mpi.h
+/* mpi.h
+ * Copyright (C) 2001-2012 Farooq Mela. All rights reserved.
  *
- * Arbitrary precision integer functions.
- * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+ * Arbitrary precision integer functions. */
 
 #ifndef _MPI_H_
 #define _MPI_H_

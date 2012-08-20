@@ -1,11 +1,7 @@
-/*
- * mp.h
+/* mp.h
+ * Copyright (C) 2001-2012 Farooq Mela. All rights reserved.
  *
- * Arbitrary precision arithmetic low-level functions.
- * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
- *
- * $Id: mp.h,v 1.2 2001/12/15 19:36:34 farooq Exp farooq $
- */
+ * Arbitrary precision arithmetic low-level functions. */
 
 #ifndef _MP_H_
 #define _MP_H_

@@ -1,9 +1,5 @@
-/*
- * mpq.h
- * Copyright (C) 2003-2010 Farooq Mela. All rights reserved.
- *
- * $Id$
- */
+/* mpq.h
+ * Copyright (C) 2003-2012 Farooq Mela. All rights reserved. */
 
 #ifndef _MPQ_H_
 #define _MPQ_H_

@@ -1,10 +1,7 @@
 /* base64.h
- * Copyright (C) 2000-2010 Farooq Mela. All rights reserved.
+ * Copyright (C) 2000-2012 Farooq Mela. All rights reserved.
  *
- * Routines for base64 encoding and decoding.
- *
- * $Id$
- */
+ * Routines for base64 encoding and decoding. */
 
 #ifndef _BASE64_H_
 #define _BASE64_H_
