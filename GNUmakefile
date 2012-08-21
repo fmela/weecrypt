@@ -1,18 +1,15 @@
 SRC=$(wildcard src/*.c)
 ASM=$(wildcard asm/*.S)
 
-BUILDIR=bin
-ST_OBJ=$(SRC:src/%.c=$(BUILDIR)/%.o) $(ASM:asm/%.S=$(BUILDIR)/%.o)
-PR_OBJ=$(SRC:src/%.c=$(BUILDIR)/%.po) $(ASM:asm/%.S=$(BUILDIR)/%.po)
-SH_OBJ=$(SRC:src/%.c=$(BUILDIR)/%.So) $(ASM:asm/%.S=$(BUILDIR)/%.So)
-
-DEPDIR=.depend
-DEP=$(SRC:src/%.c=$(DEPDIR)/%.dep) $(ASM:asm/%.S=$(DEPDIR)/%.dep)
+BUILD_DIR=bin
+ST_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.o) $(ASM:asm/%.S=$(BUILD_DIR)/%.o)
+PR_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.po) $(ASM:asm/%.S=$(BUILD_DIR)/%.po)
+SH_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.So) $(ASM:asm/%.S=$(BUILD_DIR)/%.So)
 
 LIB=weecrypt
-ST_LIB=$(BUILDIR)/lib$(LIB).a
-PR_LIB=$(BUILDIR)/lib$(LIB)_p.a
-SH_LIB=$(BUILDIR)/lib$(LIB).so
+ST_LIB=$(BUILD_DIR)/lib$(LIB).a
+PR_LIB=$(BUILD_DIR)/lib$(LIB)_p.a
+SH_LIB=$(BUILD_DIR)/lib$(LIB).so
 
 CC=$(shell which clang || which gcc)
 ifeq ($(CC),)
@@ -34,9 +31,12 @@ INSTALL_PREFIX?=/usr/local
 INSTALL=install
 
 TEST_SRC=$(wildcard *.c)
-TEST_BIN=$(TEST_SRC:%.c=$(BUILDIR)/%)
+TEST_BIN=$(TEST_SRC:%.c=$(BUILD_DIR)/%)
 
-all: $(ST_LIB) $(TEST_BIN)
+all: $(BUILD_DIR) $(ST_LIB) $(TEST_BIN)
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 install: $(ST_LIB) $(SH_LIB)
 	$(INSTALL) -o 0 -g 0 -m 644 *.h $(INSTALL_PREFIX)/include
@@ -53,56 +53,35 @@ $(PR_LIB): $(PR_OBJ)
 $(SH_LIB): $(SH_OBJ)
 	$(CC) -shared -o $(@) $(SH_OBJ)
 
-$(BUILDIR)/%.o: asm/%.S
+$(BUILD_DIR)/%.o: asm/%.S
 	$(CC) $(ARCH) -Iinclude -c $(<) -o $(@)
 
-$(BUILDIR)/%.po: asm/%.S
+$(BUILD_DIR)/%.po: asm/%.S
 	$(CC) -Iinclude $(PROF) -c $(<) -o $(@)
 
-$(BUILDIR)/%.So: asm/%.S
+$(BUILD_DIR)/%.So: asm/%.S
 	$(CC) -Iinclude $(PIC) -c $(<) -o $(@)
 
-$(BUILDIR)/%.o: src/%.c
+$(BUILD_DIR)/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $(<) -o $(@)
 
-$(BUILDIR)/%.po: src/%.c
+$(BUILD_DIR)/%.po: src/%.c
 	$(CC) $(CFLAGS) $(PROF) -c $(<) -o $(@)
 
-$(BUILDIR)/%.So: src/%.c
+$(BUILD_DIR)/%.So: src/%.c
 	$(CC) $(CFLAGS) $(PIC) -c $(<) -o $(@)
 
-$(BUILDIR)/unit_tests: unit_tests.c $(ST_LIB)
+$(BUILD_DIR)/unit_tests: unit_tests.c $(ST_LIB)
 	$(CC) $(CFLAGS) -I$(CUNIT_PREFIX)/include -L$(CUNIT_PREFIX)/lib -o $(@) $(<) $(ST_LIB) -lncurses -lcunit
 
-$(BUILDIR)/%: %.c $(ST_LIB)
+$(BUILD_DIR)/%: %.c $(ST_LIB)
 	$(CC) $(CFLAGS) -o $(@) $(<) $(ST_LIB)
 
-.PHONY : clean
+.PHONY: clean
 clean:
-	rm -f $(ST_LIB) $(PR_LIB) $(SH_LIB)
-	rm -f $(ST_OBJ) $(PR_OBJ) $(SH_OBJ)
-	rm -f $(TEST_BIN)
-	rm -rf $(DEPDIR)
+	rm -rf $(BUILD_DIR)
 
-.PHONY : analyze
+.PHONY: analyze
 analyze:
 	clang $(CFLAGS) --analyze $(SRC)
 	rm -f *.plist
-
-$(DEPDIR)/%.dep : %.c
-	@$(SHELL) -c '[ -d $(DEPDIR) ] || mkdir $(DEPDIR)'
-	@$(SHELL) -ec 'echo -n "Rebuilding dependencies for $< - "; \
-		$(CC) -M $(CFLAGS) $< > $@; \
-		sed "s/^$(<:%.c=%.o)/& $(<:%.c=%.po) $(<:%.c=%.So)/" $@ > $(DEPDIR)/$(<:%.c=%.dep2); \
-		mv -f $(DEPDIR)/$(<:%.c=%.dep2) $@; \
-		echo ok.'
-
-$(DEPDIR)/%.dep : %.S
-	@$(SHELL) -c '[ -d $(DEPDIR) ] || mkdir $(DEPDIR)'
-	@$(SHELL) -ec 'echo -n "Rebuilding dependencies for $< - "; \
-		$(CC) -M $(CFLAGS) $< > $@; \
-		sed "s/^$(<:%.S=%.o)/& $(<:%.S=%.po) $(<:%.S=%.So)/" $@ > $(DEPDIR)/$(<:%.S=%.dep2); \
-		mv -f $(DEPDIR)/$(<:%.S=%.dep2) $@; \
-		echo ok.'
-
--include $(DEP)
