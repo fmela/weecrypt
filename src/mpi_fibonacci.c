@@ -4,13 +4,15 @@
 #include "mpi.h"
 #include "mpi_defs.h"
 
-/* Compute the Nth Fibonnaci number F_n, where F_0 = 0, F_1 = 1, and
- * F_n = F_{n-1} + * F_{n-2}  for n >= 2.
+/* Compute the Nth Fibonnaci number F_n, where
+ * F_0 = 0
+ * F_1 = 1
+ * F_n = F_{n-1} + F_{n-2} for n >= 2.
  *
  * This is based on the matrix identity:
  *        n
- * [ 0 1 ]  = [ F_{n-1} F_n ]
- * [ 1 1 ]    [ F_n F_{n+1} ]
+ * [ 0 1 ]  = [ F_{n-1}    F_n   ]
+ * [ 1 1 ]    [   F_n    F_{n+1} ]
  *
  * Exponentiation uses binary power algorithm from high bit to low bit.
  */
