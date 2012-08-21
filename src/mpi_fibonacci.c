@@ -1,15 +1,14 @@
 /* mpi_fibonacci.c
- * Copyright (C) 2003-2010 Farooq Mela. All rights reserved. */
+ * Copyright (C) 2003-2012 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
 #include "mpi_defs.h"
 
-/* Compute the Nth Fibonnaci number F_n, where
- * F_n = 1                  if n <= 2,
- * F_n = F_{n-1} + F_{n-2}  otherwise.
+/* Compute the Nth Fibonnaci number F_n, where F_0 = 0, F_1 = 1, and
+ * F_n = F_{n-1} + * F_{n-2}  for n >= 2.
  *
- * This works off of the identity
- *        N
+ * This is based on the matrix identity:
+ *        n
  * [ 0 1 ]  = [ F_{n-1} F_n ]
  * [ 1 1 ]    [ F_n F_{n+1} ]
  *
