@@ -75,6 +75,26 @@ rsa_init_keygen(rsa_ctx *rsa, unsigned bits, mt64_context *rand_ctx)
 	return true;
 }
 
+bool
+rsa_init_public_key(rsa_ctx *rsa, const mpi_t n, const mpi_t e) {
+    memset(rsa, 0, sizeof(*rsa));
+    rsa->n = MALLOC(sizeof(*(rsa->n)));
+    mpi_init_mpi(rsa->n, n);
+    rsa->e = MALLOC(sizeof(*(rsa->e)));
+    mpi_init_mpi(rsa->e, e);
+    return true;
+}
+
+bool
+rsa_init_private_key(rsa_ctx *rsa, const mpi_t n, const mpi_t d) {
+    memset(rsa, 0, sizeof(*rsa));
+    rsa->n = MALLOC(sizeof(*(rsa->n)));
+    mpi_init_mpi(rsa->n, n);
+    rsa->d = MALLOC(sizeof(*(rsa->d)));
+    mpi_init_mpi(rsa->d, d);
+    return true;
+}
+
 void
 rsa_free(rsa_ctx *rsa)
 {
