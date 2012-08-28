@@ -15,23 +15,25 @@ bool rsa_test(unsigned bits, mt64_context *rand_ctx);
 int
 main(void)
 {
-	const unsigned rsa_bits = 7;
-	const unsigned ntrials = 6;
+	const unsigned rsa_bits_log2 = 3;
+	const unsigned ntrials = 10;
 	mt64_context rand_ctx;
 
 	mt64_init_u64(&rand_ctx, 1234567890U);
 
 	unsigned i;
 	for (i=0; i<ntrials; i++) {
-		printf("Testing %u-bit RSA...\n", 1U<<(rsa_bits+i));
-		if (!rsa_test(1U<<(rsa_bits+i), &rand_ctx))
+		printf("Testing %u-bit RSA...\n", 1U<<(rsa_bits_log2+i));
+		if (!rsa_test(1U<<(rsa_bits_log2+i), &rand_ctx))
 			break;
 	}
 
 	if (i != ntrials)
-		printf("Trial %u (%u bytes) failed.\n", i, 1U<<(rsa_bits+i));
+		printf("Trial %u (%u bytes) failed.\n",
+		       i, 1U<<(rsa_bits_log2+i));
 	else
-		printf("Trials with %u-bit thru %u-bit RSA succeeded.\n", 1U<<rsa_bits, 1U<<(rsa_bits+ntrials-1));
+		printf("Trials with %u-bit thru %u-bit RSA succeeded.\n",
+		       1U<<rsa_bits_log2, 1U<<(rsa_bits_log2+ntrials-1));
 
 	return 0;
 }
@@ -39,32 +41,30 @@ main(void)
 bool
 rsa_test(unsigned bits, mt64_context *rand_ctx)
 {
-	rsa_ctx rsa;
-
 	mt64_init_u64(rand_ctx, 1234567890U);
 
-	rsa_init(&rsa, bits, rand_ctx);
+	rsa_ctx rsa;
+	if (!rsa_init_keygen(&rsa, bits, rand_ctx))
+	    return false;
+	ASSERT(rsa.n);
+	ASSERT(rsa.phi);
+	ASSERT(rsa.e);
+	ASSERT(rsa.d);
 
-	/* tmp = (rsa->e * rsa->e) % rsa->phi */
-	mpi_t tmp;
-	mpi_init(tmp);
-	mpi_mul(rsa.e, rsa.d, tmp);
-	mpi_mod(tmp, rsa.phi, tmp);
-	bool ok = mpi_is_one(tmp);
-//	if (!ok) {
-		printf("  N="), mpi_print_dec(rsa.n),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa.n));
-		printf("Phi="), mpi_print_dec(rsa.phi),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa.phi));
-		printf("  E="), mpi_print_dec(rsa.e),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa.e));
-		printf("  D="), mpi_print_dec(rsa.d),
-			printf(" (%u bits)\n", mpi_significant_bits(rsa.d));
-		printf("ED mod Phi="), mpi_print_dec(tmp), printf("\n");
-//	}
-
-	mpi_free(tmp);
-
+	mpi_t m;
+	mpi_init(m);
+	mpi_mul(rsa.e, rsa.d, m);
+	mpi_mod(m, rsa.phi, m);
+	bool result = true;
+	if (!mpi_is_one(m)) {
+	    printf("N: "), mpi_print_dec(rsa.n), printf("\n");
+	    printf("E: "), mpi_print_dec(rsa.e), printf("\n");
+	    printf("D: "), mpi_print_dec(rsa.d), printf("\n");
+	    printf("Φ: "), mpi_print_dec(rsa.phi), printf("\n");
+	    printf("E * D mod Φ: "), mpi_print_dec(m), printf("\n");
+	    result = false;
+	}
+	mpi_free(m);
 	rsa_free(&rsa);
-	return ok;
+	return result;
 }
