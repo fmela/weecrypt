@@ -124,9 +124,9 @@ mp_sqr(const mp_digit *u, mp_size size, mp_digit *v)
 		return;
 	}
 
-	int odd = size & 1;
-	mp_size even_size = size - odd;
-	mp_size half_size = even_size / 2;
+	const bool odd_size = size & 1;
+	const mp_size even_size = size & ~1;
+	const mp_size half_size = even_size / 2;
 	const mp_digit *u0 = u, *u1 = u + half_size;
 	mp_digit *v0 = v, *v1 = v + even_size;
 
@@ -160,7 +160,7 @@ mp_sqr(const mp_digit *u, mp_size size, mp_digit *v)
 		ASSERT(mp_daddi(v + even_size + half_size, half_size, cy) == 0);
 	}
 
-	if (odd) {
+	if (odd_size) {
 		v[even_size*2] = mp_dmul_add(u, even_size, u[even_size], &v[even_size]);
 		v[even_size*2+1] = mp_dmul_add(u, size, u[even_size], &v[even_size]);
 	}
