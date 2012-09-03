@@ -2,14 +2,14 @@ SRC=$(wildcard src/*.c)
 ASM=$(wildcard asm/*.S)
 
 BUILD_DIR=bin
-ST_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.o) $(ASM:asm/%.S=$(BUILD_DIR)/%.o)
-PR_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.po) $(ASM:asm/%.S=$(BUILD_DIR)/%.po)
-SH_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.So) $(ASM:asm/%.S=$(BUILD_DIR)/%.So)
+STATIC_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.o) $(ASM:asm/%.S=$(BUILD_DIR)/%.o)
+PROFILE_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.po) $(ASM:asm/%.S=$(BUILD_DIR)/%.po)
+SHARED_OBJ=$(SRC:src/%.c=$(BUILD_DIR)/%.So) $(ASM:asm/%.S=$(BUILD_DIR)/%.So)
 
 LIB=weecrypt
-ST_LIB=$(BUILD_DIR)/lib$(LIB).a
-PR_LIB=$(BUILD_DIR)/lib$(LIB)_p.a
-SH_LIB=$(BUILD_DIR)/lib$(LIB).so
+STATIC_LIB=$(BUILD_DIR)/lib$(LIB).a
+PROFILE_LIB=$(BUILD_DIR)/lib$(LIB)_p.a
+SHARED_LIB=$(BUILD_DIR)/lib$(LIB).so
 
 CC=$(shell which clang || which gcc)
 ifeq ($(CC),)
@@ -19,7 +19,7 @@ endif
 # On 64-bit platforms, uncomment this to generate 32-bit code.
 #ARCH=-m32
 
-#COPTS=-g3
+#COPTS=-g
 COPTS=-O2
 CFLAGS=-Wall -Wextra -Werror -Wshadow -std=c99 $(COPTS) $(ARCH) -Iinclude
 PIC=-DPIC -fPIC
@@ -33,25 +33,25 @@ INSTALL=install
 TEST_SRC=$(wildcard *.c)
 TEST_BIN=$(TEST_SRC:%.c=$(BUILD_DIR)/%)
 
-all: $(BUILD_DIR) $(ST_LIB) $(TEST_BIN)
+all: $(BUILD_DIR) $(STATIC_LIB) $(TEST_BIN)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-install: $(ST_LIB) $(SH_LIB)
+install: $(STATIC_LIB) $(SHARED_LIB)
 	$(INSTALL) -o 0 -g 0 -m 644 *.h $(INSTALL_PREFIX)/include
-	$(INSTALL) -o 0 -g 0 -m 755 $(ST_LIB) $(INSTALL_PREFIX)/lib
-	$(INSTALL) -o 0 -g 0 -m 755 $(SH_LIB) $(INSTALL_PREFIX)/lib
-	strip --strip-debug $(INSTALL_PREFIX)/lib/$(SH_LIB) $(INSTALL_PREFIX)/lib/$(ST_LIB)
+	$(INSTALL) -o 0 -g 0 -m 755 $(STATIC_LIB) $(INSTALL_PREFIX)/lib
+	$(INSTALL) -o 0 -g 0 -m 755 $(SHARED_LIB) $(INSTALL_PREFIX)/lib
+	strip --strip-debug $(INSTALL_PREFIX)/lib/$(SHARED_LIB) $(INSTALL_PREFIX)/lib/$(STATIC_LIB)
 
-$(ST_LIB): $(ST_OBJ)
-	ar cru $(@) $(ST_OBJ)
+$(STATIC_LIB): $(STATIC_OBJ)
+	ar cru $(@) $(STATIC_OBJ)
 
-$(PR_LIB): $(PR_OBJ)
-	ar cru $(@) $(PR_OBJ)
+$(PROFILE_LIB): $(PROFILE_OBJ)
+	ar cru $(@) $(PROFILE_OBJ)
 
-$(SH_LIB): $(SH_OBJ)
-	$(CC) -shared -o $(@) $(SH_OBJ)
+$(SHARED_LIB): $(SHARED_OBJ)
+	$(CC) -shared -o $(@) $(SHARED_OBJ)
 
 $(BUILD_DIR)/%.o: asm/%.S
 	$(CC) $(ARCH) -Iinclude -c $(<) -o $(@)
@@ -71,11 +71,11 @@ $(BUILD_DIR)/%.po: src/%.c
 $(BUILD_DIR)/%.So: src/%.c
 	$(CC) $(CFLAGS) $(PIC) -c $(<) -o $(@)
 
-$(BUILD_DIR)/unit_tests: unit_tests.c $(ST_LIB)
-	$(CC) $(CFLAGS) -I$(CUNIT_PREFIX)/include -L$(CUNIT_PREFIX)/lib -o $(@) $(<) $(ST_LIB) -lncurses -lcunit
+$(BUILD_DIR)/unit_tests: unit_tests.c $(STATIC_LIB)
+	$(CC) $(CFLAGS) -I$(CUNIT_PREFIX)/include -L$(CUNIT_PREFIX)/lib -o $(@) $(<) $(STATIC_LIB) -lncurses -lcunit
 
-$(BUILD_DIR)/%: %.c $(ST_LIB)
-	$(CC) $(CFLAGS) -o $(@) $(<) $(ST_LIB)
+$(BUILD_DIR)/%: %.c $(STATIC_LIB)
+	$(CC) $(CFLAGS) -o $(@) $(<) $(STATIC_LIB)
 
 .PHONY: clean
 clean:
@@ -83,5 +83,7 @@ clean:
 
 .PHONY: analyze
 analyze:
-	clang $(CFLAGS) --analyze $(SRC)
-	rm -f *.plist
+	@for x in $(SRC) $(TEST_SRC); \
+		do echo Analyzing $$x ...; \
+		clang --analyze $(CFLAGS) -I$(CUNIT_PREFIX)/include $$x -o /dev/null; \
+	done
