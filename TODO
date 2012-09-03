@@ -82,6 +82,13 @@
 
 * Define a macro for 64-bit constants (VC doesn't like ULL postfix that GCC
   uses, etc.)
+  Completed ???
 
 * Base64 Encoding
   Completed 04/21/2010
+
+* Improve fibonacci computation by using a powering algorithm better than the
+  binary square-and-multiply
+
+* Think about how to compute quotient and remainder when divided and/or
+  divisor are negative. Implement mpi_pmod.
