@@ -9,7 +9,8 @@ Weecrypt is released under the BSD license; please refer to the [LICENSE](https:
 
 ## Getting weecrypt
 
-The source code for weecrypt is available at http://github.com/fmela/weecrypt
+The source code for weecrypt is available at http://github.com/fmela/weecrypt.
+
 You can get your own copy of the code with the following command:
 
 	git clone git://github.com/fmela/weecrypt.git
