@@ -5,135 +5,130 @@
 #include "mp_defs.h"
 
 static void barrett_reduce(const mp_digit *x,
-						   const mp_barrett_ctx *ctx, mp_digit *r);
+			   const mp_barrett_ctx *ctx, mp_digit *r);
 
 /* Compute MU = floor(B^2K / M) where K = MLEN. */
 void
 mp_barrett_ctx_init(mp_barrett_ctx *ctx, const mp_digit *m, mp_size msize)
 {
-	ASSERT(ctx != NULL);
-	ASSERT(ctx->m == NULL);
-	ASSERT(ctx->mu == NULL);
-	ASSERT(ctx->k == 0);
+    ASSERT(ctx != NULL);
+    ASSERT(ctx->m == NULL);
+    ASSERT(ctx->mu == NULL);
+    ASSERT(ctx->k == 0);
 
-	MP_NORMALIZE(m, msize);
-	ASSERT(msize != 0);
+    MP_NORMALIZE(m, msize);
+    ASSERT(msize != 0);
 
-	mp_digit *s = MP_TMP_ALLOC0(msize * 2 + 1);
-	s[msize * 2] = 1;
+    mp_digit *s = MP_TMP_ALLOC0(msize * 2 + 1);
+    s[msize * 2] = 1;
 
-	ctx->m = m;
-	ctx->k = msize;
-	ctx->mu = mp_new(msize + 2);
-	mp_div(s, msize * 2 + 1, m, msize, ctx->mu);
-	ASSERT(mp_rsize(ctx->mu, msize + 2) == msize + 1);
+    ctx->m = m;
+    ctx->k = msize;
+    ctx->mu = mp_new(msize + 2);
+    mp_div(s, msize * 2 + 1, m, msize, ctx->mu);
+    ASSERT(mp_rsize(ctx->mu, msize + 2) == msize + 1);
 
-	MP_TMP_FREE(s);
+    MP_TMP_FREE(s);
 }
 
 void
 mp_barrett_ctx_free(mp_barrett_ctx *ctx)
 {
-	ASSERT(ctx != NULL);
-	ASSERT(ctx->m != NULL);
-	ASSERT(ctx->mu != NULL);
-	ASSERT(ctx->k != 0);
+    ASSERT(ctx != NULL);
+    ASSERT(ctx->m != NULL);
+    ASSERT(ctx->mu != NULL);
+    ASSERT(ctx->k != 0);
 
-	ctx->m = NULL;
-	mp_free(ctx->mu);
-	ctx->mu = NULL;
-	ctx->k = 0;
+    ctx->m = NULL;
+    mp_free(ctx->mu);
+    ctx->mu = NULL;
+    ctx->k = 0;
 }
 
 /* Compute W = (U ** P) mod M using Barrett modular reduction. */
 void
 mp_barrett(const mp_digit *u, mp_size usize,
-		   const mp_digit *p, mp_size psize,
-		   const mp_barrett_ctx *ctx, mp_digit *w)
+	   const mp_digit *p, mp_size psize,
+	   const mp_barrett_ctx *ctx, mp_digit *w)
 {
-	mp_digit k;
-	mp_digit *t, *umod;
-	mp_size msize, tsize, umod_size, i;
-	const mp_digit *m;
+    ASSERT(u != NULL);
+    ASSERT(p != NULL);
+    ASSERT(ctx != NULL);
+    ASSERT(ctx->m != NULL);
+    ASSERT(ctx->mu != NULL);
+    ASSERT(ctx->k != 0);
+    ASSERT(w != NULL);
 
-	ASSERT(u != NULL);
-	ASSERT(p != NULL);
-	ASSERT(ctx != NULL);
-	ASSERT(ctx->m != NULL);
-	ASSERT(ctx->mu != NULL);
-	ASSERT(ctx->k != 0);
-	ASSERT(w != NULL);
+    mp_size msize = ctx->k;
+    mp_zero(w, msize);
+    MP_NORMALIZE(ctx->m, msize);
+    ASSERT(msize == ctx->k);
 
-	m = ctx->m;
-	msize = ctx->k;
-	mp_zero(w, msize);
-	MP_NORMALIZE(m, msize);
-	ASSERT(msize == ctx->k);
+    if (msize == 1 && ctx->m[0] == 1) /* Anything mod 1 is zero. */
+	return;
 
-	if (msize == 1 && m[0] == 1) /* Anything mod 1 is zero. */
-		return;
+    MP_NORMALIZE(u, usize);
+    MP_NORMALIZE(p, psize);
+    if (usize == 0 || psize == 0) {
+	w[0] = (psize != 0);
+	return;
+    }
 
-	MP_NORMALIZE(u, usize);
-	MP_NORMALIZE(p, psize);
-	if (usize == 0 || psize == 0) {
-		w[0] = (psize != 0);
-		return;
+    if (psize == 1) {
+	if (p[0] == 1) {
+	    mp_mod(u, usize, ctx->m, msize, w);
+	    return;
 	}
-
-	if (psize == 1) {
-		if (p[0] == 1) {
-			mp_mod(u, usize, m, msize, w);
-			return;
-		}
-		if (p[0] == 2) {
-			tsize = usize * 2;
-			t = MP_TMP_ALLOC(tsize);
-			mp_sqr(u, usize, t);
-			mp_mod(t, tsize, m, msize, w);
-			MP_TMP_FREE(t);
-			return;
-		}
+	if (p[0] == 2) {
+	    mp_size tsize = usize * 2;
+	    mp_digit *t = MP_TMP_ALLOC(tsize);
+	    mp_sqr(u, usize, t);
+	    mp_mod(t, tsize, ctx->m, msize, w);
+	    MP_TMP_FREE(t);
+	    return;
 	}
+    }
 
-	/* Precompute W = U mod M */
-	mp_mod(u, usize, m, msize, w);
-	umod_size = mp_rsize(w, msize);
-	if (umod_size == 0) {
-		/* If U is congruent to 0 mod M, the final answer is zero. */
-		return;
+    /* Precompute W = U mod M */
+    mp_mod(u, usize, ctx->m, msize, w);
+    const mp_size umod_size = mp_rsize(w, msize);
+    if (umod_size == 0) {
+	/* If U is congruent to 0 mod M, the final answer is zero. */
+	return;
+    }
+
+    mp_size tsize = msize * 2;
+    mp_digit *t = MP_TMP_ALLOC(tsize + umod_size);
+    mp_digit *umod = t + tsize;
+    mp_copy(w, umod_size, umod);
+
+    mp_digit k = p[psize - 1];
+    mp_size i = 0;
+    for (; k != 1; i++)
+	k >>= 1;
+    k <<= i;
+    i = psize - 1;
+
+    for (;;) {
+	if ((k >>= 1) == 0) {
+	    if (i == 0)
+		break;
+	    --i;
+	    k = MP_DIGIT_MSB;
 	}
-
-	tsize = msize * 2;
-	t = MP_TMP_ALLOC(tsize + umod_size);
-	umod = t + tsize;
-	mp_copy(w, umod_size, umod);
-
-	k = p[psize - 1];
-	for (i = 0; k != 1; i++)
-		k >>= 1;
-	k <<= i;
-	i = psize - 1;
-
-	for (;;) {
-		if ((k >>= 1) == 0) {
-			if (i == 0)
-				break;
-			--i;
-			k = MP_DIGIT_MSB;
-		}
-		mp_sqr(w, msize, t);
-		barrett_reduce(t, ctx, w);
-		if (p[i] & k) {
-			mp_mul(w, msize, umod, umod_size, t);
-			/* Barrett reduction requires T be twice as large as M, so clear
-			 * high digits if needed. */
-			if (msize - umod_size)
-				mp_zero(t + msize + umod_size, msize - umod_size);
-			barrett_reduce(t, ctx, w);
-		}
+	mp_sqr(w, msize, t);
+	barrett_reduce(t, ctx, w);
+	if (p[i] & k) {
+	    mp_mul(w, msize, umod, umod_size, t);
+	    /* Barrett reduction requires T be twice as large as M, so clear
+	     * high digits if needed. */
+	    if (msize - umod_size)
+		mp_zero(t + msize + umod_size, msize - umod_size);
+	    barrett_reduce(t, ctx, w);
 	}
+    }
 
-	MP_TMP_FREE(t);
+    MP_TMP_FREE(t);
 }
 
 void
