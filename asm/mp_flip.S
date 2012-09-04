@@ -19,12 +19,12 @@
 
 #ifdef MP_FLIP_ASM
 .text
-	.globl	mp_flip
+	.globl	MP_ASM_NAME(mp_flip)
 #ifndef __APPLE__
-	.type	mp_flip,@function
+	.type	MP_ASM_NAME(mp_flip),@function
 #endif
-	.align	8
-mp_flip:
+	.p2align	3
+MP_ASM_NAME(mp_flip):
 	movl	L_LOC,%ecx				# ecx = length
 	jecxz	.L1						# done if zero
 	movl	U_LOC,%edx				# edx = u ptr
@@ -34,7 +34,7 @@ mp_flip:
 	subl	%ecx,%edx				# edx -= ecx
 	sarl	$2,%ecx					# ecx /= 4
 
-	.align	8
+	.p2align	3
 .L0:
 	notl	(%edx,%ecx,4)			# flip digit
 	incl	%ecx

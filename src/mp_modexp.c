@@ -77,7 +77,7 @@ mp_modexp(const mp_digit *u, mp_size usize,
 
 void
 mp_modexp_u64(const mp_digit *u, mp_size usize, uint64_t exponent,
-			  const mp_digit *m, mp_size msize, mp_digit *w)
+	      const mp_digit *m, mp_size msize, mp_digit *w)
 {
     ASSERT(u != NULL);
     ASSERT(m != NULL);

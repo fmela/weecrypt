@@ -24,6 +24,19 @@
 #define V_LOC	(STACK+0x0c)(%esp)
 #define W_LOC	(STACK+0x10)(%esp)
 
+#ifdef __APPLE__
+.macro mul_sub
+	movl	$0(%esi),%eax
+	mull	%ebp
+	addl	%ebx,%eax
+.macros_off
+	adcl	$0,%edx
+.macros_on
+	xorl	%ebx,%ebx
+	subl	%eax,$0(%edi)
+	adcl	%edx,%ebx
+.endmacro
+#else
 .macro mul_sub digit
 	movl	\digit(%esi),%eax
 	mull	%ebp
@@ -33,14 +46,15 @@
 	subl	%eax,\digit(%edi)
 	adcl	%edx,%ebx
 .endm
+#endif
 
 .text
-	.globl	mp_dmul_sub
+	.globl	MP_ASM_NAME(mp_dmul_sub)
 #ifndef __APPLE__
-	.type	mp_dmul_sub,@function
+	.type	MP_ASM_NAME(mp_dmul_sub),@function
 #endif
-	.align	8
-mp_dmul_sub:
+	.p2align	3
+MP_ASM_NAME(mp_dmul_sub):
 	pushl	%ebx
 	pushl	%edi
 	pushl	%esi
@@ -59,7 +73,7 @@ mp_dmul_sub:
 	shrl	$3,%ecx
 	jz		.Lskipunroll
 
-	.align	8
+	.p2align	3
 .Lunroll:
 	mul_sub 0
 	mul_sub 4
@@ -75,7 +89,7 @@ mp_dmul_sub:
 	decl	%ecx
 	jnz		.Lunroll
 
-	.align	8
+	.p2align	3
 .Lskipunroll:
 	movl	L_LOC,%ecx
 	andl	$7,%ecx
@@ -87,7 +101,7 @@ mp_dmul_sub:
 	subl	%ecx,%edi
 	sarl	$2,%ecx
 
-	.align	8
+	.p2align	3
 .Lsimple:
 	movl	(%esi,%ecx,4),%eax
 	mull	%ebp
@@ -99,7 +113,7 @@ mp_dmul_sub:
 	incl	%ecx
 	jnz		.Lsimple
 
-	.align	8
+	.p2align	3
 .Lexit:
 	movl	%ebx,%eax
 	popl	%ebp

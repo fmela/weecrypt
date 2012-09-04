@@ -24,19 +24,27 @@
 #define L_LOC	(STACK+0x0c)(%esp)
 #define W_LOC	(STACK+0x10)(%esp)
 
+#ifdef __APPLE__
+.macro sub
+	movl	$0(%esi),%eax
+	sbbl	$0(%edx),%eax
+	movl	%eax,$0(%edi)
+.endmacro
+#else
 .macro sub digit
 	movl	\digit(%esi),%eax
 	sbbl	\digit(%edx),%eax
 	movl	%eax,\digit(%edi)
 .endm
+#endif
 
 .text
-	.globl	mp_sub_n
+	.globl	MP_ASM_NAME(mp_sub_n)
 #ifndef __APPLE__
-	.type	mp_sub_n,@function
+	.type	MP_ASM_NAME(mp_sub_n),@function
 #endif
-	.align	8
-mp_sub_n:
+	.p2align	3
+MP_ASM_NAME(mp_sub_n):
 	pushl	%esi
 	pushl	%edi
 
@@ -52,7 +60,7 @@ mp_sub_n:
 	jz		.Lskipunroll			/* if zero we have < 16 digits			*/
 	clc								/* clear carry							*/
 
-	.align	32
+	.p2align	5
 .Lunroll:
 	sub 0
 	sub 4
@@ -80,7 +88,7 @@ mp_sub_n:
 	setc	%al						/* eax = carry							*/
 	andl	$1,%eax
 
-	.align	8
+	.p2align	3
 .Lskipunroll:
 	movl	L_LOC,%ecx				/* reload ecx							*/
 	andl	$15,%ecx				/* get remaining digit count			*/
@@ -98,7 +106,7 @@ mp_sub_n:
 	jz		.Lsimple
 	stc								/* set carry							*/
 
-	.align	8
+	.p2align	3
 .Lsimple:
 	movl	(%esi,%ecx,4),%eax		/* eax = u-digit						*/
 	sbbl	(%edx,%ecx,4),%eax		/* eax -= v-digit + carry				*/
@@ -109,7 +117,7 @@ mp_sub_n:
 	setc	%al						/* al = carry							*/
 	andl	$1,%eax					/* mask off rest of eax					*/
 
-	.align	8
+	.p2align	3
 .Lexit:
 	popl	%edi
 	popl	%esi

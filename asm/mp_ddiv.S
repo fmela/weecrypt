@@ -25,12 +25,12 @@
 #define W_LOC	(STACK+0x10)(%esp)
 
 .text
-	.globl	mp_ddiv
+	.globl	MP_ASM_NAME(mp_ddiv)
 #ifndef __APPLE__
-	.type	mp_ddiv,@function
+	.type	MP_ASM_NAME(mp_ddiv),@function
 #endif
-	.align	8
-mp_ddiv:
+	.p2align	3
+MP_ASM_NAME(mp_ddiv):
 	pushl	%ebx
 	pushl	%esi
 	pushl	%edi
@@ -42,7 +42,7 @@ mp_ddiv:
 	movl	V_LOC,%ebx
 	movl	W_LOC,%edi
 
-	.align	8
+	.p2align	3
 .L0:
 	decl	%ecx
 	movl	(%esi,%ecx,4),%eax	/* eax = u-digit							*/
@@ -51,7 +51,7 @@ mp_ddiv:
 	orl		%ecx,%ecx
 	jnz		.L0
 
-	.align	8
+	.p2align	3
 .L1:
 	movl	%edx,%eax			/* put remainder in eax						*/
 	popl	%edi

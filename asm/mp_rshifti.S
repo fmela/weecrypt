@@ -22,12 +22,12 @@
  #define V_LOC	(STACK+0x0c)(%esp)
 
  .text
- 	.globl	mp_rshifti
+ 	.globl	MP_ASM_NAME(mp_rshifti)
 #ifndef __APPLE__
-	.type	mp_rshifti,@function
+	.type	MP_ASM_NAME(mp_rshifti),@function
 #endif
-	.align	8
-mp_rshifti:
+	.p2align	3
+MP_ASM_NAME(mp_rshifti):
 	pushl	%ebx
 	pushl	%esi
 
@@ -41,7 +41,7 @@ mp_rshifti:
 	andb	$31,%cl						/* .. modulo 32 */
 	jz		.L1							/* jump to exit if zero */
 
-	.align	8
+	.p2align	3
 .L0:
 	decl	%ebx						/* decrement length */
 	movl	(%esi,%ebx,4),%edx			/* edx = digit */
@@ -50,12 +50,12 @@ mp_rshifti:
 	orl		%ebx,%ebx
 	jnz		.L0
 
-	movl	$1,%edx
-	shll	%cl,%edx
-	decl	%edx
-	andl	%edx,%eax
+	movl	$1,%edx						/* edx = 1 */
+	shll	%cl,%edx					/* edx = 1 << shift */
+	decl	%edx						/* edx = 1 << shift - 1 */
+	andl	%edx,%eax					/* and off high bits in eax */
 
-	.align	8
+	.p2align	3
 .L1:
 	popl	%esi
 	popl	%ebx

@@ -24,12 +24,12 @@
 #define V_LOC	(STACK+0x0c)(%esp)
 
 .text
-	.globl	mp_sqr_diag
+	.globl	MP_ASM_NAME(mp_sqr_diag)
 #ifndef __APPLE__
-	.type	mp_sqr_diag,@function
+	.type	MP_ASM_NAME(mp_sqr_diag),@function
 #endif
-	.align	8
-mp_sqr_diag:
+	.p2align	3
+MP_ASM_NAME(mp_sqr_diag):
 	pushl	%esi
 	pushl	%edi
 	pushl	%ebx
@@ -47,8 +47,9 @@ mp_sqr_diag:
 	negl	%ecx						/* negate len						*/
 	xorl	%ebx,%ebx					/* clear carry						*/
 
-	/* it would make more sense to keep carry in the carry flag instead of ebx,
-	 * but since mul clobbers the carry flag we have no choice */
+	/* It would make more sense to keep carry in the carry flag instead of ebx,
+	 * but since mul clobbers the carry flag we have no choice. */
+	.p2align	3
 .Lsimple:
 	movl	(%esi,%ecx,4),%eax			/* eax = u[i]						*/
 	mull	%eax						/* square hi=edx lo=eax				*/

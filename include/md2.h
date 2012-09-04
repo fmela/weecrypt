@@ -7,10 +7,10 @@
 #include "mp.h"
 
 typedef struct {
-	unsigned char	md2[16];
-	unsigned char	cksum[16];
-	unsigned char	buf[16];
-	unsigned int	len;
+    unsigned char   md2[16];
+    unsigned char   cksum[16];
+    unsigned char   buf[16];
+    unsigned int    len;
 } md2_context;
 
 void md2_init(md2_context *ctx);

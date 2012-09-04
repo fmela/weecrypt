@@ -5,9 +5,9 @@
 #define _MD5_H_
 
 typedef struct {
-	unsigned int	md5[ 4];
-	unsigned int	len[ 2];
-	unsigned char	buf[64];
+    unsigned int    md5[ 4];
+    unsigned int    len[ 2];
+    unsigned char   buf[64];
 } md5_context;
 
 void md5_init(md5_context *ctx);

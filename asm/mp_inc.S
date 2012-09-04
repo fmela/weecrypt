@@ -20,12 +20,12 @@
 #define L_LOC	(STACK+0x08)(%esp)
 
 .text
-	.globl	mp_inc
+	.globl	MP_ASM_NAME(mp_inc)
 #ifndef __APPLE__
-	.type	mp_inc,@function
+	.type	MP_ASM_NAME(mp_inc),@function
 #endif
-	.align	8
-mp_inc:
+	.p2align	3
+MP_ASM_NAME(mp_inc):
 	movl	U_LOC,%edx
 	movl	L_LOC,%ecx
 
@@ -37,7 +37,7 @@ mp_inc:
 	shrl	$2,%ecx
 	negl	%ecx
 
-	.align	8
+	.p2align	3
 .L0:
 	addl	$1,(%edx,%ecx,4)
 	setc	%al

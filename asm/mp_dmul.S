@@ -25,12 +25,12 @@
 #define W_LOC	(STACK+0x10)(%esp)
 
 .text
-	.globl	mp_dmul
+	.globl	MP_ASM_NAME(mp_dmul)
 #ifndef __APPLE__
-	.type	mp_dmul,@function
+	.type	MP_ASM_NAME(mp_dmul),@function
 #endif
-	.align	8
-mp_dmul:
+	.p2align	3
+MP_ASM_NAME(mp_dmul):
 	pushl	%ebx
 	pushl	%edi
 	pushl	%esi
@@ -43,13 +43,13 @@ mp_dmul:
 	movl	V_LOC,%ebp
 	movl	W_LOC,%edi
 
-	negl	%ecx
-	sall	$2,%ecx
-	subl	%ecx,%esi
-	subl	%ecx,%edi
-	sarl	$2,%ecx
+	negl	%ecx				# Negate ecx
+	sall	$2,%ecx				# Convert to bytes
+	subl	%ecx,%esi			# esi -= 4 * len bytes
+	subl	%ecx,%edi			# edi -= 4 * len bytes
+	sarl	$2,%ecx				# Convert back to digits
 
-	.align	8
+	.p2align	3
 .L0:
 	movl	(%esi,%ecx,4),%eax
 	mull	%ebp
@@ -60,7 +60,7 @@ mp_dmul:
 	incl	%ecx
 	jnz		.L0
 
-	.align	8
+	.p2align	3
 .L1:
 	movl	%ebx,%eax
 

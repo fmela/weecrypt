@@ -22,12 +22,12 @@
 #define L_LOC	(STACK+0x0c)(%esp)
 
 .text
-	.globl	mp_cmp_n
+	.globl	MP_ASM_NAME(mp_cmp_n)
 #ifndef __APPLE__
-	.type	mp_cmp_n,@function
+	.type	MP_ASM_NAME(mp_cmp_n),@function
 #endif
-	.align	8
-mp_cmp_n:
+	.p2align	3
+MP_ASM_NAME(mp_cmp_n):
 	pushl	%esi
 	pushl	%edi
 
@@ -38,7 +38,7 @@ mp_cmp_n:
 	movl	U_LOC,%esi
 	movl	V_LOC,%edi
 
-	.align	8
+	.p2align	3
 .Loop:
 	decl	%ecx
 	movl	(%esi,%ecx,4),%edx

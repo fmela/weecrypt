@@ -9,14 +9,14 @@
 void
 mpi_factorial(uint64_t n, mpi *fact)
 {
-	ASSERT(fact != NULL);
+    ASSERT(fact != NULL);
 
-	if (!n) {
-		mpi_zero(fact);
-	} else {
-		mpi_set_u64(fact, n);
-		for (uint64_t m = n - 1; m >= 2; --m) {
-			mpi_mul_u64(fact, m, fact);
-		}
+    if (!n) {
+	mpi_zero(fact);
+    } else {
+	mpi_set_u64(fact, n);
+	for (uint64_t m = n - 1; m >= 2; --m) {
+	    mpi_mul_u64(fact, m, fact);
 	}
+    }
 }

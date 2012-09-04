@@ -11,23 +11,23 @@ void
 mp_modsub(const mp_digit *u, const mp_digit *v,
 		  const mp_digit *m, mp_size msize, mp_digit *w)
 {
-	ASSERT(u != NULL);
-	ASSERT(v != NULL);
-	ASSERT(m != NULL);
-	ASSERT(msize != 0);
-	ASSERT(m[msize - 1] != 0);
-	ASSERT(w != NULL);
+    ASSERT(u != NULL);
+    ASSERT(v != NULL);
+    ASSERT(m != NULL);
+    ASSERT(msize != 0);
+    ASSERT(m[msize - 1] != 0);
+    ASSERT(w != NULL);
 
-	ASSERT(mp_cmp_n(u, m, msize) < 0);
-	ASSERT(mp_cmp_n(v, m, msize) < 0);
+    ASSERT(mp_cmp_n(u, m, msize) < 0);
+    ASSERT(mp_cmp_n(v, m, msize) < 0);
 
-	const int cmp = mp_cmp_n(u, v, msize);
-	if (cmp == 0) {
-		mp_zero(w, msize);
-	} else if (cmp > 0) {
-		ASSERT(mp_sub_n(u, v, msize, w) == 0);
-	} else /* cmp < 0 */ {
-		ASSERT(mp_sub_n(v, u, msize, w) == 0);	/* w <- v - u */
-		ASSERT(mp_sub_n(m, w, msize, w) == 0);	/* w <- m - w */
-	}
+    const int cmp = mp_cmp_n(u, v, msize);
+    if (cmp == 0) {
+	mp_zero(w, msize);
+    } else if (cmp > 0) {
+	ASSERT(mp_sub_n(u, v, msize, w) == 0);
+    } else /* cmp < 0 */ {
+	ASSERT(mp_sub_n(v, u, msize, w) == 0);	/* w <- v - u */
+	ASSERT(mp_sub_n(m, w, msize, w) == 0);	/* w <- m - w */
+    }
 }

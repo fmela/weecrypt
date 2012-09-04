@@ -22,12 +22,12 @@
 #define V_LOC	(STACK+0x0c)(%esp)
 
 .text
-	.globl	mp_and_mmx
+	.globl	MP_ASM_NAME(mp_and_mmx)
 #ifndef __APPLE__
-	.type	mp_and_mmx,@function
+	.type	MP_ASM_NAME(mp_and_mmx),@function
 #endif
-	.align	8
-mp_and_mmx:
+	.p2align	3
+MP_ASM_NAME(mp_and_mmx):
 	pushl	%esi				# save esi
 	pushl	%edi				# save edi
 

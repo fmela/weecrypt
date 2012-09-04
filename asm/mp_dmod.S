@@ -22,12 +22,12 @@
 #define V_LOC	(STACK+0x0c)(%esp)
 
 .text
-	.globl	mp_dmod
+	.globl	MP_ASM_NAME(mp_dmod)
 #ifndef __APPLE__
-	.type	mp_dmod,@function
+	.type	MP_ASM_NAME(mp_dmod),@function
 #endif
-	.align	8
-mp_dmod:
+	.p2align	3
+MP_ASM_NAME(mp_dmod):
 	pushl	%ebx
 	pushl	%esi
 
@@ -48,7 +48,7 @@ mp_dmod:
 	movl	%ebx,%eax
 	jmp		.L1
 	
-	.align	8
+	.p2align	3
 .L0:
 	decl	%ecx
 	movl	(%esi,%ecx,4),%eax
@@ -57,7 +57,7 @@ mp_dmod:
 	jnz		.L0
 	movl	%edx,%eax
 
-	.align	8
+	.p2align	3
 .L1:
 	popl	%esi
 	popl	%ebx

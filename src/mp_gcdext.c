@@ -37,37 +37,37 @@
 
 void
 mp_gcdext(const mp_digit *u, mp_size ulen, const mp_digit *v, mp_size vlen,
-		  mp_digit *u1, mp_digit *u2, mp_digit *u3)
+	  mp_digit *u1, mp_digit *u2, mp_digit *u3)
 {
-	unsigned ki, ks;
-	mp_digit tt;
+    unsigned ki, ks;
+    mp_digit tt;
 #if 0
-	mp_digit *v1, *v2, *v3;
-	mp_size v1len, v2len, v3len;
-	mp_digit *t1, *t2, *t3;
-	mp_size t1len, t2len, t3len;
+    mp_digit *v1, *v2, *v3;
+    mp_size v1len, v2len, v3len;
+    mp_digit *t1, *t2, *t3;
+    mp_size t1len, t2len, t3len;
 #endif
 
-	mp_zero(u1, vlen);
-	mp_zero(u2, ulen);
-	mp_zero(u3, ulen);
+    mp_zero(u1, vlen);
+    mp_zero(u2, ulen);
+    mp_zero(u3, ulen);
 
-	ki = 0;
-	while ((tt = u[ki] | v[ki]) == 0)
-		ki++;
-	if ((tt & 1) == 0) {
-		ks = 1;
-		while (((tt >>= 1) & 1) == 0)
-			ks++;
-	} else {
-		ks = 0;
-	}
+    ki = 0;
+    while ((tt = u[ki] | v[ki]) == 0)
+	ki++;
+    if ((tt & 1) == 0) {
+	ks = 1;
+	while (((tt >>= 1) & 1) == 0)
+	    ks++;
+    } else {
+	ks = 0;
+    }
 
-	u += ki; ulen -= ki;
-	v += ki; vlen -= ki;
-	u3 += ki;
+    u += ki; ulen -= ki;
+    v += ki; vlen -= ki;
+    u3 += ki;
 
-	u1[0] = 1;
-	u2[0] = 0;
-	mp_copy(u, ulen, u3);
+    u1[0] = 1;
+    u2[0] = 0;
+    mp_copy(u, ulen, u3);
 }

@@ -22,12 +22,12 @@
 #define V_LOC	(STACK+0x0c)(%esp)
 
 .text
-	.globl	mp_dmuli
+	.globl	MP_ASM_NAME(mp_dmuli)
 #ifndef __APPLE__
-	.type	mp_dmuli,@function
+	.type	MP_ASM_NAME(mp_dmuli),@function
 #endif
-	.align	8
-mp_dmuli:
+	.p2align	3
+MP_ASM_NAME(mp_dmuli):
 	pushl	%ebx
 	pushl	%edi
 	pushl	%esi
@@ -50,7 +50,7 @@ mp_dmuli:
 	bsfl	%ebx,%ecx		/* cl = lg(v)									*/
 	xorl	%eax,%eax		/* clear previous bits							*/
 
-	.align	8
+	.p2align	3
 .L0:
 	movl	(%esi),%edx		/* edx = u-digit								*/
 	shldl	%cl,%eax,(%esi)	/* shift u-digit and combine with previous		*/
@@ -61,7 +61,7 @@ mp_dmuli:
 	shrl	%cl,%eax		/* shift last digit right						*/
 	jmp		.L2
 
-	.align	8
+	.p2align	3
 .L1:
 	movl	(%esi),%eax
 	mull	%ebx
@@ -75,7 +75,7 @@ mp_dmuli:
 	jnz		.L1
 	movl	%edi,%eax
 
-	.align	8
+	.p2align	3
 .L2:
 	popl	%esi
 	popl	%edi

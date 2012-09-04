@@ -21,19 +21,27 @@
 #define V_LOC	(STACK+0x08)(%esp)
 #define L_LOC	(STACK+0x0c)(%esp)
 
+#ifdef __APPLE__
+.macro sub
+	movl	$0(%edi),%eax
+	sbbl	$0(%esi),%eax
+	movl	%eax,$0(%edi)
+.endmacro
+#else
 .macro sub digit
 	movl	\digit(%edi),%eax
 	sbbl	\digit(%esi),%eax
 	movl	%eax,\digit(%edi)
 .endm
+#endif
 
 .text
-	.globl	mp_subi_n
+	.globl	MP_ASM_NAME(mp_subi_n)
 #ifndef __APPLE__
-	.type	mp_subi_n,@function
+	.type	MP_ASM_NAME(mp_subi_n),@function
 #endif
-	.align	8
-mp_subi_n:
+	.p2align	3
+MP_ASM_NAME(mp_subi_n):
 	pushl	%esi
 	pushl	%edi
 
@@ -48,7 +56,7 @@ mp_subi_n:
 	jz		.Lskipunroll
 	clc
 
-	.align	32
+	.p2align	5
 .Lunroll:
 	sub 0
 	sub 4
@@ -75,7 +83,7 @@ mp_subi_n:
 	setc	%al
 	andl	$1,%eax
 
-	.align	8
+	.p2align	3
 .Lskipunroll:
 	movl	L_LOC,%ecx
 	andl	$15,%ecx
@@ -92,7 +100,7 @@ mp_subi_n:
 	jz		.Lsimple
 	stc
 
-	.align	8
+	.p2align	3
 .Lsimple:
 	movl	(%edi,%ecx,4),%eax
 	sbbl	(%esi,%ecx,4),%eax
@@ -103,7 +111,7 @@ mp_subi_n:
 	setc	%al
 	andl	$1,%eax
 
-	.align	8
+	.p2align	3
 .Lexit:
 	popl	%edi
 	popl	%esi

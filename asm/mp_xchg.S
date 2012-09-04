@@ -21,19 +21,27 @@
 #define V_LOC	(STACK+0x08)(%esp)
 #define L_LOC	(STACK+0x0c)(%esp)
 
+#ifdef __APPLE__
+.macro xchg
+	movl	$0(%esi),%eax
+	xchgl	$0(%edi),%eax
+	movl	%eax,$0(%esi)
+.endm
+#else
 .macro xchg digit
 	movl	\digit(%esi),%eax
 	xchgl	\digit(%edi),%eax
 	movl	%eax,\digit(%esi)
 .endm
+#endif
 
 .text
-	.globl	mp_xchg
+	.globl	MP_ASM_NAME(mp_xchg)
 #ifndef __APPLE__
-	.type	mp_xchg,@function
+	.type	MP_ASM_NAME(mp_xchg),@function
 #endif
-	.align	8
-mp_xchg:
+	.p2align	3
+MP_ASM_NAME(mp_xchg):
 	pushl	%esi
 	pushl	%edi
 
@@ -48,7 +56,7 @@ mp_xchg:
 	shrl	$3,%ecx						/* divide by 8 for unrolled loop	*/
 	jz		.Lskipunroll				/* if zero we have < 8 digits		*/
 
-	.align	16
+	.p2align	4
 .Lunroll:
 	xchg 0
 	xchg 4
@@ -63,7 +71,7 @@ mp_xchg:
 	decl %ecx							/* decrement # of 8-digit clumps	*/
 	jnz .Lunroll						/* loop								*/
 
-	.align	8
+	.p2align	3
 .Lskipunroll:
 	movl	L_LOC,%ecx					/* ecx = len						*/
 	andl	$7,%ecx						/* digits modulo 8					*/
@@ -75,7 +83,7 @@ mp_xchg:
 	shrl	$2,%ecx
 	negl	%ecx
 
-	.align	8
+	.p2align	3
 .Lsimple:
 	movl	(%esi,%ecx,4),%eax
 	xchgl	(%edi,%ecx,4),%eax
@@ -83,7 +91,7 @@ mp_xchg:
 	incl	%ecx
 	jnz		.Lsimple
 
-	.align	8
+	.p2align	3
 .Lexit:
 	popl	%edi
 	popl	%esi

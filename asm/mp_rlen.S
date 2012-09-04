@@ -20,12 +20,12 @@
 #define L_LOC	(STACK+0x08)(%esp)
 
 .text
-	.globl	mp_rlen
+	.globl	MP_ASM_NAME(mp_rlen)
 #ifndef __APPLE__
-	.type	mp_rlen,@function
+	.type	MP_ASM_NAME(mp_rlen),@function
 #endif
-	.align	8
-mp_rlen:
+	.p2align	3
+MP_ASM_NAME(mp_rlen):
 	movl	U_LOC,%edx
 	movl	L_LOC,%ecx
 
@@ -36,17 +36,17 @@ mp_rlen:
 	shrl	$2,%ecx
 	jmp		.L1
 
-	.align	8
+	.align	3
 .L0:
 	decl	%ecx
 	jz		.L2
-	.align	8
+	.align	3
 .L1:
 	subl	$4,%edx
 	cmpl	$0,(%edx)
 	je		.L0
 
-	.align	8
+	.align	3
 .L2:
 	movl	%ecx,%eax
 	ret

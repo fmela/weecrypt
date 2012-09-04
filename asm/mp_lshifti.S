@@ -22,12 +22,12 @@
  #define S_LOC	(STACK+0x0c)(%esp)
 
  .text
- 	.globl	mp_lshifti
+ 	.globl	MP_ASM_NAME(mp_lshifti)
 #ifndef __APPLE__
-	.type	mp_lshifti,@function
+	.type	MP_ASM_NAME(mp_lshifti),@function
 #endif
-	.align	8
-mp_lshifti:
+	.p2align	3
+MP_ASM_NAME(mp_lshifti):
 	pushl	%ebx
 	pushl	%esi
 
@@ -41,7 +41,7 @@ mp_lshifti:
 	andb	$31,%cl
 	jz		.L1
 
-	.align	8
+	.p2align	3
 .L0:
 	movl	(%esi),%edx
 	shldl	%cl,%eax,(%esi)
@@ -54,7 +54,7 @@ mp_lshifti:
 	addb	$32,%cl
 	shrl	%cl,%eax
 
-	.align	8
+	.p2align	3
 .L1:
 	popl	%esi
 	popl	%ebx

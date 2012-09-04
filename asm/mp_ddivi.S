@@ -22,12 +22,12 @@
 #define V_LOC	(STACK+0x0c)(%esp)
 
 .text
-	.globl	mp_ddivi
+	.globl	MP_ASM_NAME(mp_ddivi)
 #ifndef __APPLE__
-	.type	mp_ddivi,@function
+	.type	MP_ASM_NAME(mp_ddivi),@function
 #endif
-	.align	8
-mp_ddivi:
+	.p2align	3
+MP_ASM_NAME(mp_ddivi):
 	pushl	%ebx
 	pushl	%esi
 	pushl	%edi
@@ -44,7 +44,7 @@ mp_ddivi:
 	jz		.L1
 
 	xorl	%edx,%edx				/* clear remainder						*/
-	.align	8
+	.p2align	3
 .L0:
 	decl	%ecx					/* decrement count						*/
 	movl	(%esi,%ecx,4),%eax		/* load divisor digit					*/
@@ -55,13 +55,13 @@ mp_ddivi:
 	movl	%edx,%eax				/* return remainder						*/
 	jmp		.L3
 
-	.align	8
+	.p2align	3
 .L1:
 	movl	%ecx,%edi				/* edi = len so we can shift using cl	*/
 	bsfl	%ebx,%ecx				/* cl = lg(v), rest of ecx zeroed		*/
 	xorl	%eax,%eax				/* clear "previous" bits				*/
 
-	.align	8
+	.p2align	3
 .L2:
 	decl	%edi
 	movl	(%esi,%edi,4),%edx		/* edx = u-digit						*/
@@ -75,7 +75,7 @@ mp_ddivi:
 	decl	%eax					/* get mask = 2 ** lg(v) - 1 = v - 1	*/
 	andl	%edx,%eax				/* put remainder onto [0, v)			*/
 
-	.align	8
+	.p2align	3
 .L3:
 	popl	%edi					/* yay we are done						*/
 	popl	%esi
