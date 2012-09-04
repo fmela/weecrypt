@@ -12,10 +12,10 @@
 #include "mp_defs.h"
 
 typedef struct {
-	mp_digit	*digits;		/* Digits of number.					*/
-	mp_size		 size;			/* Length of number.					*/
-	mp_size		 alloc;			/* Size of allocation.					*/
-	unsigned	 sign : 1;		/* If mpi number is negative.			*/
+    mp_digit*	digits;	    /* Digits of number. */
+    mp_size	size;	    /* Length of number. */
+    mp_size	alloc;	    /* Size of allocation. */
+    unsigned	sign:1;	    /* Sign bit. */
 } mpi, mpi_t[1];
 
 void	mpi_init(mpi *p);
@@ -44,17 +44,17 @@ bool	mpi_get_s64(const mpi *p, uint64_t *q);
 float	mpi_get_f(const mpi *p);
 double	mpi_get_d(const mpi *p);
 
-#define mpi_is_zero(n)		((n)->size == 0)
-#define mpi_is_one(n)		((n)->size == 1 && (n)->sign == 0 && \
-							 (n)->digits[0] == 1)
-#define mpi_is_negone(n)	((n)->size == 1 && (n)->sign == 1 && \
-							 (n)->digits[0] == 1)
-#define mpi_is_pos(n)		((n)->size != 0 && (n)->sign == 0)
-#define mpi_is_neg(n)		((n)->sign)
-#define mpi_is_even(n)		((n)->size == 0 ? 1 : (0 == ((n)->digits[0] & 1)))
-#define mpi_is_odd(n)		((n)->size == 0 ? 0 : (1 == ((n)->digits[0] & 1)))
-#define mpi_significant_bits(n) \
-							mp_significant_bits((n)->digits, (n)->size)
+#define mpi_is_zero(n)	    ((n)->size == 0)
+#define mpi_is_one(n)	    ((n)->size == 1 && (n)->sign == 0 && \
+			     (n)->digits[0] == 1)
+#define mpi_is_negone(n)    ((n)->size == 1 && (n)->sign == 1 && \
+			     (n)->digits[0] == 1)
+#define mpi_is_pos(n)	    ((n)->size != 0 && (n)->sign == 0)
+#define mpi_is_neg(n)	    ((n)->sign)
+#define mpi_is_even(n)	    ((n)->size == 0 ? 1 : (0 == ((n)->digits[0] & 1)))
+#define mpi_is_odd(n)	    ((n)->size == 0 ? 0 : (1 == ((n)->digits[0] & 1)))
+#define mpi_significant_bits(n)	\
+			    mp_significant_bits((n)->digits, (n)->size)
 
 void	mpi_zero(mpi *p);
 void	mpi_one(mpi *p);
