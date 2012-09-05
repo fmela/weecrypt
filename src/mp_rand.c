@@ -17,50 +17,31 @@ mp_rand_digits(mt64_context *ctx, mp_digit *u, mp_size size)
 #if MP_DIGIT_SIZE == 1
     while (size >= 8) {
 	uint64_t r = mt64_gen_u64(ctx);
-	*u++ = r;
-	*u++ = r >> 8;
-	*u++ = r >> 16;
-	*u++ = r >> 24;
-	*u++ = r >> 32;
-	*u++ = r >> 40;
-	*u++ = r >> 48;
-	*u++ = r >> 56;
+	memcpy(u, &r, sizeof(r));
+	u += 8;
 	size -= 8;
     }
     if (size) {
 	uint64_t r = mt64_gen_u64(ctx);
-	switch (size) {
-	    case 7: *u++ = r; r >>= 8;
-	    case 6: *u++ = r; r >>= 8;
-	    case 5: *u++ = r; r >>= 8;
-	    case 4: *u++ = r; r >>= 8;
-	    case 3: *u++ = r; r >>= 8;
-	    case 2: *u++ = r; r >>= 8;
-	    case 1: *u++ = r; r >>= 8;
-	}
+	memcpy(u, &r, size);
     }
 #elif MP_DIGIT_SIZE == 2
     while (size >= 4) {
 	uint64_t r = mt64_gen_u64(ctx);
-	*u++ = r;
-	*u++ = r >> 16;
-	*u++ = r >> 32;
-	*u++ = r >> 48;
+	memcpy(u, &r, sizeof(r));
+	u += 4;
 	size -= 4;
     }
     if (size) {
 	uint64_t r = mt64_gen_u64(ctx);
-	switch (size) {
-	    case 3: *u++ = r; r >>= 16;
-	    case 2: *u++ = r; r >>= 16;
-	    case 1: *u++ = r; r >>= 16;
-	}
+	memcpy(u, &r, size * 2);
     }
 #elif MP_DIGIT_SIZE == 4
     while (size >= 2) {
 	uint64_t r = mt64_gen_u64(ctx);
 	*u++ = r;
 	*u++ = r >> 32;
+	size -= 2;
     }
     if (size) {
 	ASSERT(size == 1);
