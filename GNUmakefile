@@ -11,7 +11,7 @@ STATIC_LIB=$(BUILD_DIR)/lib$(LIB).a
 PROFILE_LIB=$(BUILD_DIR)/lib$(LIB)_p.a
 SHARED_LIB=$(BUILD_DIR)/lib$(LIB).so
 
-CC=$(shell which clang || which gcc)
+CC:=$(shell which clang || which gcc)
 ifeq ($(CC),)
 $(error Neither clang nor gcc found)
 endif
@@ -79,11 +79,11 @@ $(BUILD_DIR)/%: %.c $(STATIC_LIB)
 
 .PHONY: clean
 clean:
-	rm -r $(BUILD_DIR)
+	if test -d $(BUILD_DIR); then rm -r $(BUILD_DIR); fi
 
 .PHONY: analyze
 analyze:
-	@for x in $(SRC) $(TEST_SRC); \
-		do echo Analyzing $$x ...; \
+	@for x in $(SRC) $(TEST_SRC); do \
+		echo Analyzing $$x ...; \
 		clang --analyze $(CFLAGS) -I$(CUNIT_PREFIX)/include $$x -o /dev/null; \
 	done
