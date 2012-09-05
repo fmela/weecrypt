@@ -79,7 +79,7 @@ $(BUILD_DIR)/%: %.c $(STATIC_LIB)
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -r $(BUILD_DIR)
 
 .PHONY: analyze
 analyze:
