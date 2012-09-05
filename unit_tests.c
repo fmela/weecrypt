@@ -38,6 +38,7 @@ CU_TestInfo mp_conversion_tests[] = {
     CU_TEST_INFO_NULL
 };
 
+void test_mp_rand();
 void test_mp_add_n();
 void test_mp_sub_n();
 void test_mp_mul();
@@ -49,6 +50,7 @@ void test_mp_sieve();
 void test_mp_gcd_bug();
 
 CU_TestInfo mp_basic_tests[] = {
+    TEST_FUNC(test_mp_rand),
     TEST_FUNC(test_mp_add_n),
     TEST_FUNC(test_mp_sub_n),
     TEST_FUNC(test_mp_mul),
@@ -123,18 +125,18 @@ main(void)
 void test_mp_digit_mul()
 {
     mp_digit hi, lo;
-    _mp_digit_mul(0, 0, &hi, &lo);
+    mp_digit_mul(0, 0, &hi, &lo);
     CU_ASSERT_EQUAL(hi, 0);
     CU_ASSERT_EQUAL(lo, 0);
-    _mp_digit_mul(MP_DIGIT_MAX, MP_DIGIT_MAX, &hi, &lo);
+    mp_digit_mul(MP_DIGIT_MAX, MP_DIGIT_MAX, &hi, &lo);
     CU_ASSERT_EQUAL(hi, MP_DIGIT_MAX - 1);
     CU_ASSERT_EQUAL(lo, 1);
 #if MP_DIGIT_SIZE == 4
-    _mp_digit_mul(4000000000U, 4000000000U, &hi, &lo);
+    mp_digit_mul(4000000000U, 4000000000U, &hi, &lo);
     CU_ASSERT_EQUAL(hi, 3725290298);
     CU_ASSERT_EQUAL(lo, 1983905792);
 #elif MP_DIGIT_SIZE == 8
-    _mp_digit_mul(16000000000000000000ULL, 16000000000000000000ULL, &hi, &lo);
+    mp_digit_mul(16000000000000000000ULL, 16000000000000000000ULL, &hi, &lo);
     CU_ASSERT_EQUAL(hi, 13877787807814456755ULL);
     CU_ASSERT_EQUAL(lo, 5449091666327633920ULL);
 #endif
@@ -144,7 +146,7 @@ void test_mp_digit_div()
 {
 #if MP_DIGIT_SIZE >= 4
     mp_digit q, r;
-    _mp_digit_div(47, 129416588, 1000000000, &q, &r);
+    mp_digit_div(47, 129416588, 1000000000, &q, &r);
 #if MP_DIGIT_SIZE == 4
     CU_ASSERT_EQUAL(q, 201U);
     CU_ASSERT_EQUAL(r, 992879500U);
@@ -224,6 +226,21 @@ test_mp_from_to_str()
     CU_ASSERT_PTR_NOT_NULL(str);
     CU_ASSERT_STRING_EQUAL(str, hex_str);
     free(m);
+}
+
+void
+test_mp_rand()
+{
+    mp_digit a[8] = { 0 };
+    mp_rand(a+1, 6);
+    CU_ASSERT_EQUAL(a[0], 0);
+    CU_ASSERT_NOT_EQUAL(a[1], 0);
+    CU_ASSERT_NOT_EQUAL(a[2], 0);
+    CU_ASSERT_NOT_EQUAL(a[3], 0);
+    CU_ASSERT_NOT_EQUAL(a[4], 0);
+    CU_ASSERT_NOT_EQUAL(a[5], 0);
+    CU_ASSERT_NOT_EQUAL(a[6], 0);
+    CU_ASSERT_EQUAL(a[7], 0);
 }
 
 void

@@ -9,7 +9,7 @@
 #define COMBINE(hi,lo)	(((hi) << MP_DIGIT_HSHIFT) | (lo))
 
 void
-_mp_digit_mul(mp_digit u, mp_digit v, mp_digit *h, mp_digit *l)
+mp_digit_mul(mp_digit u, mp_digit v, mp_digit *h, mp_digit *l)
 {
     mp_digit u1 = HIHALF(u);
     mp_digit u0 = LOHALF(u);
@@ -30,7 +30,7 @@ _mp_digit_mul(mp_digit u, mp_digit v, mp_digit *h, mp_digit *l)
 }
 
 void
-_mp_digit_sqr(mp_digit u, mp_digit *h, mp_digit *l)
+mp_digit_sqr(mp_digit u, mp_digit *h, mp_digit *l)
 {
     mp_digit u1 = HIHALF(u);
     mp_digit u0 = LOHALF(u);
@@ -46,7 +46,7 @@ _mp_digit_sqr(mp_digit u, mp_digit *h, mp_digit *l)
 }
 
 void
-_mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
+mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 	      mp_digit *q, mp_digit *r)
 {
     ASSERT(d != 0);
@@ -64,11 +64,11 @@ _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 	return;
     }
 
-    const unsigned sh = mp_digit_msb_shift(d);
-    if (sh != 0) {	/* Normalize divisor. */
-	d  <<= sh;
-	n1 = (n1 << sh) | (n0 >> (MP_DIGIT_BITS - sh));
-	n0 <<= sh;
+    const unsigned msb_shift = mp_digit_msb_shift(d);
+    if (msb_shift != 0) {	/* Normalize divisor. */
+	d  <<= msb_shift;
+	n1 = (n1 << msb_shift) | (n0 >> (MP_DIGIT_BITS - msb_shift));
+	n0 <<= msb_shift;
     }
 
     mp_digit d1 = HIHALF(d);
@@ -97,5 +97,5 @@ _mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
     r0 -= m;
 
     *q = COMBINE(q1, q0);
-    *r = r0 >> sh;
+    *r = r0 >> msb_shift;
 }
