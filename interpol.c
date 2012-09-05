@@ -60,8 +60,10 @@ main(int argc, char **argv)
 	for (int i = 0; i < j; i++)
 	    if (mpq_cmp_eq(x[i], x[j])) {
 		fprintf(stderr, "interpol: cannot have duplicate x values\n");
-		fprintf(stderr, "x[%d]=", i); mpq_print_dec(x[i]); fprintf(stderr, "\n");
-		fprintf(stderr, "x[%d]=", j); mpq_print_dec(x[j]); fprintf(stderr, "\n");
+		fprintf(stderr, "x[%d]=", i); mpq_print_dec(x[i]);
+		fprintf(stderr, "\n");
+		fprintf(stderr, "x[%d]=", j); mpq_print_dec(x[j]);
+		fprintf(stderr, "\n");
 		exit(1);
 	    }
 	mpq_init(f[j]);
@@ -151,7 +153,8 @@ main(int argc, char **argv)
     }
     printf("\n");
 #endif
-    mpq_poly_print(pp, 'x', "Points interpolated by degree-%d polynomial P(x)=", pp->deg);
+    mpq_poly_print(pp, 'x', "Points interpolated by degree-%d polynomial P(x)=",
+		   pp->deg);
     printf("\n");
 
     /* Evaluate it at supplied points. */
