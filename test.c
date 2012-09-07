@@ -10,11 +10,11 @@
 
 #if defined(__APPLE__)
 typedef uint64_t timer_val;
-# define TIMER_FMT		"%.03fms"
+# define TIMER_FMT	"%.03fms"
 # define TIMER_VAL(t)	((t) * 1e-6)
 #else
 typedef double timer_val;
-# define TIMER_FMT		"%.03fms"
+# define TIMER_FMT	"%.03fms"
 # define TIMER_VAL(t)	((t) * 1e3)
 #endif
 
