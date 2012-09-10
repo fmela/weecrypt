@@ -18,6 +18,8 @@ typedef struct {
     unsigned	sign:1;	    /* Sign bit. */
 } mpi, mpi_t[1];
 
+#define MPI_INITIALIZER	{ { NULL, 0, 0, 0 } }
+
 void	mpi_init(mpi *p);
 void	mpi_init_mpi(mpi *p, const mpi *q);
 void	mpi_init_size(mpi *p, mp_size size);
