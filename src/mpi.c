@@ -153,16 +153,6 @@ mpi_zero(mpi *n)
 }
 
 void
-mpi_one(mpi *n)
-{
-    ASSERT(n);
-
-    n->sign = 0;
-    n->size = 1;
-    n->digits[0] = 1;
-}
-
-void
 mpi_neg(mpi *n)
 {
     ASSERT(n);
@@ -815,7 +805,7 @@ mpi_divrem(const mpi *a, const mpi *b, mpi *q, mpi *r)
 	return;
     }
     if (a == b) {
-	mpi_one(q);
+	mpi_set_u32(q, 1);
 	mpi_zero(r);
 	return;
     }
@@ -846,7 +836,7 @@ mpi_div(const mpi *a, const mpi *b, mpi *q)
 	return;
     }
     if (a == b) {
-	mpi_one(q);
+	mpi_set_u32(q, 1);
 	return;
     }
 
@@ -880,7 +870,7 @@ mpi_divexact(const mpi *a, const mpi *b, mpi *q)
 	return;
     }
     if (a == b) {
-	mpi_one(q);
+	mpi_set_u32(q, 1);
 	return;
     }
 

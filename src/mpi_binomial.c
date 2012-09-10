@@ -15,7 +15,7 @@ mpi_binomial(uint64_t n, uint64_t k, mpi *coeff)
 	mpi_zero(coeff);
 	return;
     } else if (k == 0 || k == n) {
-	mpi_one(coeff);
+	mpi_set_u32(coeff, 1);
 	return;
     } else if (k == 1 || k == n-1) {
 	mpi_set_u64(coeff, n);

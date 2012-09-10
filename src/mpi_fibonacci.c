@@ -25,7 +25,7 @@ mpi_fibonacci(uint64_t n, mpi *fib)
 	if (n == 0)
 	    mpi_zero(fib);
 	else
-	    mpi_one(fib);
+	    mpi_set_u32(fib, 1);
 	return;
     }
 

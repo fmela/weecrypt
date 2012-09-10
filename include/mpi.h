@@ -59,7 +59,6 @@ double	mpi_get_d(const mpi *p);
 			    mp_significant_bits((n)->digits, (n)->size)
 
 void	mpi_zero(mpi *p);
-void	mpi_one(mpi *p);
 void	mpi_neg(mpi *p);
 void	mpi_abs(mpi *n);
 void	mpi_rand(mpi *n, unsigned bits);

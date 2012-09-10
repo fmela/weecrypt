@@ -16,7 +16,7 @@ mpq_normalize_nogcd(mpq *q)
      * (3) gcd(N,D)=1 */
 
     if (mpi_is_zero(q->num)) {
-	mpi_one(q->den);
+	mpi_set_u32(q->den, 1);
 	return;
     }
 
@@ -36,7 +36,7 @@ mpq_normalize(mpq *q)
      * (3) gcd(N,D)=1 */
 
     if (mpi_is_zero(q->num)) {
-	mpi_one(q->den);
+	mpi_set_u32(q->den, 1);
 	return;
     }
 
@@ -641,7 +641,7 @@ mpq_zero(mpq *q)
     ASSERT(q);
 
     mpi_zero(q->num);
-    mpi_one(q->den);
+    mpi_set_u32(q->den, 1);
 }
 
 void
@@ -649,22 +649,22 @@ mpq_one(mpq *q)
 {
     ASSERT(q);
 
-    mpi_one(q->num);
-    mpi_one(q->den);
+    mpi_set_u32(q->num, 1);
+    mpi_set_u32(q->den, 1);
 }
 
 #if 0
 void
 mpq_pinf(mpq *q)
 {
-    mpi_one(q->num);
+    mpi_set_u32(q->num, 1);
     mpi_zero(q->den);
 }
 
 void
 mpq_ninf(mpq *q)
 {
-    mpi_one(q->num);
+    mpi_set_u32(q->num, 1);
     q->num->sign = 1;
     mpi_zero(q->den);
 }
