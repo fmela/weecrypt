@@ -10,8 +10,6 @@ int
 main(void)
 {
     char buf[512];
-    mpi_t fib;
-    mpi_init(fib);
 
     while (printf("Enter N: ") &&
 	   fgets(buf, sizeof(buf), stdin)) {
@@ -28,8 +26,7 @@ void print_factorial(unsigned n)
 {
     printf("%u! = ", n);
     fflush(stdout);
-    mpi_t f;
-    mpi_init(f);
+    mpi_t f = MPI_INITIALIZER;
     mpi_factorial(n, f);
     mpi_print_dec(f), printf("\n");
     printf(" As float: %g\n", mpi_get_f(f));
