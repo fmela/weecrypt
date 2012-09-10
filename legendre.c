@@ -15,6 +15,7 @@
 #include <float.h>
 
 #include "weecrypt.h"
+#include "twiddle.h"
 
 void legendre(int N);
 
@@ -80,10 +81,13 @@ void legendre(int N)
     }
 
     /* Check for orthogonality on [-1,1] */
+    printf("Verifying orthogonality... ");
+    fflush(stdout);
     mpq_t r, r1;
     mpq_init(r);
     mpq_init(r1);
     for (int j=0; j<N; j++) {
+	twiddle();
 	for (int k=j; k<N; k++) {
 	    mpq_poly_mul(&p[j], &p[k], tmp);
 	    mpq_poly_int(tmp, tmp2);
@@ -107,26 +111,22 @@ void legendre(int N)
 	    /* ∫p_j(x)p_k(x)dx = 2/(2k+1)d_jk where d_jk is Kronecker delta */
 	    if (j == k && !(j == 0 && k == 0)) {
 		mpq_set_u32_u32(r, 2, 2*k + 1);
-		if (!mpq_cmp_eq(r1, r)) {
-		    printf("Polynomials %d and %d not orthogonal!\n", j, k);
-		    printf("Expected: ");
-		    mpq_print_dec(r);
-		    printf("\n");
-		    printf("  Actual: ");
-		    mpq_print_dec(r1);
-		    printf("\n");
-		}
 	    } else {
-		if (!mpq_is_zero(r1)) {
-		    printf("Polynomials %d and %d not orthogonal!\n", j, k);
-		    printf("Expected: 0\n");
-		    printf("  Actual: ");
-		    mpq_print_dec(r1);
-		    printf("\n");
-		}
+		mpq_zero(r);
+	    }
+	    if (!mpq_cmp_eq(r1, r)) {
+		printf("Polynomials %d and %d not orthogonal!\n", j, k);
+		printf("Expected: ");
+		mpq_print_dec(r);
+		printf("\n");
+		printf("  Actual: ");
+		mpq_print_dec(r1);
+		printf("\n");
+		exit(1);
 	    }
 	}
     }
+    printf("\n");
 
     for (int j=0; j<N; j++)
 	mpq_poly_free(&p[j]);
