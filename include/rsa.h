@@ -9,7 +9,7 @@ typedef struct {
 	mpi* phi;	/* phi = (p-1)(q-1) */
 	mpi* e;		/* public exponent 1 < e < phi s.t. gcd(e,phi)=1 */
 	mpi* d;		/* secret exponent 1 < d < phi s.t. ed=1 (mod phi)
-			       e and d are multiplicative inverses mod phi */
+			   i.e. e and d are multiplicative inverses mod phi */
 } rsa_ctx;
 
 /* Generate the public and private key. Sets n, phi, e, and d. */
