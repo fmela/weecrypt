@@ -7,8 +7,8 @@
 #include "mpi.h"
 
 typedef struct {
-	mpi_t		num;	/* Numerator */
-	mpi_t		den;	/* Denominator */
+    mpi_t   num;    /* Numerator. */
+    mpi_t   den;    /* Denominator. */
 } mpq, mpq_t[1];
 
 #define	mpq_num(q)	((q)->num)
@@ -90,27 +90,27 @@ void	mpq_div_s32(const mpq *u, int32_t v, mpq *w);
 void	mpq_div_u32(const mpq *u, uint32_t v, mpq *w);
 void	mpq_divi(mpq *w, const mpi *v);
 
-int		mpq_cmp(const mpq *p, const mpq *q);
-int		mpq_cmp_u32(const mpq *p, uint32_t q);
-int		mpq_cmp_s32(const mpq *p, int32_t q);
-int		mpq_cmp_f(const mpq *p,  float q);
-int		mpq_cmp_d(const mpq *p, double q);
-#define	mpq_cmp_gt(p,q)	(mpq_cmp((p), (q)) >  0)
-#define	mpq_cmp_ge(p,q)	(mpq_cmp((p), (q)) >= 0)
-#define	mpq_cmp_lt(p,q)	(mpq_cmp((p), (q)) <  0)
-#define	mpq_cmp_le(p,q)	(mpq_cmp((p), (q)) <= 0)
-#define mpq_cmp_eq(p,q)	(mpq_cmp((p), (q)) == 0)
-#define mpq_cmp_ne(p,q)	(mpq_cmp((p), (q)) != 0)
+int	mpq_cmp(const mpq *p, const mpq *q);
+int	mpq_cmp_u32(const mpq *p, uint32_t q);
+int	mpq_cmp_s32(const mpq *p, int32_t q);
+int	mpq_cmp_f(const mpq *p,  float q);
+int	mpq_cmp_d(const mpq *p, double q);
+#define	mpq_cmp_gt(p,q)		(mpq_cmp((p), (q)) >  0)
+#define	mpq_cmp_ge(p,q)		(mpq_cmp((p), (q)) >= 0)
+#define	mpq_cmp_lt(p,q)		(mpq_cmp((p), (q)) <  0)
+#define	mpq_cmp_le(p,q)		(mpq_cmp((p), (q)) <= 0)
+#define mpq_cmp_eq(p,q)		(mpq_cmp((p), (q)) == 0)
+#define mpq_cmp_ne(p,q)		(mpq_cmp((p), (q)) != 0)
 
 void	mpq_fprint(const mpq *p, unsigned base, FILE *fp);
 #define	mpq_fprint_bin(p,fp)	mpq_fprint((p),  2, (fp))
 #define	mpq_fprint_oct(p,fp)	mpq_fprint((p),  8, (fp))
 #define	mpq_fprint_dec(p,fp)	mpq_fprint((p), 10, (fp))
 #define	mpq_fprint_hex(p,fp)	mpq_fprint((p), 16, (fp))
-#define	mpq_print(p,base)		mpq_fprint((p), (base), stdout)
-#define mpq_print_bin(p)		mpq_print((p),  2)
-#define mpq_print_oct(p)		mpq_print((p),  8)
-#define mpq_print_dec(p)		mpq_print((p), 10)
-#define mpq_print_hex(p)		mpq_print((p), 16)
+#define	mpq_print(p,base)	mpq_fprint((p), (base), stdout)
+#define mpq_print_bin(p)	mpq_print((p),  2)
+#define mpq_print_oct(p)	mpq_print((p),  8)
+#define mpq_print_dec(p)	mpq_print((p), 10)
+#define mpq_print_hex(p)	mpq_print((p), 16)
 
 #endif // !_MPQ_H_
