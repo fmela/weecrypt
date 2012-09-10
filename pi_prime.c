@@ -140,75 +140,76 @@ char *read_string(const char *filename);
 int
 main(void)
 {
-	mp_digit *n;
-	mp_size len;
-	char buf[NDIGITS+1], reverse[NDIGITS+1];
+    mp_digit *n;
+    mp_size len;
+    char buf[NDIGITS+1], reverse[NDIGITS+1];
 
-	pi_string = read_string("pi.txt");
-	if (!pi_string) {
-		printf("Failed to load pi digits!");
-		exit(1);
+    pi_string = read_string("pi.txt");
+    if (!pi_string) {
+	printf("Failed to load pi digits!");
+	exit(1);
+    }
+
+    int i, pilen = strlen(pi_string);
+    for (i=0; i<pilen-NDIGITS; i++) {
+	memset(buf, 0, sizeof(buf));
+	memcpy(buf, &pi_string[i], NDIGITS);
+
+	memset(reverse, 0, sizeof(reverse));
+	for (int j = 0; j < NDIGITS; ++j) {
+	    reverse[j] = buf[NDIGITS - 1 - j];
 	}
 
-	int i, pilen = strlen(pi_string);
-	for (i=0; i<pilen-NDIGITS; i++) {
-		memset(buf, 0, sizeof(buf));
-		memcpy(buf, &pi_string[i], NDIGITS);
-
-		memset(reverse, 0, sizeof(reverse));
-		for (int j = 0; j < NDIGITS; ++j) {
-			reverse[j] = buf[NDIGITS - 1 - j];
-		}
-
-		n = mp_from_str(buf, 10, &len);
-		if (n == 0 || len == 0 || (len == 1 && n[0]<=2)) {
-			printf("Invalid number \"%s\"\n", buf);
-			exit(1);
-		}
-
-		if (mp_sieve(n, len) != 0)
-			continue;
-
-		if (len == 1 && n[0] <= 2) {
-			continue;
-		}
-		/* Now run 20 rounds of the Rabin-Miller test. */
-		if (mp_composite(n, len, 20))
-			continue;
-
-		/* printf("%s (%s) prime with extreme probability (offset %d).\n",
-			   buf, reverse, i); */
-		if (!strcmp(buf, reverse)) {
-			printf("Palindromic prime: %s (%s)\n", buf, reverse);
-		}
+	n = mp_from_str(buf, 10, &len);
+	if (n == 0 || len == 0 || (len == 1 && n[0]<=2)) {
+	    printf("Invalid number \"%s\"\n", buf);
+	    exit(1);
 	}
 
-	return 0;
+	if (mp_sieve(n, len) != 0)
+	    continue;
+
+	if (len == 1 && n[0] <= 2) {
+	    continue;
+	}
+	/* Now run 20 rounds of the Rabin-Miller test. */
+	if (mp_composite(n, len, 20))
+	    continue;
+
+	/* printf("%s (%s) prime with high probability (offset %d).\n",
+	   buf, reverse, i); */
+	if (!strcmp(buf, reverse)) {
+	    printf("Palindromic prime: %s (%s)\n", buf, reverse);
+	}
+    }
+
+    return 0;
 }
 
 char *
-read_string(const char *filename) {
-	FILE *fp = fopen(filename, "r");
-	size_t result_size = 0, result_alloc = 0;
-	char buf[1024] = { 0 };
-	char *result = NULL;
+read_string(const char *filename)
+{
+    FILE *fp = fopen(filename, "r");
+    size_t result_size = 0, result_alloc = 0;
+    char buf[1024] = { 0 };
+    char *result = NULL;
 
-	if (!fp) {
-		return NULL;
+    if (!fp) {
+	return NULL;
+    }
+    while (fgets(buf, sizeof(buf), fp)) {
+	strtok(buf, "\n");
+	size_t buf_size = strlen(buf);
+	if (result_size + buf_size + 1 > result_alloc) {
+	    if (result_alloc == 0)
+		result_alloc = 128;
+	    else
+		result_alloc *= 2; /* Double the allocation. */
+	    result = realloc(result, result_alloc);
 	}
-	while (fgets(buf, sizeof(buf), fp)) {
-		strtok(buf, "\n");
-		size_t buf_size = strlen(buf);
-		if (result_size + buf_size + 1 > result_alloc) {
-			if (result_alloc == 0)
-				result_alloc = 128;
-			else
-				result_alloc *= 2; /* Double the allocation. */
-			result = realloc(result, result_alloc);
-		}
-		memcpy(result + result_size, buf, buf_size);
-		result_size += buf_size;
-		result[result_size] = 0;
-	}
-	return result;
+	memcpy(result + result_size, buf, buf_size);
+	result_size += buf_size;
+	result[result_size] = 0;
+    }
+    return result;
 }
