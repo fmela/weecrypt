@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* w[0..msize-1] <- u[0..msize-1]^2 mod M (m[0..msize-1]) */
 void

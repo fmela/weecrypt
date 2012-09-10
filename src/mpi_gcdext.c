@@ -2,7 +2,7 @@
  * Copyright (C) 2003-2012 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
-#include "mpi_defs.h"
+#include "mpi_internal.h"
 
 /* Cohen algorithm 1.3.6 (Extended Euclid)
  * Given non-negative integers A and B, this algorithm will determine U, V,

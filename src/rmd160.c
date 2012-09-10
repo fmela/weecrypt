@@ -1,7 +1,7 @@
 #include "rmd160.h"
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 #include <string.h> /* for memset */
 

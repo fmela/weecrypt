@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 #include "weecrypt_memory.h"
 
 #ifndef MP_INC_ASM

@@ -2,7 +2,7 @@
  * Copyright (C) 2003-2012 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
-#include "mpi_defs.h"
+#include "mpi_internal.h"
 
 /* Find multiplicative inverse B^-1 of B (mod M) such that B*B^-1 (mod M) = 1.
  * If such an inverse exists, stores the inverse in INV and returns 1.

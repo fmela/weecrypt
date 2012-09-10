@@ -2,7 +2,7 @@
  * Copyright (C) 2003-2012 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
-#include "mpi_defs.h"
+#include "mpi_internal.h"
 
 /* Compute the Nth Fibonnaci number F_n, where
  * F_0 = 0

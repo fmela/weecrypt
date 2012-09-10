@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 extern void _mp_mul_base(const mp_digit *u, mp_size usize,
 			 const mp_digit *v, mp_size vsize, mp_digit *w);

@@ -2,7 +2,7 @@
  * Copyright (C) 2012 Farooq Mela. All rights reserved. */
 
 #include "mpi.h"
-#include "mpi_defs.h"
+#include "mpi_internal.h"
 
 /* Compute N! = N x (N-1) x (N-2) ... x (2) x (1) */
 /* TODO: use a better algorithm, e.g. the recursive-splitting algorithm. */

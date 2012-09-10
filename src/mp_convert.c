@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 #include "weecrypt_memory.h"
 
 /* radix_sizes[B] = number of radix-B digits needed to represent an 8-bit

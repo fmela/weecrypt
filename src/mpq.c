@@ -3,7 +3,7 @@
 
 #include "weecrypt_memory.h"
 #include "mpq.h"
-#include "mpi_defs.h"
+#include "mpi_internal.h"
 
 void
 mpq_normalize_nogcd(mpq *q)

@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 typedef struct {
     mp_digit*	digits;	    /* Digits of number. */

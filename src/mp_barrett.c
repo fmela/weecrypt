@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 static void barrett_reduce(const mp_digit *x,
 			   const mp_barrett_ctx *ctx, mp_digit *r);

@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* Binary extended GCD algorithm, as given by Knuth in 4.5.2 exercise 39
  * (vol.2 3rd ed. p.646)

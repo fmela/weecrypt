@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* Compute g[min(usize,vsize)] = gcd(u,v) using Lehmer's algorithm.
  * Neither A or B may be 0 */

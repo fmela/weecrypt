@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* Find the integer part of the square root of U and store it in V; V must be
  * at least as large as ceil(ULEN / 2). */

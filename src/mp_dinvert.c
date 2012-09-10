@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* This table was generated from ~/src/misc/mul_inv.c */
 static const uint8_t inv8[128] = {

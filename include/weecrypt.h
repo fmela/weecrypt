@@ -7,7 +7,7 @@
 #include "weecrypt_memory.h"
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mpi_internal.h"
 #include "mpi.h"
 #include "mpq.h"
 #include "mpq_poly.h"

@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* This routine implements Jebelean's algorithm for exact division. It will
  * divide u[usize] by d[dsize] and put the quotient in q[usize - dsize + 1]

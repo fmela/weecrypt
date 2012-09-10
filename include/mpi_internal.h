@@ -1,8 +1,8 @@
-/* mpi_defs.h
+/* mpi_internal.h
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
-#ifndef _MPI_DEFS_H_
-#define _MPI_DEFS_H_
+#ifndef _MPI_INTERNAL_H_
+#define _MPI_INTERNAL_H_
 
 #define MPI_MIN_ALLOC(n,s) \
     do { \
@@ -31,4 +31,4 @@
 	    --__n->size; \
     } while (0)
 
-#endif /* !_MPI_DEFS_H_ */
+#endif /* !_MPI_INTERNAL_H_ */

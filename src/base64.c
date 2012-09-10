@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 #include "weecrypt_memory.h"
 
 static const unsigned char base64_chars[] =

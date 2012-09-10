@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 static void md4_step(const uint8_t *block, uint32_t *md4);
 static void md4_encode(const uint32_t *input, unsigned len, uint8_t *output);

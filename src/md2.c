@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 static void md2_step(uint8_t *md2, uint8_t *cksum, const uint8_t *data);
 

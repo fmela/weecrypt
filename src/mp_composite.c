@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* Knuth 4.5.4P: use a variant of the Miller-Rabin probabilistic procedure to
  * test the integer N for compositeness. It will never incorrectly identify a

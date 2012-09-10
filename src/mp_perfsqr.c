@@ -2,7 +2,7 @@
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 /* Adapted from Algorithm 1.7.3 from Cohen, "A Course in Computational
  * Algebraic Number Theory" */

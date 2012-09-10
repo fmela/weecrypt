@@ -7,7 +7,7 @@
 
 #include "weecrypt_memory.h"
 #include "mpi.h"
-#include "mpi_defs.h"
+#include "mpi_internal.h"
 
 #define MPI_INIT_BYTES	8
 #define MPI_INIT_DIGITS	((MPI_INIT_BYTES + MP_DIGIT_SIZE - 1) / MP_DIGIT_SIZE)

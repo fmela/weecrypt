@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "mp.h"
-#include "mp_defs.h"
+#include "mp_internal.h"
 
 static void md5_step(uint32_t *md5, const uint8_t *block);
 static void md5_encode(uint8_t *output, const uint32_t *input, unsigned len);

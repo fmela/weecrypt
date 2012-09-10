@@ -1,8 +1,8 @@
-/* mp_defs.h
+/* mp_internal.h
  * Copyright (C) 2002-2012 Farooq Mela. All rights reserved. */
 
-#ifndef _MP_DEFS_H_
-#define _MP_DEFS_H_
+#ifndef _MP_INTERNAL_H_
+#define _MP_INTERNAL_H_
 
 #include "mp_config.h"
 
@@ -208,4 +208,4 @@ void mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 # define ASSERT(expr)	(void)(expr)
 #endif
 
-#endif /* !_MP_DEFS_H_ */
+#endif /* !_MP_INTERNAL_H_ */
