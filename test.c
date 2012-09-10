@@ -6,6 +6,7 @@
 #include <float.h>
 #include <time.h>
 
+#include "twiddle.h"
 #include "weecrypt.h"
 
 #if defined(__APPLE__)
@@ -777,15 +778,6 @@ run_gcd_test(void)
 #undef A
 #undef B
 #undef G
-}
-
-void
-twiddle(void)
-{
-    static int t=-1;
-
-    printf("%c\b", "|/-\\"[(++t)&3]);
-    fflush(stdout);
 }
 
 void
