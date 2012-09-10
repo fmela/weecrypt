@@ -301,7 +301,7 @@ main(void)
 	    /* Now run 20 rounds of the Rabin-Miller test. */
 	    if (!mp_composite(n, len, 20)) {
 		mp_print_dec(n, len);
-		printf(" is prime with extreme probability (offset %d).\n", i);
+		printf(" is prime with high probability (offset %d).\n", i);
 	    }
 	}
     }
