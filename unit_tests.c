@@ -560,9 +560,8 @@ void test_mp_sieve()
 }
 
 void test_mpi_rand() {
-    mpi_t t;
+    mpi_t t = MPI_INITIALIZER;
 
-    mpi_init(t);
     for (unsigned bits = 0; bits <= 1024; ++bits) {
 	mpi_rand(t, bits);
 	CU_ASSERT_EQUAL(mpi_significant_bits(t), bits);
@@ -571,16 +570,25 @@ void test_mpi_rand() {
 }
 
 void test_mpi_cmp() {
-    mpi_t u, v;
+    mpi_t u = MPI_INITIALIZER;
+    mpi_t v = MPI_INITIALIZER;
 
-    mpi_init(u);
-    mpi_init(v);
+    CU_ASSERT_TRUE(mpi_is_zero(u));
+    CU_ASSERT_TRUE(mpi_is_zero(v));
+
+    // TODO: fill this test case in.
+    CU_ASSERT_EQUAL(mpi_cmp(u, v), 0);
+
+    CU_ASSERT_EQUAL(mpi_cmp_u32(u, 0), 0);
+    CU_ASSERT_EQUAL(mpi_cmp_s32(u, 1), -1);
+    CU_ASSERT_EQUAL(mpi_cmp_s32(u, -1), 1);
+
+    mpi_free(u);
+    mpi_free(v);
 }
 
 void test_mpi_fibonacci() {
-    mpi_t u;
-
-    mpi_init(u);
+    mpi_t u = MPI_INITIALIZER;
 
     mpi_fibonacci(0, u);
     CU_ASSERT_TRUE(mpi_is_zero(u));
@@ -740,9 +748,7 @@ void test_mpi_fibonacci() {
 
 void test_mpi_factorial()
 {
-    mpi_t u;
-
-    mpi_init(u);
+    mpi_t u = MPI_INITIALIZER;
 
     mpi_factorial(0, u);
     CU_ASSERT_TRUE(mpi_is_zero(u));
@@ -835,9 +841,7 @@ void test_mpi_factorial()
 
 void test_mpi_binomial()
 {
-    mpi_t u;
-
-    mpi_init(u);
+    mpi_t u = MPI_INITIALIZER;
 
     mpi_binomial(1, 0, u);
     CU_ASSERT_TRUE(mpi_cmp_u32(u, 1) == 0);
