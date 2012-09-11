@@ -37,6 +37,7 @@ void	mpi_set_u32(mpi *p, uint32_t q);
 void	mpi_set_s32(mpi *p, int32_t q);
 void	mpi_set_u64(mpi *p, uint64_t q);
 void	mpi_set_s64(mpi *p, int64_t q);
+bool	mpi_set_str(mpi *p, const char *str, unsigned base);
 
 bool	mpi_get_u32(const mpi *p, uint32_t *q);
 bool	mpi_get_s32(const mpi *p, int32_t *q);

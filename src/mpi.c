@@ -184,16 +184,18 @@ mpi_set_u32(mpi *n, uint32_t m)
     mp_size j;
     uint32_t t = m;
 
-    for (j = 0; t; j++)
+    mp_size j = 0;
+    while (t) {
 	t >>= MP_DIGIT_BITS;
+	++j;
+    }
     MPI_MIN_ALLOC(n, j);
-    for (j = 0; m; j++) {
+    for (j = 0; m; ++j) {
 	n->digits[j] = (mp_digit)m;
 	m >>= MP_DIGIT_BITS;
     }
     n->size = j;
 #endif
-    n->sign = 0;
 }
 
 void
@@ -280,6 +282,33 @@ mpi_get_u32(const mpi *p, uint32_t *q)
 	    r |= (1U << i);
     *q = r;
     return true;
+}
+
+bool
+mpi_set_str(mpi *p, const char *str, unsigned base)
+{
+    ASSERT(p != NULL);
+    ASSERT(str != NULL);
+
+    while (*str && isspace(*str))
+	++str;
+    bool neg = false;
+    if (*str == '+') {
+	++str;
+    } else if (*str == '-') {
+	neg = true;
+	++str;
+    }
+    mp_size size = 0;
+    mp_digit *digits = mp_from_str(str, base, &size);
+    if (digits) {
+	mp_free(p->digits);
+	p->digits = digits;
+	p->size = p->alloc = size;
+	p->sign = neg;
+	return true;
+    }
+    return false;
 }
 
 float
