@@ -64,6 +64,7 @@ CU_TestInfo mp_basic_tests[] = {
 };
 
 void test_mpi_rand();
+void test_mpi_add_sub();
 void test_mpi_cmp();
 void test_mpi_fibonacci();
 void test_mpi_factorial();
@@ -71,6 +72,7 @@ void test_mpi_binomial();
 
 CU_TestInfo mpi_basic_tests[] = {
     TEST_FUNC(test_mpi_rand),
+    TEST_FUNC(test_mpi_add_sub),
     TEST_FUNC(test_mpi_cmp),
     TEST_FUNC(test_mpi_fibonacci),
     TEST_FUNC(test_mpi_factorial),
@@ -569,9 +571,86 @@ void test_mpi_rand() {
     mpi_free(t);
 }
 
+void test_mpi_add_sub() {
+    mpi_t u = MPI_INITIALIZER, v = MPI_INITIALIZER, w = MPI_INITIALIZER;
+    mpi_t expected = MPI_INITIALIZER;
+
+    CU_ASSERT_TRUE(mpi_is_zero(u));
+    CU_ASSERT_TRUE(mpi_is_zero(v));
+
+    mpi_add(u, v, w);
+    CU_ASSERT_TRUE(mpi_is_zero(w));
+
+    mpi_sub(u, v, w);
+    CU_ASSERT_TRUE(mpi_is_zero(w));
+
+    CU_ASSERT_TRUE(mpi_set_str(u, "123456789123456789", 10));
+    CU_ASSERT_TRUE(mpi_set_str(v, "987654321987654321", 10));
+
+    CU_ASSERT_TRUE(mpi_set_str(expected, "1111111111111111110", 10));
+
+    mpi_add(u, v, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    mpi_add(v, u, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(expected, "-864197532864197532", 10));
+    mpi_sub(u, v, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(expected, "864197532864197532", 10));
+    mpi_sub(v, u, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(u, "123456789123456789123456789123456789", 10));
+    CU_ASSERT_TRUE(mpi_set_str(v, "987654321987654321", 10));
+
+    CU_ASSERT_TRUE(mpi_set_str(expected,
+			       "123456789123456790111111111111111110", 10));
+    mpi_add(u, v, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    mpi_add(v, u, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(expected,
+			       "123456789123456788135802467135802468", 10));
+    mpi_sub(u, v, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(expected,
+			       "-123456789123456788135802467135802468", 10));
+    mpi_sub(v, u, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(u, "123456789123456789123456789123456789", 10));
+    CU_ASSERT_TRUE(mpi_set_str(v, "-123456789123456789123456789123456780", 10));
+
+    CU_ASSERT_TRUE(mpi_set_str(expected, "9", 10));
+    mpi_add(u, v, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+    mpi_add(v, u, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(expected,
+			       "246913578246913578246913578246913569", 10));
+    mpi_sub(u, v, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    CU_ASSERT_TRUE(mpi_set_str(expected,
+			       "-246913578246913578246913578246913569", 10));
+    mpi_sub(v, u, w);
+    CU_ASSERT_EQUAL(mpi_cmp(w, expected), 0);
+
+    mpi_free(u);
+    mpi_free(v);
+    mpi_free(w);
+    mpi_free(expected);
+}
+
 void test_mpi_cmp() {
-    mpi_t u = MPI_INITIALIZER;
-    mpi_t v = MPI_INITIALIZER;
+    mpi_t u = MPI_INITIALIZER, v = MPI_INITIALIZER;
 
     CU_ASSERT_TRUE(mpi_is_zero(u));
     CU_ASSERT_TRUE(mpi_is_zero(v));
