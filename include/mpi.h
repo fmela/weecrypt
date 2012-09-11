@@ -66,17 +66,17 @@ void	mpi_rand(mpi *n, unsigned bits);
 void	mpi_rand_ctx(mpi *n, unsigned bits, mt64_context *ctx);
 void	mpi_swap(mpi *a, mpi *b);
 
-int		mpi_cmp(const mpi *p, const mpi *q);
+int	mpi_cmp(const mpi *p, const mpi *q);
 #define	mpi_cmp_gt(p,q)	(mpi_cmp((p), (q)) >  0)
 #define	mpi_cmp_ge(p,q)	(mpi_cmp((p), (q)) >= 0)
 #define	mpi_cmp_lt(p,q)	(mpi_cmp((p), (q)) <  0)
 #define	mpi_cmp_le(p,q)	(mpi_cmp((p), (q)) <= 0)
 #define mpi_cmp_eq(p,q)	(mpi_cmp((p), (q)) == 0)
 #define mpi_cmp_ne(p,q)	(mpi_cmp((p), (q)) != 0)
-int		mpi_cmp_u32(const mpi *p, uint32_t q);
-int		mpi_cmp_s32(const mpi *p, int32_t q);
-int		mpi_cmp_u64(const mpi *p, uint64_t q);
-int		mpi_cmp_s64(const mpi *p, int64_t q);
+int	mpi_cmp_u32(const mpi *p, uint32_t q);
+int	mpi_cmp_s32(const mpi *p, int32_t q);
+int	mpi_cmp_u64(const mpi *p, uint64_t q);
+int	mpi_cmp_s64(const mpi *p, int64_t q);
 
 void	mpi_setbit(mpi *p, unsigned bit);
 void	mpi_clrbit(mpi *p, unsigned bit);
@@ -128,7 +128,7 @@ bool	mpi_coprime(const mpi *a, const mpi *b);
 /* Extended GCD */
 void	mpi_gcdext(const mpi *a, const mpi *b, mpi *u, mpi *v, mpi *d);
 /* Modular inverse */
-int		mpi_modinv(const mpi *m, const mpi *b, mpi *inv);
+int	mpi_modinv(const mpi *m, const mpi *b, mpi *inv);
 /* Modular exponentiation: R = (A ^ P) mod M */
 void	mpi_modexp_u32(const mpi *a, uint32_t p, const mpi *m, mpi *r);
 void	mpi_modexp(const mpi *a, const mpi *p, const mpi *m, mpi *r);
@@ -147,19 +147,19 @@ typedef struct {
 	mpi_t		m;
 } mpi_crt_ctx;
 void	mpi_crt_init(mpi_crt_ctx *ctx);
-int		mpi_crt_step(mpi_crt_ctx *ctx, const mpi *a_i, const mpi *m_i);
-int		mpi_crt_finish(mpi_crt_ctx *ctx, mpi *a);
+int	mpi_crt_step(mpi_crt_ctx *ctx, const mpi *a_i, const mpi *m_i);
+int	mpi_crt_finish(mpi_crt_ctx *ctx, mpi *a);
 
 void	mpi_fprint(const mpi *n, unsigned base, FILE *fp);
 #define mpi_fprint_bin(n,fp)	mpi_fprint((n),  2, (fp))
 #define mpi_fprint_oct(n,fp)	mpi_fprint((n),  8, (fp))
 #define mpi_fprint_dec(n,fp)	mpi_fprint((n), 10, (fp))
 #define mpi_fprint_hex(n,fp)	mpi_fprint((n), 16, (fp))
-#define	mpi_print(n,base)		mpi_fprint((n), (base), stdout)
-#define mpi_print_bin(n)		mpi_print((n),  2)
-#define mpi_print_oct(n)		mpi_print((n),  8)
-#define mpi_print_dec(n)		mpi_print((n), 10)
-#define mpi_print_hex(n)		mpi_print((n), 16)
-#define mpi_to_str(n,base)		mp_to_str((n)->digits, (n)->size, (base))
+#define	mpi_print(n,base)	mpi_fprint((n), (base), stdout)
+#define mpi_print_bin(n)	mpi_print((n),  2)
+#define mpi_print_oct(n)	mpi_print((n),  8)
+#define mpi_print_dec(n)	mpi_print((n), 10)
+#define mpi_print_hex(n)	mpi_print((n), 16)
+#define mpi_to_str(n,base)	mp_to_str((n)->digits, (n)->size, (base))
 
 #endif /* !_MPI_H_ */
