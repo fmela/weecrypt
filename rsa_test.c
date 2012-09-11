@@ -51,8 +51,7 @@ rsa_test(unsigned bits, mt64_context *rand_ctx)
     ASSERT(rsa.e);
     ASSERT(rsa.d);
 
-    mpi_t m;
-    mpi_init(m);
+    mpi_t m = MPI_INITIALIZER;
     mpi_mul(rsa.e, rsa.d, m);
     mpi_mod(m, rsa.phi, m);
     bool result = true;

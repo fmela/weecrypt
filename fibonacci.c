@@ -8,8 +8,7 @@ int
 main(void)
 {
     char buf[512];
-    mpi_t fib;
-    mpi_init(fib);
+    mpi_t fib = MPI_INITIALIZER;
 
     while (printf("Enter N: ") &&
 	   fgets(buf, sizeof(buf), stdin)) {
