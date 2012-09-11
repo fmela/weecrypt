@@ -1051,12 +1051,8 @@ test_modinv(void)
     printf("--> %s\n", __PRETTY_FUNCTION__);
 
     const int iters=10000;
-    mpi_t b, m, inv, p;
-
-    mpi_init(b);
-    mpi_init(m);
-    mpi_init(inv);
-    mpi_init(p);
+    mpi_t b = MPI_INITIALIZER, m = MPI_INITIALIZER, inv = MPI_INITIALIZER;
+    mpi_t p = MPI_INITIALIZER;
 
     for (int i=0; i<iters; i++) {
 	do {
@@ -1497,15 +1493,14 @@ test_crt(void)
     mpi_t a_1, m_1;
     mpi_t a_2, m_2;
     mpi_t a_3, m_3;
-    mpi_t x, t;
-    mpi_crt_ctx ctx;
 
     mpi_init_u32(a_1, 1); mpi_init_u32(m_1,  7);
     mpi_init_u32(a_2, 6); mpi_init_u32(m_2, 11);
     mpi_init_u32(a_3, 5); mpi_init_u32(m_3, 13);
-    mpi_init(x);
-    mpi_init(t);
+    mpi_t x = MPI_INITIALIZER;
+    mpi_t t = MPI_INITIALIZER;
 
+    mpi_crt_ctx ctx;
     mpi_crt_init(&ctx);
     do {
 	if (mpi_crt_step(&ctx, a_1, m_1)) { printf("failed at 1\n"); break; }
