@@ -5,7 +5,7 @@ computation, and RSA encryption.
 
 ## License
 
-Weecrypt is released under the BSD license; please refer to the [LICENSE](https://github.com/fmela/weecrypt/blob/master/LICENSE) file for details.
+Weecrypt is released the under the simplified BSD [license](https://github.com/fmela/weecrypt/blob/master/LICENSE).
 
 ## Getting weecrypt
 
