@@ -9,13 +9,11 @@ void factorize(mp_digit *n, mp_size len);
 int
 main(void)
 {
-    mp_digit *n;
-    mp_size len;
     char buf[8192];
-
     while (printf("Enter an integer greater than 2 in base 10:\n") &&
 	   fgets(buf, sizeof(buf), stdin)) {
-	n = mp_from_str(buf, 10, &len);
+	mp_size len;
+	mp_digit *n = mp_from_str(buf, 10, &len);
 
 	if (!n || !len || (len == 1 && n[0] <= 2)) {
 	    printf("Invalid number.\n");
@@ -23,6 +21,7 @@ main(void)
 	}
 
 	factorize(n, len);
+	free(n);
     }
 
     return 0;
