@@ -15,7 +15,7 @@
 void
 mpi_init(mpi *n)
 {
-    ASSERT(n);
+    ASSERT(n != NULL);
 
     n->alloc = MPI_INIT_DIGITS;
     n->digits = mp_new0(MPI_INIT_DIGITS);
@@ -54,8 +54,8 @@ mpi_init_s64(mpi *n, int64_t sl)
 void
 mpi_init_mpi(mpi *p, const mpi *q)
 {
-    ASSERT(p);
-    ASSERT(q);
+    ASSERT(p != NULL);
+    ASSERT(q != NULL);
 
     if (q->size) {
 	p->digits = mp_dup(q->digits, q->size);
@@ -112,7 +112,7 @@ mpi_init_mp(mpi *p, mp_digit *n, mp_size size)
 void
 mpi_free(mpi *n)
 {
-    ASSERT(n);
+    ASSERT(n != NULL);
 
     mp_free(n->digits);
 }
@@ -120,7 +120,7 @@ mpi_free(mpi *n)
 void
 mpi_free_zero(mpi *n)
 {
-    ASSERT(n);
+    ASSERT(n != NULL);
 
     mp_zero(n->digits, n->alloc);
     mp_free(n->digits);
@@ -129,8 +129,8 @@ mpi_free_zero(mpi *n)
 void
 mpi_set_mpi(mpi *p, const mpi *q)
 {
-    ASSERT(p);
-    ASSERT(q);
+    ASSERT(p != NULL);
+    ASSERT(q != NULL);
 
     if (p != q) {
 	if (q->size == 0) {
@@ -146,7 +146,7 @@ mpi_set_mpi(mpi *p, const mpi *q)
 void
 mpi_zero(mpi *n)
 {
-    ASSERT(n);
+    ASSERT(n != NULL);
 
     n->sign = 0;
     n->size = 0;
@@ -155,7 +155,7 @@ mpi_zero(mpi *n)
 void
 mpi_neg(mpi *n)
 {
-    ASSERT(n);
+    ASSERT(n != NULL);
 
     if (n->size) /* Don't flip sign if N = 0 */
 	n->sign ^= 1;
@@ -164,7 +164,7 @@ mpi_neg(mpi *n)
 void
 mpi_abs(mpi *n)
 {
-    ASSERT(n);
+    ASSERT(n != NULL);
 
     n->sign = 0;
 }
@@ -408,7 +408,7 @@ mpi_dec(mpi *n)
 void
 mpi_rand_ctx(mpi *n, unsigned bits, mt64_context *ctx)
 {
-    ASSERT(n);
+    ASSERT(n != NULL);
 
     n->sign = 0; /* XXX */
     if (!bits) {
@@ -973,9 +973,9 @@ mpi_sqrt(const mpi *a, mpi *r)
 void
 mpi_gcd(const mpi *a, const mpi *b, mpi *g)
 {
-    ASSERT(a);
-    ASSERT(b);
-    ASSERT(g);
+    ASSERT(a != NULL);
+    ASSERT(b != NULL);
+    ASSERT(g != NULL);
     ASSERT(a != g);
     ASSERT(b != g);
 

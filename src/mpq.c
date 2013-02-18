@@ -537,7 +537,7 @@ mpq_get_d(const mpq *p)
 void
 mpq_free(mpq *p)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
 
     mpi_free(p->num);
     mpi_free(p->den);
@@ -546,8 +546,8 @@ mpq_free(mpq *p)
 void
 mpq_set_mpq(mpq *p, const mpq *q)
 {
-    ASSERT(p);
-    ASSERT(q);
+    ASSERT(p != NULL);
+    ASSERT(q != NULL);
 
     if (p != q) {
 	mpi_set_mpi(p->num, q->num);
@@ -558,7 +558,7 @@ mpq_set_mpq(mpq *p, const mpq *q)
 void
 mpq_set_u32(mpq *p, uint32_t q)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
 
     mpi_set_u32(p->num, q);
     mpi_set_u32(p->den, 1);
@@ -567,7 +567,7 @@ mpq_set_u32(mpq *p, uint32_t q)
 void
 mpq_set_s32(mpq *p, int32_t q)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
 
     mpi_set_s32(p->num, q);
     mpi_set_u32(p->den, 1);
@@ -576,7 +576,7 @@ mpq_set_s32(mpq *p, int32_t q)
 void
 mpq_set_u64(mpq *p, uint64_t q)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
 
     mpi_set_u64(p->num, q);
     mpi_set_u32(p->den, 1);
@@ -585,7 +585,7 @@ mpq_set_u64(mpq *p, uint64_t q)
 void
 mpq_set_s64(mpq *p, int64_t q)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
 
     mpi_set_s64(p->num, q);
     mpi_set_u32(p->den, 1);
@@ -594,7 +594,7 @@ mpq_set_s64(mpq *p, int64_t q)
 void
 mpq_set_u32_u32(mpq *p, uint32_t n, uint32_t d)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
     ASSERT(d != 0);
 
     mpi_set_u32(p->num, n);
@@ -605,7 +605,7 @@ mpq_set_u32_u32(mpq *p, uint32_t n, uint32_t d)
 void
 mpq_set_s32_s32(mpq *p, int32_t n, int32_t d)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
     ASSERT(d != 0);
 
     mpi_set_s32(p->num, n);
@@ -616,7 +616,7 @@ mpq_set_s32_s32(mpq *p, int32_t n, int32_t d)
 void
 mpq_set_u64_u64(mpq *p, uint64_t n, uint64_t d)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
     ASSERT(d != 0);
 
     mpi_set_u64(p->num, n);
@@ -627,7 +627,7 @@ mpq_set_u64_u64(mpq *p, uint64_t n, uint64_t d)
 void
 mpq_set_s64_s64(mpq *p, int64_t n, int64_t d)
 {
-    ASSERT(p);
+    ASSERT(p != NULL);
     ASSERT(d != 0);
 
     mpi_set_s64(p->num, n);
@@ -638,7 +638,7 @@ mpq_set_s64_s64(mpq *p, int64_t n, int64_t d)
 void
 mpq_zero(mpq *q)
 {
-    ASSERT(q);
+    ASSERT(q != NULL);
 
     mpi_zero(q->num);
     mpi_set_u32(q->den, 1);
@@ -647,7 +647,7 @@ mpq_zero(mpq *q)
 void
 mpq_one(mpq *q)
 {
-    ASSERT(q);
+    ASSERT(q != NULL);
 
     mpi_set_u32(q->num, 1);
     mpi_set_u32(q->den, 1);
@@ -680,7 +680,7 @@ mpq_undef(mpq *q)
 void
 mpq_neg(mpq *q)
 {
-    ASSERT(q);
+    ASSERT(q != NULL);
 
     if (q->num->size)
 	q->num->sign ^= 1;
@@ -689,7 +689,7 @@ mpq_neg(mpq *q)
 void
 mpq_abs(mpq *q)
 {
-    ASSERT(q);
+    ASSERT(q != NULL);
 
     q->num->sign = 0;
 }
@@ -697,8 +697,8 @@ mpq_abs(mpq *q)
 void
 mpq_swap(mpq *p, mpq *q)
 {
-    ASSERT(p);
-    ASSERT(q);
+    ASSERT(p != NULL);
+    ASSERT(q != NULL);
 
     if (p != q) {
 	mpi_swap(p->num, q->num);
@@ -794,9 +794,9 @@ mpq_add(const mpq *u, const mpq *v, mpq *w)
 void
 mpq_sub(const mpq *u, const mpq *v, mpq *w)
 {
-    ASSERT(u);
-    ASSERT(v);
-    ASSERT(w);
+    ASSERT(u != NULL);
+    ASSERT(v != NULL);
+    ASSERT(w != NULL);
 
     if (u == v) {
 	mpq_zero(w);

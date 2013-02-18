@@ -46,10 +46,10 @@ rsa_test(unsigned bits, mt64_context *rand_ctx)
     rsa_ctx rsa;
     if (!rsa_init_keygen(&rsa, bits, rand_ctx))
 	return false;
-    ASSERT(rsa.n);
-    ASSERT(rsa.phi);
-    ASSERT(rsa.e);
-    ASSERT(rsa.d);
+    ASSERT(rsa.n != NULL);
+    ASSERT(rsa.phi != NULL);
+    ASSERT(rsa.e != NULL);
+    ASSERT(rsa.d != NULL);
 
     mpi_t m = MPI_INITIALIZER;
     mpi_mul(rsa.e, rsa.d, m);

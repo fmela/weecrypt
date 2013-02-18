@@ -37,9 +37,9 @@ void
 mp_gcd(const mp_digit *u, mp_size usize,
        const mp_digit *v, mp_size vsize, mp_digit *w)
 {
-    ASSERT(u);
+    ASSERT(u != NULL);
     ASSERT(usize > 0);
-    ASSERT(v);
+    ASSERT(v != NULL);
     ASSERT(vsize > 0);
     ASSERT(u != w);
     ASSERT(v != w);

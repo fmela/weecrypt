@@ -12,12 +12,12 @@ void
 mp_divexact(const mp_digit *u, mp_size usize,
 	    const mp_digit *d, mp_size dsize, mp_digit *q)
 {
-    ASSERT(u);
+    ASSERT(u != NULL);
     ASSERT(usize > 0);
-    ASSERT(d);
+    ASSERT(d != NULL);
     ASSERT(dsize > 0);
     ASSERT(d[dsize - 1] != 0);
-    ASSERT(q);
+    ASSERT(q != NULL);
 
     mp_zero(q, usize - dsize + 1);
     MP_NORMALIZE(u, usize);

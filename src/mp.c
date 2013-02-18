@@ -61,9 +61,9 @@ mp_daddi(mp_digit *u, mp_size size, mp_digit v)
 mp_digit
 mp_add_n(const mp_digit *u, const mp_digit *v, mp_size size, mp_digit *w)
 {
-    ASSERT(u);
-    ASSERT(v);
-    ASSERT(w);
+    ASSERT(u != NULL);
+    ASSERT(v != NULL);
+    ASSERT(w != NULL);
 
     mp_digit cy = 0;
     while (size--) {
@@ -81,10 +81,10 @@ mp_digit
 mp_add(const mp_digit *u, mp_size usize,
        const mp_digit *v, mp_size vsize, mp_digit *w)
 {
-    ASSERT(u);
+    ASSERT(u != NULL);
     ASSERT(usize > 0);
     ASSERT(u[usize - 1]);
-    ASSERT(v);
+    ASSERT(v != NULL);
     ASSERT(vsize > 0);
     ASSERT(v[vsize - 1]);
 
@@ -265,8 +265,8 @@ mp_dmuli(mp_digit *u, mp_size size, mp_digit v)
 mp_digit
 mp_dmul_add(const mp_digit *u, mp_size size, mp_digit v, mp_digit *w)
 {
-    ASSERT(u);
-    ASSERT(w);
+    ASSERT(u != NULL);
+    ASSERT(w != NULL);
 
     if (v <= 1)
 	return v ? mp_addi_n(w, u, size) : 0;
