@@ -154,22 +154,17 @@ md5_final(md5_context *ctx, void *digest)
 static void
 md5_step(uint32_t *md5, const uint8_t *block)
 {
-	uint32_t a, b, c, d, x[16];
-
 	ASSERT(md5 != NULL);
 	ASSERT(block != NULL);
 
-	a = md5[0];
-	b = md5[1];
-	c = md5[2];
-	d = md5[3];
+	uint32_t a = md5[0];
+	uint32_t b = md5[1];
+	uint32_t c = md5[2];
+	uint32_t d = md5[3];
 
+	uint32_t x[16];
 	md5_decode(x, block, 64);
 
-	/*
-	 * Like to see something interesting? ;)
-	 * cpp FX_MD5.C | more
-	 */
 	RND1(a,b,c,d, 0, 0, 0);
 	RND1(d,a,b,c, 1, 1, 1);
 	RND1(c,d,a,b, 2, 2, 2);
@@ -243,24 +238,21 @@ md5_step(uint32_t *md5, const uint8_t *block)
 	md5[2] += c;
 	md5[3] += d;
 
-	/* zero possibly sensitive data on stack.. not that im worried ;-) */
 	memset(x, 0, sizeof(x));
 }
 
 static void
 md5_encode(uint8_t *output, const uint32_t *input, unsigned len)
 {
-	unsigned i, j;
-
 	ASSERT(output != NULL);
 	ASSERT(input != NULL);
 	ASSERT(len > 0);
 
-	for (i = 0, j = 0; j < len; i++, j += 4) {
-		output[j + 0] = (uint8_t)((input[i] >>  0) & 0xff);
-		output[j + 1] = (uint8_t)((input[i] >>  8) & 0xff);
-		output[j + 2] = (uint8_t)((input[i] >> 16) & 0xff);
-		output[j + 3] = (uint8_t)((input[i] >> 24) & 0xff);
+	for (unsigned i = 0; 4*i < len; ++i) {
+	    output[4*i+0] = input[i] >>  0;
+	    output[4*i+1] = input[i] >>  8;
+	    output[4*i+2] = input[i] >> 16;
+	    output[4*i+3] = input[i] >> 24;
 	}
 }
 
@@ -273,12 +265,13 @@ md5_decode(uint32_t *output, const uint8_t *input, unsigned len)
 	ASSERT(input != NULL);
 	ASSERT(len > 0);
 
-	for (i = 0, j = 0; j < len; i++, j += 4)
+	for (i = 0, j = 0; j < len; i++, j += 4) {
 		output[i] =
 			(((uint32_t)input[j + 0]) <<  0) |
 			(((uint32_t)input[j + 1]) <<  8) |
 			(((uint32_t)input[j + 2]) << 16) |
 			(((uint32_t)input[j + 3]) << 24);
+	}
 }
 
 void
