@@ -96,7 +96,9 @@ md5_update(md5_context *ctx, const void *data, unsigned len)
 {
 	ASSERT(ctx != NULL);
 	ASSERT(data != NULL);
-	ASSERT(len > 0);
+
+	if (len == 0)
+	    return;
 
 	const uint8_t *input = data;
 
@@ -285,7 +287,6 @@ md5_hash(const void *input, unsigned len, void *digest)
 	md5_context ctx;
 
 	ASSERT(input != NULL);
-	ASSERT(len > 0);
 	ASSERT(digest != NULL);
 
 	md5_init(&ctx);
