@@ -4,6 +4,10 @@
 #ifndef _MD5_H_
 #define _MD5_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
     unsigned int    md5[ 4];
     unsigned int    len[ 2];
@@ -14,5 +18,9 @@ void md5_init(md5_context *ctx);
 void md5_update(md5_context *ctx, const void *data, unsigned len);
 void md5_final(md5_context *ctx, void *digest);
 void md5_hash(const void *input, unsigned len, void *digest); // 16 byte output.
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !_MD5_H_

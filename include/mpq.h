@@ -6,6 +6,10 @@
 
 #include "mpi.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
     mpi_t   num;    /* Numerator. */
     mpi_t   den;    /* Denominator. */
@@ -112,5 +116,9 @@ void	mpq_fprint(const mpq *p, unsigned base, FILE *fp);
 #define mpq_print_oct(p)	mpq_print((p),  8)
 #define mpq_print_dec(p)	mpq_print((p), 10)
 #define mpq_print_hex(p)	mpq_print((p), 16)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !_MPQ_H_

@@ -3,9 +3,13 @@
 
 #include "mpq.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {	/* rational polynomial */
-	int deg;		/* degree N >= 0 */
-	mpq_t *c;		/* N+1 coeff's c_0 ... c_N */
+    int deg;		/* degree N >= 0 */
+    mpq_t *c;		/* N+1 coeff's c_0 ... c_N */
 } mpq_poly, mpq_poly_t[1];
 
 void mpq_poly_init(mpq_poly_t p);
@@ -33,5 +37,9 @@ void mpq_poly_eval(const mpq_poly_t p, const mpq_t x, mpq_t f);
 void mpq_poly_dif(const mpq_poly_t p, mpq_poly_t q);
 void mpq_poly_int(const mpq_poly_t p, mpq_poly_t q);
 int  mpq_poly_equ(const mpq_poly_t u, const mpq_poly_t v);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !_MPQ_POLY_H_ */

@@ -105,10 +105,18 @@
 #define MP_TMP_COPY(num,size)	memcpy(MP_TMP_ALLOC(size), (num), \
 				       (size) * MP_DIGIT_SIZE)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void mp_digit_mul(mp_digit u, mp_digit v, mp_digit *hi, mp_digit *lo);
 void mp_digit_sqr(mp_digit u, mp_digit *hi, mp_digit *lo);
 void mp_digit_div(mp_digit n1, mp_digit n0, mp_digit d,
 		  mp_digit *q, mp_digit *r);
+
+#ifdef __cplusplus
+}
+#endif
 
 /* If we don't have inline assembly versions of these primitive operations,
  * fall back onto the (slow) C versions. */

@@ -16,6 +16,10 @@
 #include "mp_config.h"
 #include "mt64.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if   MP_DIGIT_SIZE == 1
 typedef uint8_t			mp_digit;
 # define MP_DIGIT_HMASK		UINT8_C(0xf0)
@@ -417,5 +421,9 @@ mp_digit*   mp_from_str(const char *u, unsigned radix, mp_size *size);
 
 #define MP_NORMALIZE(u,usize) \
     while ((usize) && !(u)[(usize) - 1]) --(usize);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !_MP_H_ */

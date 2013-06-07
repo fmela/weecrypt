@@ -6,6 +6,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
     uint32_t md4[4];
     uint32_t len[2];
@@ -16,5 +20,9 @@ void md4_init(md4_context *ctx);
 void md4_update(md4_context *ctx, const void *data, unsigned len);
 void md4_final(md4_context *ctx, void *digest);
 void md4_hash(const void *input, unsigned len, void *digest); // 16-byte output
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !__FX_MD4_H__

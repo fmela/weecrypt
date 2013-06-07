@@ -11,6 +11,10 @@
 #include "mp.h"
 #include "mp_internal.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
     mp_digit*	digits;	    /* Digits of number. */
     mp_size	size;	    /* Length of number. */
@@ -161,5 +165,9 @@ void	mpi_fprint(const mpi *n, unsigned base, FILE *fp);
 #define mpi_print_dec(n)	mpi_print((n), 10)
 #define mpi_print_hex(n)	mpi_print((n), 16)
 #define mpi_to_str(n,base)	mp_to_str((n)->digits, (n)->size, (base))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !_MPI_H_ */

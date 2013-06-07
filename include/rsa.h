@@ -3,13 +3,17 @@
 
 #include "mpi.h"
 
-/*  (n,e) is the public key, (n,d) is the private key. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* (n,e) is the public key, (n,d) is the private key. */
 typedef struct {
-	mpi* n;		/* modulus n = pq */
-	mpi* phi;	/* phi = (p-1)(q-1) */
-	mpi* e;		/* public exponent 1 < e < phi s.t. gcd(e,phi)=1 */
-	mpi* d;		/* secret exponent 1 < d < phi s.t. ed=1 (mod phi)
-			   i.e. e and d are multiplicative inverses mod phi */
+    mpi* n;	/* modulus n = pq */
+    mpi* phi;	/* phi = (p-1)(q-1) */
+    mpi* e;	/* public exponent 1 < e < phi s.t. gcd(e,phi)=1 */
+    mpi* d;	/* secret exponent 1 < d < phi s.t. ed=1 (mod phi)
+		   i.e. e and d are multiplicative inverses mod phi */
 } rsa_ctx;
 
 /* Generate the public and private key. Sets n, phi, e, and d. */
@@ -23,9 +27,13 @@ void rsa_free(rsa_ctx *rsa);
 
 /* Transform cleartext into encrypted data. */
 bool rsa_encrypt(rsa_ctx *ctx, const void *input, unsigned input_size,
-				 void *output, unsigned *output_size);
+		 void *output, unsigned *output_size);
 /* Transform encrypted data back to cleartext. */
 bool rsa_decrypt(rsa_ctx *ctx, const void *input, unsigned input_size,
-				 void *output, unsigned *output_size);
+		 void *output, unsigned *output_size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !_RSA_H_ */
