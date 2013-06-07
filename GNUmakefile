@@ -22,6 +22,7 @@ endif
 #COPTS=-g
 COPTS=-O2
 CFLAGS=-Wall -Wextra -Werror -Wshadow -std=c99 $(COPTS) $(ARCH) -Iinclude
+CXXFLAGS=-Wall -Wextra -Werror -Wshadow $(COPTS) $(ARCH) -Iinclude
 PIC=-DPIC -fPIC
 PROF=-pg
 
@@ -30,8 +31,8 @@ CUNIT_PREFIX=$(HOME)/homebrew
 INSTALL_PREFIX?=/usr/local
 INSTALL=install
 
-TEST_SRC=$(wildcard *.c)
-TEST_BIN=$(TEST_SRC:%.c=$(BUILD_DIR)/%)
+TEST_SRC=$(wildcard *.c *.cc)
+TEST_BIN=$(TEST_SRC:%.c=$(BUILD_DIR)/%) $(TEST_SRC:%.cc=$(BUILD_DIR)/%)
 
 all: $(BUILD_DIR) $(STATIC_LIB) $(TEST_BIN)
 
@@ -76,6 +77,9 @@ $(BUILD_DIR)/unit_tests: unit_tests.c $(STATIC_LIB)
 
 $(BUILD_DIR)/%: %.c $(STATIC_LIB)
 	$(CC) $(CFLAGS) -o $(@) $(<) $(STATIC_LIB)
+
+$(BUILD_DIR)/%: %.cc $(STATIC_LIB)
+	$(CC) $(CXXFLAGS) -o $(@) $(<) $(STATIC_LIB)
 
 .PHONY: clean
 clean:
