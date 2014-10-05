@@ -41,6 +41,8 @@ CU_TestInfo mp_conversion_tests[] = {
 void test_mp_rand();
 void test_mp_add_n();
 void test_mp_sub_n();
+void test_mp_inc();
+void test_mp_dec();
 void test_mp_mul();
 void test_mp_mul_bug();
 void test_mp_div();
@@ -53,6 +55,8 @@ CU_TestInfo mp_basic_tests[] = {
     TEST_FUNC(test_mp_rand),
     TEST_FUNC(test_mp_add_n),
     TEST_FUNC(test_mp_sub_n),
+    TEST_FUNC(test_mp_inc),
+    TEST_FUNC(test_mp_dec),
     TEST_FUNC(test_mp_mul),
     TEST_FUNC(test_mp_mul_bug),
     TEST_FUNC(test_mp_div),
@@ -373,6 +377,84 @@ void test_mp_sub_n()
 		CU_ASSERT_EQUAL(C[j], 1);
 	    } else {
 		CU_ASSERT_EQUAL(C[j], 0);
+	    }
+	}
+    }
+}
+
+void test_mp_inc()
+{
+    const mp_size N = 17;
+    mp_digit A[N];
+
+    for (mp_size n = 0; n < N; ++n) {
+	/* Initialize to zero value. */
+	for (mp_size i = 0; i < n; ++i) {
+	    A[i] = 0;
+	}
+	mp_digit carry = mp_inc(A, n);
+	if (n == 0) {
+	    CU_ASSERT_EQUAL(carry, 1);
+	} else {
+	    CU_ASSERT_EQUAL(carry, 0);
+	    CU_ASSERT_EQUAL(A[0], 1);
+	    for (mp_size i = 1; i < n; ++i) {
+		CU_ASSERT_EQUAL(A[i], 0);
+	    }
+	}
+    }
+
+    for (mp_size n = 0; n < N; ++n) {
+	/* Initialize to max value. */
+	for (mp_size i = 0; i < n; ++i) {
+	    A[i] = ~(mp_digit)0;
+	}
+	mp_digit carry = mp_inc(A, n);
+	if (n == 0) {
+	    CU_ASSERT_EQUAL(carry, 1);
+	} else {
+	    CU_ASSERT_EQUAL(carry, 1);
+	    CU_ASSERT_EQUAL(A[0], 0);
+	    for (mp_size i = 1; i < n; ++i) {
+		CU_ASSERT_EQUAL(A[i], 0);
+	    }
+	}
+    }
+}
+
+void test_mp_dec()
+{
+    const mp_size N = 17;
+    mp_digit A[N];
+
+    for (mp_size n = 0; n < N; ++n) {
+	/* Initialize to zero value. */
+	for (mp_size i = 0; i < n; ++i) {
+	    A[i] = 0;
+	}
+	mp_digit borrow = mp_dec(A, n);
+	CU_ASSERT_EQUAL(borrow, 1);
+	if (n > 0) {
+	    CU_ASSERT_EQUAL(A[0], ~(mp_digit)0);
+	    for (mp_size i = 1; i < n; ++i) {
+		CU_ASSERT_EQUAL(A[i], ~(mp_digit)0);
+	    }
+	}
+    }
+
+    for (mp_size n = 0; n < N; ++n) {
+	/* Initialize to max value. */
+	for (mp_size i = 0; i < n; ++i) {
+	    A[i] = ~(mp_digit)0;
+	}
+	mp_digit borrow = mp_dec(A, n);
+	if (n == 0) {
+	    CU_ASSERT_EQUAL(borrow, 1);
+	} else {
+	    CU_ASSERT_EQUAL(borrow, 0);
+	    CU_ASSERT_EQUAL(A[0], (~(mp_digit)0) - 1);
+	    for (mp_size i = 1; i < n; ++i) {
+		CU_ASSERT_EQUAL(A[i], ~(mp_digit)0);
 	    }
 	}
     }
