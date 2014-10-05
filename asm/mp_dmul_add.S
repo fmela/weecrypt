@@ -3,7 +3,7 @@
  * Copyright (C) 2001-2010 Farooq Mela. All rights reserved.
  *
  * mp_digit_t mp_dmul_add(const mp_digit_t *u, mp_len_t len, mp_digit_t v,
- * 						  mp_digit_t *w);
+ * 			  mp_digit_t *w);
  *
  * Parameters:
  * esp+4	u

@@ -2,7 +2,7 @@
  * mp_and_mmx.S
  * Copyright (C) 2002-2010 Farooq Mela. All rights reserved.
  *
- * void mp_and(mp_digit_t *u, mp_len_t len, const mp_digit_t *v)
+ * void mp_and(mp_digit_t *u, mp_len_t len, const mp_digit_t *v);
  *
  * Parameters:
  * esp+4	u
