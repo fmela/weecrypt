@@ -28,39 +28,39 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_sqr_diag),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_sqr_diag):
 	pushl	%esi
 	pushl	%edi
 	pushl	%ebx
 
-	movl	L_LOC,%ecx					/* load len							*/
-	jecxz	.Lexit						/* done if zero						*/
-	movl	U_LOC,%esi					/* load u							*/
-	movl	V_LOC,%edi					/* load v							*/
+	movl	L_LOC,%ecx	    /* load len				    */
+	jecxz	.Lexit		    /* done if zero			    */
+	movl	U_LOC,%esi	    /* load u				    */
+	movl	V_LOC,%edi	    /* load v				    */
 
 	shll	$2,%ecx
-	addl	%ecx,%esi					/* u += len							*/
+	addl	%ecx,%esi	    /* u += len				    */
 	shll	%ecx
-	addl	%ecx,%edi					/* v += len*2						*/
+	addl	%ecx,%edi	    /* v += len*2			    */
 	shrl	$3,%ecx
-	negl	%ecx						/* negate len						*/
-	xorl	%ebx,%ebx					/* clear carry						*/
+	negl	%ecx		    /* negate len			    */
+	xorl	%ebx,%ebx	    /* clear carry			    */
 
-	/* It would make more sense to keep carry in the carry flag instead of ebx,
-	 * but since mul clobbers the carry flag we have no choice. */
-	.p2align	3
+	/* It would make more sense to keep carry in the carry flag instead of
+	 * ebx, but since mul clobbers the carry flag we have no choice. */
+	.p2align 3
 .Lsimple:
-	movl	(%esi,%ecx,4),%eax			/* eax = u[i]						*/
-	mull	%eax						/* square hi=edx lo=eax				*/
-	addl	%ebx,%eax					/* lo += prev carry					*/
-	adcl	$0,%edx						/* hi += carry						*/
-	xorl	%ebx,%ebx					/* clear next carry					*/
-	addl	%eax,(%edi,%ecx,8)			/* v[i*2] += lo						*/
-	adcl	%edx,4(%edi,%ecx,8)			/* v[i*2+1] += hi + carry			*/
-	adcl	$0,%ebx						/* put next carry in ebx			*/
+	movl	(%esi,%ecx,4),%eax  /* eax = u[i]			    */
+	mull	%eax		    /* square hi=edx lo=eax		    */
+	addl	%ebx,%eax	    /* lo += prev carry			    */
+	adcl	$0,%edx		    /* hi += carry			    */
+	xorl	%ebx,%ebx	    /* clear next carry			    */
+	addl	%eax,(%edi,%ecx,8)  /* v[i*2] += lo			    */
+	adcl	%edx,4(%edi,%ecx,8) /* v[i*2+1] += hi + carry		    */
+	adcl	$0,%ebx		    /* put next carry in ebx		    */
 	incl	%ecx
-	jnz		.Lsimple					/* loop								*/
+	jnz	.Lsimple	    /* loop				    */
 
 .Lexit:
 	popl	%ebx

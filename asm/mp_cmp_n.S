@@ -26,32 +26,32 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_cmp_n),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_cmp_n):
 	pushl	%esi
 	pushl	%edi
 
 	xorl	%eax,%eax
 	movl	L_LOC,%ecx
-	orl		%ecx,%ecx
-	jz		.Leq
+	orl	%ecx,%ecx
+	jz	.Leq
 	movl	U_LOC,%esi
 	movl	V_LOC,%edi
 
-	.p2align	3
+	.p2align 3
 .Loop:
 	decl	%ecx
 	movl	(%esi,%ecx,4),%edx
 	cmpl	(%edi,%ecx,4),%edx
-	ja		.Labove
-	jb		.Lbelow
-	orl		%ecx,%ecx
-	jz		.Leq
-	jmp		.Loop
+	ja	.Labove
+	jb	.Lbelow
+	orl	%ecx,%ecx
+	jz	.Leq
+	jmp	.Loop
 
 .Labove:
 	movl	$+1,%eax
-	jmp		.Leq
+	jmp	.Leq
 
 .Lbelow:
 	movl	$-1,%eax

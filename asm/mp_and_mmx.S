@@ -37,7 +37,7 @@ MP_ASM_NAME(mp_and_mmx):
 	movl	U_LOC,%edi			# esi = v
 
 	shrl	$4,%ecx
-	jz		.Lskip
+	jz	.Lskip
 
 .Lmmx:
 	prefetcht0	(%esi)
@@ -70,14 +70,14 @@ MP_ASM_NAME(mp_and_mmx):
 	addl	$64,%esi
 	addl	$64,%edi
 	decl	%ecx
-	jnz		.Lmmx
+	jnz	.Lmmx
 
 	emms
 
 .Lskip:
 	movl	L_LOC,%ecx
 	andl	$15,%ecx
-	jz		.Lexit
+	jz	.Lexit
 
 .Lnormal:
 	movl	(%esi),%edx
@@ -85,7 +85,7 @@ MP_ASM_NAME(mp_and_mmx):
 	addl	$4,%esi
 	addl	$4,%edi
 	decl	%ecx
-	jnz		.Lnormal
+	jnz	.Lnormal
 
 .Lexit:
 	popl	%edi

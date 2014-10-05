@@ -29,7 +29,7 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_dmul),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_dmul):
 	pushl	%ebx
 	pushl	%edi
@@ -49,7 +49,7 @@ MP_ASM_NAME(mp_dmul):
 	subl	%ecx,%edi			# edi -= 4 * len bytes
 	sarl	$2,%ecx				# Convert back to digits
 
-	.p2align	3
+	.p2align 3
 .L0:
 	movl	(%esi,%ecx,4),%eax
 	mull	%ebp
@@ -58,9 +58,9 @@ MP_ASM_NAME(mp_dmul):
 	adcl	$0,%edx
 	movl	%edx,%ebx
 	incl	%ecx
-	jnz		.L0
+	jnz	.L0
 
-	.p2align	3
+	.p2align 3
 .L1:
 	movl	%ebx,%eax
 

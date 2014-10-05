@@ -26,7 +26,7 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_dmuli),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_dmuli):
 	pushl	%ebx
 	pushl	%edi
@@ -40,28 +40,28 @@ MP_ASM_NAME(mp_dmuli):
 
 	jecxz	.L2
 
-	jmp		.L1
+	jmp	.L1
 	movl	%ebx,%eax
 	decl	%eax
 	andl	%ebx,%eax
-	jnz		.L1
+	jnz	.L1
 
-	movl	%ecx,%edi		/* edi = len so we can shift with cl			*/
-	bsfl	%ebx,%ecx		/* cl = lg(v)									*/
-	xorl	%eax,%eax		/* clear previous bits							*/
+	movl	%ecx,%edi	/* edi = len so we can shift with cl	    */
+	bsfl	%ebx,%ecx	/* cl = lg(v)				    */
+	xorl	%eax,%eax	/* clear previous bits			    */
 
-	.p2align	3
+	.p2align 3
 .L0:
-	movl	(%esi),%edx		/* edx = u-digit								*/
-	shldl	%cl,%eax,(%esi)	/* shift u-digit and combine with previous		*/
-	movl	%edx,%eax		/* eax = u-digit before shift					*/
-	addl	$4,%esi			/* move u-pointer along							*/
-	decl	%edi			/* decrement length								*/
-	jnz		.L0				/* loop											*/
-	shrl	%cl,%eax		/* shift last digit right						*/
-	jmp		.L2
+	movl	(%esi),%edx	/* edx = u-digit			    */
+	shldl	%cl,%eax,(%esi)	/* shift u-digit and combine with previous  */
+	movl	%edx,%eax	/* eax = u-digit before shift		    */
+	addl	$4,%esi		/* move u-pointer along			    */
+	decl	%edi		/* decrement length			    */
+	jnz	.L0		/* loop					    */
+	shrl	%cl,%eax	/* shift last digit right		    */
+	jmp	.L2
 
-	.p2align	3
+	.p2align 3
 .L1:
 	movl	(%esi),%eax
 	mull	%ebx
@@ -72,10 +72,10 @@ MP_ASM_NAME(mp_dmuli):
 
 	addl	$4,%esi
 	decl	%ecx
-	jnz		.L1
+	jnz	.L1
 	movl	%edi,%eax
 
-	.p2align	3
+	.p2align 3
 .L2:
 	popl	%esi
 	popl	%edi

@@ -38,46 +38,46 @@ MP_ASM_NAME(mp_ddivi):
 	movl	U_LOC,%esi
 	movl	V_LOC,%ebx
 
-	movl	%ebx,%eax				/* power of two?						*/
+	movl	%ebx,%eax		/* power of two?		    */
 	decl	%eax
 	andl	%ebx,%eax
-	jz		.L1
+	jz	.L1
 
-	xorl	%edx,%edx				/* clear remainder						*/
-	.p2align	3
+	xorl	%edx,%edx		/* clear remainder		    */
+	.p2align 3
 .L0:
-	decl	%ecx					/* decrement count						*/
-	movl	(%esi,%ecx,4),%eax		/* load divisor digit					*/
-	divl	%ebx					/* divide edx:eax into q=eax r=edx		*/
-	movl	%eax,(%esi,%ecx,4)		/* store quotient						*/
-	orl		%ecx,%ecx				/* check count == 0						*/
-	jnz		.L0						/* loop									*/
-	movl	%edx,%eax				/* return remainder						*/
-	jmp		.L3
+	decl	%ecx			/* decrement count		    */
+	movl	(%esi,%ecx,4),%eax	/* load divisor digit		    */
+	divl	%ebx			/* divide edx:eax into q=eax r=edx  */
+	movl	%eax,(%esi,%ecx,4)	/* store quotient		    */
+	orl	%ecx,%ecx		/* check count == 0		    */
+	jnz	.L0			/* loop				    */
+	movl	%edx,%eax		/* return remainder		    */
+	jmp	.L3
 
-	.p2align	3
+	.p2align 3
 .L1:
-	movl	%ecx,%edi				/* edi = len so we can shift using cl	*/
-	bsfl	%ebx,%ecx				/* cl = lg(v), rest of ecx zeroed		*/
-	xorl	%eax,%eax				/* clear "previous" bits				*/
+	movl	%ecx,%edi		/* edi = len to shift using cl	    */
+	bsfl	%ebx,%ecx		/* cl = lg(v), rest of ecx zeroed   */
+	xorl	%eax,%eax		/* clear "previous" bits	    */
 
-	.p2align	3
+	.p2align 3
 .L2:
 	decl	%edi
-	movl	(%esi,%edi,4),%edx		/* edx = u-digit						*/
-	shrdl	%cl,%eax,(%esi,%edi,4)	/* shift u-digit & combine w/prev bits	*/
-	movl	%edx,%eax				/* eax = u-digit before shift			*/
-	orl		%edi,%edi
-	jnz		.L2						/* loop									*/
+	movl	(%esi,%edi,4),%edx	/* edx = u-digit		    */
+	shrdl	%cl,%eax,(%esi,%edi,4)	/* shift u-digit & combine w/prev   */
+	movl	%edx,%eax		/* eax = u-digit before shift	    */
+	orl	%edi,%edi
+	jnz	.L2			/* loop				    */
 
 	movl	$1,%eax
 	shll	%cl,%eax
-	decl	%eax					/* get mask = 2 ** lg(v) - 1 = v - 1	*/
-	andl	%edx,%eax				/* put remainder onto [0, v)			*/
+	decl	%eax			/* mask = 2^lg(v) - 1 = v - 1	    */
+	andl	%edx,%eax		/* put remainder onto [0, v)	    */
 
-	.p2align	3
+	.p2align 3
 .L3:
-	popl	%edi					/* yay we are done						*/
+	popl	%edi
 	popl	%esi
 	popl	%ebx
 	ret

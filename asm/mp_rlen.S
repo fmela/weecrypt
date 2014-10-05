@@ -24,7 +24,7 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_rlen),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_rlen):
 	movl	U_LOC,%edx
 	movl	L_LOC,%ecx
@@ -34,17 +34,17 @@ MP_ASM_NAME(mp_rlen):
 	shll	$2,%ecx
 	addl	%ecx,%edx
 	shrl	$2,%ecx
-	jmp		.L1
+	jmp	.L1
 
 	.align	3
 .L0:
 	decl	%ecx
-	jz		.L2
+	jz	.L2
 	.align	3
 .L1:
 	subl	$4,%edx
 	cmpl	$0,(%edx)
-	je		.L0
+	je	.L0
 
 	.align	3
 .L2:

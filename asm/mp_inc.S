@@ -24,26 +24,26 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_inc),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_inc):
 	movl	U_LOC,%edx
 	movl	L_LOC,%ecx
 
 	movl	$1,%eax
 	jecxz	.L1
-	
+
 	shll	$2,%ecx
 	addl	%ecx,%edx
 	shrl	$2,%ecx
 	negl	%ecx
 
-	.p2align	3
+	.p2align 3
 .L0:
 	addl	$1,(%edx,%ecx,4)
 	setc	%al
-	jnc		.L1
+	jnc	.L1
 	incl	%ecx
-	jnz		.L0
+	jnz	.L0
 
 .L1:
 	ret

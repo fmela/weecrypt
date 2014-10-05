@@ -40,23 +40,23 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_xchg),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_xchg):
 	pushl	%esi
 	pushl	%edi
 
-	movl	L_LOC,%ecx					/* ecx = len						*/
-	orl		%ecx,%ecx
-	jz		.Lexit						/* exit if zero						*/
-	movl	U_LOC,%esi					/* esi = u							*/
-	movl	V_LOC,%edi					/* edi = v							*/
+	movl	L_LOC,%ecx	    /* ecx = len			    */
+	orl	%ecx,%ecx
+	jz	.Lexit		    /* exit if zero			    */
+	movl	U_LOC,%esi	    /* esi = u				    */
+	movl	V_LOC,%edi	    /* edi = v				    */
 	cmpl	%esi,%edi
-	je		.Lexit						/* exit if equal					*/
+	je	.Lexit		    /* exit if equal			    */
 
-	shrl	$3,%ecx						/* divide by 8 for unrolled loop	*/
-	jz		.Lskipunroll				/* if zero we have < 8 digits		*/
+	shrl	$3,%ecx		    /* divide by 8 for unrolled loop	    */
+	jz	.Lskipunroll	    /* if zero we have < 8 digits	    */
 
-	.p2align	4
+	.p2align 4
 .Lunroll:
 	xchg 0
 	xchg 4
@@ -66,16 +66,16 @@ MP_ASM_NAME(mp_xchg):
 	xchg 20
 	xchg 24
 	xchg 28
-	addl $32,%esi						/* move u pointer along				*/
-	addl $32,%edi						/* move v pointer along				*/
-	decl %ecx							/* decrement # of 8-digit clumps	*/
-	jnz .Lunroll						/* loop								*/
+	addl $32,%esi		    /* move u pointer along		    */
+	addl $32,%edi		    /* move v pointer along		    */
+	decl %ecx		    /* decrement # of 8-digit clumps	    */
+	jnz .Lunroll		    /* loop				    */
 
-	.p2align	3
+	.p2align 3
 .Lskipunroll:
-	movl	L_LOC,%ecx					/* ecx = len						*/
-	andl	$7,%ecx						/* digits modulo 8					*/
-	jz		.Lexit						/* nothing left to do				*/
+	movl	L_LOC,%ecx	    /* ecx = len			    */
+	andl	$7,%ecx		    /* digits modulo 8			    */
+	jz	.Lexit		    /* nothing left to do		    */
 
 	shll	$2,%ecx
 	addl	%ecx,%esi
@@ -83,15 +83,15 @@ MP_ASM_NAME(mp_xchg):
 	shrl	$2,%ecx
 	negl	%ecx
 
-	.p2align	3
+	.p2align 3
 .Lsimple:
 	movl	(%esi,%ecx,4),%eax
 	xchgl	(%edi,%ecx,4),%eax
 	movl	%eax,(%esi,%ecx,4)
 	incl	%ecx
-	jnz		.Lsimple
+	jnz	.Lsimple
 
-	.p2align	3
+	.p2align 3
 .Lexit:
 	popl	%edi
 	popl	%esi

@@ -23,22 +23,22 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_flip),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_flip):
-	movl	L_LOC,%ecx				# ecx = length
-	jecxz	.L1						# done if zero
-	movl	U_LOC,%edx				# edx = u ptr
+	movl	L_LOC,%ecx	# ecx = length
+	jecxz	.L1		# done if zero
+	movl	U_LOC,%edx	# edx = u ptr
 
-	negl	%ecx					# ecx = -ecx
-	sall	$2,%ecx					# ecx *= 4
-	subl	%ecx,%edx				# edx -= ecx
-	sarl	$2,%ecx					# ecx /= 4
+	negl	%ecx		# ecx = -ecx
+	sall	$2,%ecx		# ecx *= 4
+	subl	%ecx,%edx	# edx -= ecx
+	sarl	$2,%ecx		# ecx /= 4
 
-	.p2align	3
+	.p2align 3
 .L0:
-	notl	(%edx,%ecx,4)			# flip digit
+	notl	(%edx,%ecx,4)	# flip digit
 	incl	%ecx
-	jnz		.L0
+	jnz	.L0
 
 .L1:
 	ret

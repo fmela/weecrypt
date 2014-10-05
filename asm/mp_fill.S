@@ -34,7 +34,7 @@ MP_ASM_NAME(mp_fill):
 	movl	L_LOC,%ecx
 	movl	V_LOC,%eax
 	cld
-	rep		stosl
+	rep	stosl
 
 	movl	U_LOC,%eax
 

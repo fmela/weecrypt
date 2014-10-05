@@ -43,24 +43,24 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_sub_n),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_sub_n):
 	pushl	%esi
 	pushl	%edi
 
-	xorl	%eax,%eax				/* zero return value					*/
-	movl	L_LOC,%ecx				/* ecx = len							*/
-	orl		%ecx,%ecx
-	jz		.Lexit
-	movl	U_LOC,%esi				/* esi = u								*/
-	movl	V_LOC,%edx				/* edx = v								*/
-	movl	W_LOC,%edi				/* edi = w								*/
+	xorl	%eax,%eax		/* zero return value		    */
+	movl	L_LOC,%ecx		/* ecx = len			    */
+	orl	%ecx,%ecx
+	jz	.Lexit
+	movl	U_LOC,%esi		/* esi = u			    */
+	movl	V_LOC,%edx		/* edx = v			    */
+	movl	W_LOC,%edi		/* edi = w			    */
 
-	shrl	$4,%ecx					/* divide by 16 for unrolled loop		*/
-	jz		.Lskipunroll			/* if zero we have < 16 digits			*/
-	clc								/* clear carry							*/
+	shrl	$4,%ecx			/* divide by 16 for unrolled loop   */
+	jz	.Lskipunroll		/* if zero we have < 16 digits	    */
+	clc				/* clear carry			    */
 
-	.p2align	5
+	.p2align 5
 .Lunroll:
 	sub 0
 	sub 4
@@ -79,45 +79,45 @@ MP_ASM_NAME(mp_sub_n):
 	sub 56
 	sub 60
 
-	leal	64(%esi),%esi			/* move pointers along...				*/
-	leal	64(%edx),%edx			/*     ... without clobbering ...		*/
-	leal	64(%edi),%edi			/*           ... carry flag				*/
-	decl	%ecx					/* decrement # of 16-digit clumps		*/
-	jnz		.Lunroll				/* loop									*/
+	leal	64(%esi),%esi	    /* move pointers along...		    */
+	leal	64(%edx),%edx	    /*     ... without clobbering ...	    */
+	leal	64(%edi),%edi	    /*           ... carry flag		    */
+	decl	%ecx		    /* decrement # of 16-digit clumps	    */
+	jnz	.Lunroll	    /* loop				    */
 
-	setc	%al						/* eax = carry							*/
+	setc	%al		    /* eax = carry			    */
 	andl	$1,%eax
 
-	.p2align	3
+	.p2align 3
 .Lskipunroll:
-	movl	L_LOC,%ecx				/* reload ecx							*/
-	andl	$15,%ecx				/* get remaining digit count			*/
-	jz		.Lexit					/* done if zero							*/
+	movl	L_LOC,%ecx	    /* reload ecx			    */
+	andl	$15,%ecx	    /* get remaining digit count	    */
+	jz	.Lexit		    /* done if zero			    */
 
-	shll	$2,%ecx					/* to bytes								*/
-	addl	%ecx,%esi				/* offset u								*/
-	addl	%ecx,%edx				/* offset v								*/
-	addl	%ecx,%edi				/* offset w								*/
-	shrl	$2,%ecx					/* back to digits						*/
-	negl	%ecx					/* negate ecx							*/
+	shll	$2,%ecx		    /* to bytes				    */
+	addl	%ecx,%esi	    /* offset u				    */
+	addl	%ecx,%edx	    /* offset v				    */
+	addl	%ecx,%edi	    /* offset w				    */
+	shrl	$2,%ecx		    /* back to digits			    */
+	negl	%ecx		    /* negate ecx			    */
 
 	clc
-	orb		%al,%al					/* remember carry						*/
-	jz		.Lsimple
-	stc								/* set carry							*/
+	orb	%al,%al		    /* remember carry			    */
+	jz	.Lsimple
+	stc			    /* set carry			    */
 
-	.p2align	3
+	.p2align 3
 .Lsimple:
-	movl	(%esi,%ecx,4),%eax		/* eax = u-digit						*/
-	sbbl	(%edx,%ecx,4),%eax		/* eax -= v-digit + carry				*/
-	movl	%eax,(%edi,%ecx,4)		/* w-digit = eax						*/
-	incl	%ecx					/* decrement count						*/
-	jnz		.Lsimple				/* loop									*/
+	movl	(%esi,%ecx,4),%eax  /* eax = u-digit			    */
+	sbbl	(%edx,%ecx,4),%eax  /* eax -= v-digit + carry		    */
+	movl	%eax,(%edi,%ecx,4)  /* w-digit = eax			    */
+	incl	%ecx		    /* decrement count			    */
+	jnz	.Lsimple	    /* loop				    */
 
-	setc	%al						/* al = carry							*/
-	andl	$1,%eax					/* mask off rest of eax					*/
+	setc	%al		    /* al = carry			    */
+	andl	$1,%eax		    /* mask off rest of eax		    */
 
-	.p2align	3
+	.p2align 3
 .Lexit:
 	popl	%edi
 	popl	%esi

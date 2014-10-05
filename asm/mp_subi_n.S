@@ -47,13 +47,13 @@ MP_ASM_NAME(mp_subi_n):
 
 	xorl	%eax,%eax
 	movl	L_LOC,%ecx
-	orl		%ecx,%ecx
-	jz		.Lexit
+	orl	%ecx,%ecx
+	jz	.Lexit
 	movl	U_LOC,%edi
 	movl	V_LOC,%esi
 
 	shrl	$4,%ecx
-	jz		.Lskipunroll
+	jz	.Lskipunroll
 	clc
 
 	.p2align	5
@@ -78,16 +78,16 @@ MP_ASM_NAME(mp_subi_n):
 	leal	64(%esi),%esi
 	leal	64(%edi),%edi
 	decl	%ecx
-	jnz		.Lunroll
+	jnz	.Lunroll
 
 	setc	%al
 	andl	$1,%eax
 
-	.p2align	3
+	.p2align 3
 .Lskipunroll:
 	movl	L_LOC,%ecx
 	andl	$15,%ecx
-	jz		.Lexit
+	jz	.Lexit
 
 	negl	%ecx
 	sall	$2,%ecx
@@ -96,22 +96,22 @@ MP_ASM_NAME(mp_subi_n):
 	sarl	$2,%ecx
 
 	clc
-	orb		%al,%al
-	jz		.Lsimple
+	orb	%al,%al
+	jz	.Lsimple
 	stc
 
-	.p2align	3
+	.p2align 3
 .Lsimple:
 	movl	(%edi,%ecx,4),%eax
 	sbbl	(%esi,%ecx,4),%eax
 	movl	%eax,(%edi,%ecx,4)
 	incl	%ecx
-	jnz		.Lsimple
+	jnz	.Lsimple
 
 	setc	%al
 	andl	$1,%eax
 
-	.p2align	3
+	.p2align 3
 .Lexit:
 	popl	%edi
 	popl	%esi

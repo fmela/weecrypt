@@ -53,7 +53,7 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_dmul_add),@function
 #endif
-	.p2align	4
+	.p2align 4
 MP_ASM_NAME(mp_dmul_add):
 	pushl	%ebx
 	pushl	%edi
@@ -62,18 +62,18 @@ MP_ASM_NAME(mp_dmul_add):
 
 	xorl	%ebx,%ebx
 	movl	L_LOC,%ecx
-	orl		%ecx,%ecx
-	jz		.Lexit
+	orl	%ecx,%ecx
+	jz	.Lexit
 	movl	V_LOC,%ebp
-	orl		%ebp,%ebp
-	jz		.Lexit
+	orl	%ebp,%ebp
+	jz	.Lexit
 	movl	U_LOC,%esi
 	movl	W_LOC,%edi
 
 	shrl	$3,%ecx
-	jz		.Lskipunroll
+	jz	.Lskipunroll
 
-	.p2align	4
+	.p2align 4
 .Lunroll:
 	mul_add 0
 	mul_add	4
@@ -87,13 +87,13 @@ MP_ASM_NAME(mp_dmul_add):
 	addl	$32,%esi
 	addl	$32,%edi
 	decl	%ecx
-	jnz		.Lunroll
+	jnz	.Lunroll
 
-	.p2align	3
+	.p2align 3
 .Lskipunroll:
 	movl	L_LOC,%ecx
 	andl	$7,%ecx
-	jz		.Lexit
+	jz	.Lexit
 
 	negl	%ecx
 	sall	$2,%ecx
@@ -101,7 +101,7 @@ MP_ASM_NAME(mp_dmul_add):
 	subl	%ecx,%edi
 	sarl	$2,%ecx
 
-	.p2align	3
+	.p2align 3
 .Lsimple:
 	movl	(%esi,%ecx,4),%eax
 	mull	%ebp
@@ -111,9 +111,9 @@ MP_ASM_NAME(mp_dmul_add):
 	addl	%eax,(%edi,%ecx,4)
 	adcl	%edx,%ebx
 	incl	%ecx
-	jnz		.Lsimple
+	jnz	.Lsimple
 
-	.p2align	3
+	.p2align 3
 .Lexit:
 	movl	%ebx,%eax
 	popl	%ebp

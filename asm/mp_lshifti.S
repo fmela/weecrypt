@@ -26,7 +26,7 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_lshifti),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_lshifti):
 	pushl	%ebx
 	pushl	%esi
@@ -34,27 +34,27 @@ MP_ASM_NAME(mp_lshifti):
 	xorl	%eax,%eax
 
 	movl	L_LOC,%ebx
-	orl		%ebx,%ebx
-	jz		.L1
+	orl	%ebx,%ebx
+	jz	.L1
 	movl	U_LOC,%esi
 	movl	S_LOC,%ecx
 	andb	$31,%cl
-	jz		.L1
+	jz	.L1
 
-	.p2align	3
+	.p2align 3
 .L0:
 	movl	(%esi),%edx
 	shldl	%cl,%eax,(%esi)
 	movl	%edx,%eax
 	addl	$4,%esi
 	decl	%ebx
-	jnz		.L0
+	jnz	.L0
 
 	negb	%cl
 	addb	$32,%cl
 	shrl	%cl,%eax
 
-	.p2align	3
+	.p2align 3
 .L1:
 	popl	%esi
 	popl	%ebx

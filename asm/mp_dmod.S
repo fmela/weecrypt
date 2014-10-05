@@ -26,7 +26,7 @@
 #ifndef __APPLE__
 	.type	MP_ASM_NAME(mp_dmod),@function
 #endif
-	.p2align	3
+	.p2align 3
 MP_ASM_NAME(mp_dmod):
 	pushl	%ebx
 	pushl	%esi
@@ -38,26 +38,26 @@ MP_ASM_NAME(mp_dmod):
 	movl	V_LOC,%ebx
 	xorl	%edx,%edx
 
-	movl	%ebx,%eax		
+	movl	%ebx,%eax
 	decl	%eax
 	andl	%ebx,%eax
-	jnz		.L0				/* test if v is a power of 2: v & (v-1) == 0 ? */
+	jnz	.L0		    /* v is a power of 2 if v & (v-1) == 0 */
 
 	decl	%ebx
 	andl	(%esi),%ebx
 	movl	%ebx,%eax
-	jmp		.L1
-	
-	.p2align	3
+	jmp	.L1
+
+	.p2align 3
 .L0:
 	decl	%ecx
 	movl	(%esi,%ecx,4),%eax
 	divl	%ebx
-	orl		%ecx,%ecx
-	jnz		.L0
+	orl	%ecx,%ecx
+	jnz	.L0
 	movl	%edx,%eax
 
-	.p2align	3
+	.p2align 3
 .L1:
 	popl	%esi
 	popl	%ebx

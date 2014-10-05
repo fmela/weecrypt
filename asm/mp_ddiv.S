@@ -35,25 +35,25 @@ MP_ASM_NAME(mp_ddiv):
 	pushl	%esi
 	pushl	%edi
 
-	xorl	%edx,%edx			/* clear remainder							*/
+	xorl	%edx,%edx		/* clear remainder		    */
 	movl	L_LOC,%ecx
 	jecxz	.L1
 	movl	U_LOC,%esi
 	movl	V_LOC,%ebx
 	movl	W_LOC,%edi
 
-	.p2align	3
+	.p2align 3
 .L0:
 	decl	%ecx
-	movl	(%esi,%ecx,4),%eax	/* eax = u-digit							*/
-	divl	%ebx				/* divide edx:eax into q=eax r=edx			*/
-	movl	%eax,(%edi,%ecx,4)	/* store one digit at w						*/
-	orl		%ecx,%ecx
-	jnz		.L0
+	movl	(%esi,%ecx,4),%eax	/* eax = u-digit		    */
+	divl	%ebx			/* divide edx:eax into q=eax r=edx  */
+	movl	%eax,(%edi,%ecx,4)	/* store one digit at w		    */
+	orl	%ecx,%ecx
+	jnz	.L0
 
-	.p2align	3
+	.p2align 3
 .L1:
-	movl	%edx,%eax			/* put remainder in eax						*/
+	movl	%edx,%eax		/* put remainder in eax		    */
 	popl	%edi
 	popl	%esi
 	popl	%ebx
