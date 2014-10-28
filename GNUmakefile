@@ -73,7 +73,7 @@ $(BUILD_DIR)/%.So: src/%.c
 	$(CC) $(CFLAGS) $(PIC) -c $(<) -o $(@)
 
 $(BUILD_DIR)/unit_tests: unit_tests.c $(STATIC_LIB)
-	$(CC) $(CFLAGS) -I$(CUNIT_PREFIX)/include -L$(CUNIT_PREFIX)/lib -o $(@) $(<) $(STATIC_LIB) -lncurses -lcunit
+	$(CC) $(CFLAGS) -I$(CUNIT_PREFIX)/include -L$(CUNIT_PREFIX)/lib -o $(@) $(<) $(STATIC_LIB) -lcunit
 
 $(BUILD_DIR)/%: %.c $(STATIC_LIB)
 	$(CC) $(CFLAGS) -o $(@) $(<) $(STATIC_LIB)
